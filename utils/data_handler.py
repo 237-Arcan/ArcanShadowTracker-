@@ -12,7 +12,8 @@ class DataHandler:
     
     def __init__(self):
         """Initialize the DataHandler with necessary data stores."""
-        # In a production environment, this would connect to databases or APIs
+        # Using database connection from database.py
+        # The db instance is already imported and initialized
         # For demonstration, we're initializing with structured sample data
         
         # Pre-defined leagues by sport

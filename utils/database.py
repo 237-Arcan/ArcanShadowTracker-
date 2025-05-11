@@ -262,9 +262,9 @@ class Database:
             from_date = datetime.now() - timedelta(days=days)
             
             query = session.query(Prediction).filter(
-                Prediction.date >= from_date,
-                Prediction.correct.isnot(None)
+                Prediction.date >= from_date
             )
+            query = query.filter(Prediction.correct != None)
             
             if sport:
                 query = query.filter(Prediction.sport == sport)
@@ -360,7 +360,7 @@ class Database:
         """
         session = self.Session()
         try:
-            from_date = datetime.now() - datetime.timedelta(days=days)
+            from_date = datetime.now() - timedelta(days=days)
             
             query = session.query(SystemMetric).filter(SystemMetric.date >= from_date)
             
