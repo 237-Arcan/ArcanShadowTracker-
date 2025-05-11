@@ -144,7 +144,7 @@ class Database:
                 league=prediction_data.get('league', ''),
                 home_team=prediction_data.get('home_team', ''),
                 away_team=prediction_data.get('away_team', ''),
-                prediction=prediction_data.get('outcome', ''),
+                prediction=prediction_data.get('prediction', ''),
                 confidence=prediction_data.get('confidence', 0.0),
                 arcanx_confidence=prediction_data.get('arcanx_confidence', 0.0),
                 shadow_odds_confidence=prediction_data.get('shadow_odds_confidence', 0.0),
