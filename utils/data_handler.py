@@ -56,7 +56,9 @@ class DataHandler:
         # Create a seed from inputs for consistent generation
         seed_str = f"{sport}_{league}_{date.strftime('%Y%m%d')}"
         seed = sum(ord(c) for c in seed_str)
-        random.seed(seed)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(seed) % (2**32 - 1)
+        random.seed(seed_value)
         
         # Number of matches to generate (varies by day and league)
         num_matches = random.randint(3, 8)
@@ -144,7 +146,9 @@ class DataHandler:
         # Generate consistent sample data based on inputs
         seed_str = f"{sport}_{league}"
         seed = sum(ord(c) for c in seed_str)
-        random.seed(seed)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(seed) % (2**32 - 1)
+        random.seed(seed_value)
         
         # Sample data with some reasonable constraints
         total_predictions = random.randint(days * 2, days * 5)  # Proportional to time period
@@ -187,7 +191,9 @@ class DataHandler:
         # Create a seed for consistent generation
         seed_str = f"{sport}_{league}_recent"
         seed = sum(ord(c) for c in seed_str)
-        random.seed(seed)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(seed) % (2**32 - 1)
+        random.seed(seed_value)
         
         # Number of predictions to generate (up to limit)
         num_predictions = min(limit, random.randint(5, limit))
@@ -390,7 +396,9 @@ class DataHandler:
         # Create a seed for consistent generation
         seed_str = f"{home_team}_{away_team}_{sport}_{league}"
         seed = sum(ord(c) for c in seed_str)
-        random.seed(seed)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(seed) % (2**32 - 1)
+        random.seed(seed_value)
         
         matches = []
         current_date = datetime.now()
