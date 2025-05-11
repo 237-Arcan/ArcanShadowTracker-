@@ -216,7 +216,9 @@ class ShadowOdds:
         
         # Create a unique hash for the match to simulate consistent bet volume data
         match_hash = hash(f"{match_data.get('home_team', '')}_{match_data.get('away_team', '')}_{match_data.get('date', datetime.now())}")
-        np.random.seed(match_hash)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(match_hash) % (2**32 - 1)
+        np.random.seed(seed_value)
         
         # Simulate betting volume patterns
         home_volume = np.random.uniform(0.2, 0.8)  # Percentage of bets on home team
@@ -307,7 +309,9 @@ class ShadowOdds:
         
         # Generate a unique seed from match data
         match_hash = hash(f"{match_data.get('home_team', '')}_{match_data.get('away_team', '')}_{match_data.get('league', '')}")
-        np.random.seed(match_hash)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(match_hash) % (2**32 - 1)
+        np.random.seed(seed_value)
         
         # Simulate public sentiment data
         # This would typically come from social media analysis or betting trend data

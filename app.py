@@ -373,7 +373,7 @@ with tab3:
             pred_df['Score'] = pred_df['home_score'].astype(str) + ' - ' + pred_df['away_score'].astype(str)
             
             # Format the dataframe for display
-            display_df = pred_df[['date', 'Match', 'Prediction', 'Score', 'Correct', 'confidence']]
+            display_df = pred_df[['date', 'Match', 'prediction', 'Score', 'Correct', 'confidence']]
             display_df.columns = ['Date', 'Match', 'Prediction', 'Result', 'Correct', 'Confidence']
             
             st.dataframe(display_df, use_container_width=True)
