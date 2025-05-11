@@ -143,6 +143,7 @@ class ArcanX:
             # Check if formation sum has numerological significance
             formation_significant = formation_sum in [3, 7, 9, 11]
         except (ValueError, IndexError):
+            formation_sum = 0
             formation_significant = False
         
         # Add factors to result
@@ -393,7 +394,9 @@ class ArcanX:
         away_length = len(away_team)
         
         # Generate pseudo-random number for card selection
-        np.random.seed(date_seed + home_length + away_length)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(date_seed + home_length + away_length) % (2**32 - 1)
+        np.random.seed(seed_value)
         
         # Select three "cards" for past-present-future of the match
         major_arcana = list(range(0, 22))  # 0-21 for Major Arcana
@@ -527,7 +530,9 @@ class ArcanX:
         seed = date_seed + name_seed
         
         # Generate hexagram (6 lines, each yin or yang)
-        np.random.seed(seed)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(seed) % (2**32 - 1)
+        np.random.seed(seed_value)
         lines = np.random.choice([6, 7, 8, 9], 6)  # Traditional I Ching line values
         
         # Convert to binary (0 for yin, 1 for yang)
