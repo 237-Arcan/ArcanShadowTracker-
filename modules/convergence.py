@@ -42,7 +42,9 @@ class Convergence:
         # Generate a unique hash for this match to ensure consistent results
         match_key = f"{match_data.get('home_team', '')}_{match_data.get('away_team', '')}_{match_data.get('date', datetime.now())}"
         match_hash = hash(match_key)
-        random.seed(match_hash)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(match_hash) % (2**32 - 1)
+        random.seed(seed_value)
         
         # Set up the prediction structure
         prediction = {
