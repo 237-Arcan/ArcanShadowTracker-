@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import random
 from utils.database import db
+from utils.sports_api import SportsAPI
 
 class DataHandler:
     """
@@ -14,7 +15,9 @@ class DataHandler:
         """Initialize the DataHandler with necessary data stores."""
         # Using database connection from database.py
         # The db instance is already imported and initialized
-        # For demonstration, we're initializing with structured sample data
+        
+        # Initialize the sports API
+        self.sports_api = SportsAPI()
         
         # Pre-defined leagues by sport
         self.leagues_by_sport = {
@@ -52,8 +55,16 @@ class DataHandler:
         Returns:
             list: List of upcoming match dictionaries
         """
-        # In a production system, this would query an API or database
-        # For now, we generate structured sample matches based on inputs
+        # First try to get real match data from the API
+        api_matches = self.sports_api.get_matches(sport, league, date)
+        
+        if api_matches:
+            print(f"Retrieved {len(api_matches)} matches from API for {sport} - {league}")
+            # If we got real data, use it
+            return api_matches
+            
+        # Fall back to generated data if API returned None or empty list
+        print(f"No API data available, generating sample matches for {sport} - {league}")
         
         # Create a seed from inputs for consistent generation
         seed_str = f"{sport}_{league}_{date.strftime('%Y%m%d')}"

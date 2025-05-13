@@ -715,12 +715,17 @@ with tab5:
                 
                 # Momentum timeline
                 if 'momentum_timeline' in momentum_data:
-                    minutes = list(range(0, st.session_state.current_match_minute + 1))
+                    minutes = list(range(0, len(momentum_data['momentum_timeline'])))
                     values = momentum_data['momentum_timeline']
                     
-                    fig = px.line(x=minutes, y=values, labels={'x': 'Minute', 'y': 'Momentum'})
-                    fig.update_layout(height=250)
-                    st.plotly_chart(fig, use_container_width=True, key="momentum_timeline")
+                    # Ensure same length
+                    if len(minutes) == len(values):
+                        df = pd.DataFrame({'minute': minutes, 'momentum': values})
+                        fig = px.line(df, x='minute', y='momentum', labels={'minute': 'Minute', 'momentum': 'Momentum'})
+                        fig.update_layout(height=250)
+                        st.plotly_chart(fig, use_container_width=True, key="momentum_timeline")
+                    else:
+                        st.info(f"Timeline data mismatch: {len(minutes)} minutes vs {len(values)} values")
             else:
                 st.info("Momentum data will appear as the match progresses")
         
