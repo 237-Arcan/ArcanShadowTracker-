@@ -171,7 +171,7 @@ with tab1:
                     }
                 ))
                 fig.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=20))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key=f"gauge_{match['home_team']}_{match['away_team']}")
             
             # Show prediction details in an expander
             with st.expander("View Prediction Details"):
@@ -246,7 +246,7 @@ with tab2:
         template='plotly_dark'
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="module_performance_chart")
     
     # System activity timeline
     st.markdown("### System Activity Timeline")
@@ -286,7 +286,7 @@ with tab2:
         template='plotly_dark'
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="system_activity_chart")
 
 with tab3:
     st.markdown("## Historical Analysis")
@@ -359,7 +359,7 @@ with tab3:
             template='plotly_dark'
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="historical_performance_chart")
         
         # Recent predictions
         st.markdown("### Recent Predictions")
@@ -501,7 +501,7 @@ with tab4:
         template='plotly_dark'
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="module_details_chart")
     
     # Module relationships
     st.markdown("### Module Relationships")
