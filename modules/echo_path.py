@@ -935,7 +935,7 @@ class EchoPath:
                     'match_date': match.get('date', ''),
                     'balance': cumulative_balance,
                     'tension_level': abs(cumulative_balance),
-                    'description': f"Point de tension karmique atteint après une série de résultats favorables à {'l\'équipe 1' if cumulative_balance > 0 else 'l\'équipe 2'}"
+                    'description': f"Point de tension karmique atteint après une série de résultats favorables à {'équipe 1' if cumulative_balance > 0 else 'équipe 2'}"
                 })
             
             if (cumulative_balance * previous_balance < 0) or (previous_balance != 0 and cumulative_balance == 0):

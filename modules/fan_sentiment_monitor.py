@@ -1319,7 +1319,7 @@ class FanSentimentMonitor:
             prediction['impact_duration'] = 3
         
         # Déterminer la confiance
-        prediction['confidence'] = sentiment_shift.get('magnitude', 0) > 0.3 and intensity > 0.6 ? 'high' : 'medium'
+        prediction['confidence'] = 'high' if (sentiment_shift.get('magnitude', 0) > 0.3 and intensity > 0.6) else 'medium'
         
         # Ajouter des effets spécifiques
         if prediction['next_match_impact'] > 0.1:
@@ -1872,7 +1872,7 @@ class FanSentimentMonitor:
             advantage['factors'].append({
                 'type': 'emotion_type',
                 'value': emotion_diff,
-                'description': f"{'L'équipe 1' if emotion_diff > 0 else 'L'équipe 2'} bénéficie d'une émotion plus favorable"
+                'description': f"{'Léquipe 1' if emotion_diff > 0 else 'Léquipe 2'} bénéficie d'une émotion plus favorable"
             })
         
         # Facteur 2: Intensité
@@ -1881,7 +1881,7 @@ class FanSentimentMonitor:
             advantage['factors'].append({
                 'type': 'emotional_intensity',
                 'value': intensity_diff * 0.5,  # Pondéré à 50%
-                'description': f"{'L'équipe 1' if intensity_diff > 0 else 'L'équipe 2'} a une intensité émotionnelle plus forte"
+                'description': f"{'Léquipe 1' if intensity_diff > 0 else 'Léquipe 2'} a une intensité émotionnelle plus forte"
             })
         
         # Facteur 3: Cohésion
@@ -1890,7 +1890,7 @@ class FanSentimentMonitor:
             advantage['factors'].append({
                 'type': 'sentiment_cohesion',
                 'value': cohesion_diff * 0.3,  # Pondéré à 30%
-                'description': f"{'L'équipe 1' if cohesion_diff > 0 else 'L'équipe 2'} a une cohésion émotionnelle plus forte"
+                'description': f"{'Léquipe 1' if cohesion_diff > 0 else 'Léquipe 2'} a une cohésion émotionnelle plus forte"
             })
         
         # Facteur 4: Contexte du match
@@ -1912,7 +1912,7 @@ class FanSentimentMonitor:
                 advantage['factors'].append({
                     'type': 'match_context',
                     'value': context_factor,
-                    'description': f"{'L'équipe 1' if context_factor > 0 else 'L'équipe 2'} est favorisée par le contexte du match"
+                    'description': f"{'Léquipe 1' if context_factor > 0 else 'Léquipe 2'} est favorisée par le contexte du match"
                 })
         
         # Calculer la magnitude globale

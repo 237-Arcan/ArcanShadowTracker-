@@ -14,6 +14,10 @@ from modules.arcan_sentinel import ArcanSentinel
 from modules.numeri_code import NumeriCode
 from modules.tarot_echo import TarotEcho
 from modules.astro_impact_lite import AstroImpactLite
+from modules.shadow_odds_plus import ShadowOddsPlus
+from modules.echo_path import EchoPath
+from modules.fan_sentiment_monitor import FanSentimentMonitor
+from modules.late_surge_detector import LateSurgeDetector
 # Import des modules prédictifs
 from modules.collapse_detector import CollapseDetector
 from modules.youth_impact_analyzer import YouthImpactAnalyzer
