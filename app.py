@@ -9,6 +9,7 @@ from modules.arcanx import ArcanX
 from modules.shadow_odds import ShadowOdds
 from modules.convergence import Convergence
 from modules.meta_systems import MetaSystems
+from modules.arcan_sentinel import ArcanSentinel
 from utils.data_handler import DataHandler
 from utils.translations import get_text
 from assets.symbols import get_symbol
