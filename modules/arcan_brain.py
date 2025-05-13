@@ -2775,3 +2775,136 @@ class ArcanBrain:
         except Exception as e:
             print(f"Error saving neural state: {str(e)}")
             return False
+            
+    def generate_reflex_feedback(self, analysis_result, match_data=None):
+        """
+        Generate feedback for ArcanReflex based on neural analysis results.
+        This enables the bidirectional communication loop between ArcanBrain and ArcanReflex.
+        
+        Args:
+            analysis_result (dict): Results from analyze_match
+            match_data (dict, optional): Match information
+            
+        Returns:
+            dict: Feedback metrics for ArcanReflex
+        """
+        if not analysis_result:
+            return {
+                'pattern_confidence': 0.5,
+                'insight_quality': 0.5,
+                'anomaly_relevance': 0.5,
+                'suggestion': 'Insufficient analysis data'
+            }
+        
+        # Extract key metrics from the analysis result
+        patterns = analysis_result.get('pattern_recognition', [])
+        anomalies = analysis_result.get('anomalies', [])
+        insights = analysis_result.get('insight_connections', [])
+        neural_confidence = analysis_result.get('neural_confidence', 0.5)
+        
+        # Calculate pattern confidence
+        pattern_confidence = 0.5  # Default moderate confidence
+        if patterns:
+            # Average confidence weighted by pattern strength
+            total_weight = 0
+            weighted_sum = 0
+            for pattern in patterns:
+                weight = pattern.get('confidence', 0.5)
+                weighted_sum += weight * weight  # Square to emphasize stronger patterns
+                total_weight += weight
+                
+            if total_weight > 0:
+                pattern_confidence = min(1.0, weighted_sum / total_weight)
+        
+        # Calculate insight quality
+        insight_quality = 0.5  # Default moderate quality
+        if insights:
+            # Base quality on insight confidence and coherence
+            insight_confidences = [insight.get('confidence', 0.5) for insight in insights]
+            avg_confidence = sum(insight_confidences) / len(insight_confidences) if insight_confidences else 0.5
+            
+            # Higher quality if more insights are present (up to a point)
+            insight_count_factor = min(1.0, len(insights) / 5)  # Cap at 5 insights
+            
+            # Combine factors
+            insight_quality = (avg_confidence * 0.7) + (insight_count_factor * 0.3)
+        
+        # Calculate anomaly relevance
+        anomaly_relevance = 0.5  # Default moderate relevance
+        if anomalies:
+            # Base relevance on anomaly scores and count
+            anomaly_scores = [anomaly.get('score', 0.5) for anomaly in anomalies]
+            avg_score = sum(anomaly_scores) / len(anomaly_scores) if anomaly_scores else 0.5
+            
+            # Higher relevance if more anomalies are present
+            anomaly_count_factor = min(1.0, len(anomalies) / 3)  # Cap at 3 anomalies
+            
+            # Combine factors
+            anomaly_relevance = (avg_score * 0.6) + (anomaly_count_factor * 0.4)
+        
+        # Generate architectural adaptation suggestion
+        suggestion = self._generate_adaptation_suggestion(
+            pattern_confidence, 
+            insight_quality, 
+            anomaly_relevance,
+            neural_confidence
+        )
+        
+        # Return comprehensive feedback
+        return {
+            'pattern_confidence': pattern_confidence,
+            'insight_quality': insight_quality,
+            'anomaly_relevance': anomaly_relevance,
+            'neural_confidence': neural_confidence,
+            'pattern_count': len(patterns),
+            'anomaly_count': len(anomalies),
+            'insight_count': len(insights),
+            'suggestion': suggestion,
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    def _generate_adaptation_suggestion(self, pattern_confidence, insight_quality, anomaly_relevance, neural_confidence):
+        """
+        Generate architectural adaptation suggestions for ArcanReflex based on analysis metrics.
+        
+        Args:
+            pattern_confidence (float): Confidence in detected patterns
+            insight_quality (float): Quality of generated insights
+            anomaly_relevance (float): Relevance of detected anomalies
+            neural_confidence (float): Overall neural confidence
+            
+        Returns:
+            str: Adaptation suggestion for ArcanReflex
+        """
+        # Determine the dominant feature of the analysis
+        features = {
+            'Pattern Recognition': pattern_confidence,
+            'Insight Generation': insight_quality,
+            'Anomaly Detection': anomaly_relevance
+        }
+        
+        dominant_feature = max(features.items(), key=lambda x: x[1])
+        
+        # Generate suggestion based on the dominant feature and overall confidence
+        if neural_confidence < 0.4:
+            if dominant_feature[0] == 'Pattern Recognition':
+                return "Low confidence with pattern focus suggests activating more historical modules for context enrichment"
+            elif dominant_feature[0] == 'Insight Generation':
+                return "Low confidence with insight focus suggests reducing evaluation threshold to explore more module combinations"
+            else:  # Anomaly Detection
+                return "Low confidence with anomaly focus suggests broadening module activation to triangulate unusual signals"
+        elif neural_confidence > 0.75:
+            if dominant_feature[0] == 'Pattern Recognition':
+                return "High confidence with pattern focus suggests increasing evaluation standards to refine module selection"
+            elif dominant_feature[0] == 'Insight Generation':
+                return "High confidence with insight focus suggests extending memory retention to preserve valuable patterns"
+            else:  # Anomaly Detection
+                return "High confidence with anomaly focus suggests isolating specialized modules for anomaly validation"
+        else:
+            # Moderate confidence - general suggestions
+            if pattern_confidence > 0.7 and anomaly_relevance > 0.7:
+                return "Strong pattern-anomaly contrast suggests activation pattern alternation for deeper exploration"
+            elif insight_quality < 0.4:
+                return "Moderate confidence with weak insights suggests module diversification to generate novel connections"
+            else:
+                return "Balanced analysis suggests maintaining current module activation strategy"

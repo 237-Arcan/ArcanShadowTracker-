@@ -375,6 +375,183 @@ class ArcanReflex:
             conn.close()
         except Exception as e:
             print(f"Error saving performance data: {str(e)}")
+            
+    def optimize_arcan_brain(self, match_data, analysis_result=None):
+        """
+        Optimize ArcanBrain parameters based on match context and previous performance.
+        This represents the meta-cognitive control ArcanReflex has over ArcanBrain.
+        
+        Args:
+            match_data (dict): Match information to analyze
+            analysis_result (dict, optional): Previous analysis result from ArcanBrain
+            
+        Returns:
+            dict: Updated ArcanBrain parameters and optimization report
+        """
+        if not self.arcan_brain:
+            return {
+                'status': 'error',
+                'message': 'ArcanBrain reference not available'
+            }
+            
+        # Current parameters of ArcanBrain
+        current_params = {
+            'learning_rate': self.arcan_brain.learning_rate,
+            'pattern_threshold': self.arcan_brain.pattern_threshold,
+            'anomaly_threshold': self.arcan_brain.anomaly_threshold,
+            'insight_temperature': self.arcan_brain.insight_temperature
+        }
+        
+        # Initialize optimized parameters with current values
+        optimized_params = current_params.copy()
+        param_adjustments = {}
+        adjustment_rationales = {}
+        
+        # Context-based optimization logic
+        # 1. Match context analysis
+        is_high_stakes = match_data.get('high_stakes', False)
+        is_unusual_pattern = False
+        
+        # Check if we have insights from ArcanBrain
+        if analysis_result and 'neural_analysis' in analysis_result:
+            neural_analysis = analysis_result['neural_analysis']
+            
+            # Check for anomalies
+            has_anomalies = bool(neural_analysis.get('anomalies', []))
+            
+            # Check if the patterns are unusual
+            num_patterns = len(neural_analysis.get('pattern_recognition', []))
+            confidence = neural_analysis.get('neural_confidence', 0.5)
+            
+            # Detect unusual pattern scenarios
+            is_unusual_pattern = has_anomalies or (num_patterns > 3 and confidence < 0.6)
+            
+        # 2. Adaptive parameter tuning based on context
+        if is_high_stakes:
+            # For high stakes matches, be more conservative in pattern recognition
+            optimized_params['pattern_threshold'] = min(0.85, current_params['pattern_threshold'] + 0.1)
+            adjustment_rationales['pattern_threshold'] = 'Increased for high stakes match to ensure higher confidence'
+            
+            # Lower temperature for more deterministic insights
+            optimized_params['insight_temperature'] = max(0.4, current_params['insight_temperature'] - 0.1)
+            adjustment_rationales['insight_temperature'] = 'Decreased for more conservative insights in high stakes match'
+        
+        if is_unusual_pattern:
+            # For unusual patterns, increase sensitivity to anomalies
+            optimized_params['anomaly_threshold'] = max(0.7, current_params['anomaly_threshold'] - 0.05)
+            adjustment_rationales['anomaly_threshold'] = 'Decreased to detect more subtle anomalies in unusual pattern scenario'
+            
+            # Higher temperature for more creative insights
+            optimized_params['insight_temperature'] = min(0.9, current_params['insight_temperature'] + 0.15)
+            adjustment_rationales['insight_temperature'] = 'Increased for more exploratory insights in unusual pattern scenario'
+        
+        # 3. Learning rate adjustment based on confidence
+        if analysis_result and 'neural_analysis' in analysis_result:
+            confidence = analysis_result['neural_analysis'].get('neural_confidence', 0.5)
+            
+            if confidence > 0.75:
+                # High confidence - reduce learning rate to stabilize
+                optimized_params['learning_rate'] = max(0.01, current_params['learning_rate'] * 0.9)
+                adjustment_rationales['learning_rate'] = 'Decreased to stabilize learning in high confidence scenario'
+            elif confidence < 0.4:
+                # Low confidence - increase learning rate to adapt faster
+                optimized_params['learning_rate'] = min(0.1, current_params['learning_rate'] * 1.2)
+                adjustment_rationales['learning_rate'] = 'Increased to accelerate learning in low confidence scenario'
+        
+        # Calculate adjustment magnitudes
+        for param in optimized_params:
+            if param in current_params:
+                param_adjustments[param] = optimized_params[param] - current_params[param]
+        
+        # Apply optimized parameters to ArcanBrain
+        for param, value in optimized_params.items():
+            if hasattr(self.arcan_brain, param):
+                setattr(self.arcan_brain, param, value)
+        
+        # Record the optimization for historical tracking
+        self.brain_param_history.append({
+            'timestamp': datetime.now().isoformat(),
+            'match_id': match_data.get('id', ''),
+            'previous_params': current_params,
+            'new_params': optimized_params,
+            'adjustments': param_adjustments,
+            'rationales': adjustment_rationales
+        })
+        
+        # Return the optimization report
+        return {
+            'status': 'success',
+            'previous_params': current_params,
+            'optimized_params': optimized_params,
+            'adjustments': param_adjustments,
+            'rationales': adjustment_rationales,
+            'context': {
+                'high_stakes': is_high_stakes,
+                'unusual_pattern': is_unusual_pattern
+            }
+        }
+        
+    def receive_brain_feedback(self, feedback_data):
+        """
+        Process feedback from ArcanBrain to adjust ArcanReflex behavior.
+        This completes the bidirectional communication between the modules.
+        
+        Args:
+            feedback_data (dict): Feedback from ArcanBrain operations
+            
+        Returns:
+            dict: Processing result and adaptation status
+        """
+        if not feedback_data:
+            return {
+                'status': 'error',
+                'message': 'No feedback data provided'
+            }
+            
+        # Extract key metrics from the feedback
+        pattern_confidence = feedback_data.get('pattern_confidence', 0.5)
+        insight_quality = feedback_data.get('insight_quality', 0.5)
+        anomaly_relevance = feedback_data.get('anomaly_relevance', 0.5)
+        
+        # Adaptation actions to take
+        adaptations = []
+        
+        # Adapt ArcanReflex evaluation threshold based on pattern confidence
+        if pattern_confidence > 0.8:
+            self.evaluation_threshold = min(0.75, self.evaluation_threshold + 0.05)
+            adaptations.append('Increased evaluation threshold for higher module quality requirements')
+        elif pattern_confidence < 0.4:
+            self.evaluation_threshold = max(0.45, self.evaluation_threshold - 0.05)
+            adaptations.append('Decreased evaluation threshold for more inclusive module activation')
+        
+        # Adapt memory retention based on insight quality
+        if insight_quality > 0.7:
+            self.memory_retention = min(120, self.memory_retention + 10)
+            adaptations.append('Increased memory retention to preserve valuable insights longer')
+        elif insight_quality < 0.3:
+            self.memory_retention = max(60, self.memory_retention - 10)
+            adaptations.append('Decreased memory retention to refresh stale patterns faster')
+        
+        # Store the adaptation in memory
+        self.reflex_memory.store_adaptation({
+            'timestamp': datetime.now().isoformat(),
+            'feedback_metrics': {
+                'pattern_confidence': pattern_confidence,
+                'insight_quality': insight_quality, 
+                'anomaly_relevance': anomaly_relevance
+            },
+            'adaptations': adaptations,
+            'new_settings': {
+                'evaluation_threshold': self.evaluation_threshold,
+                'memory_retention': self.memory_retention
+            }
+        })
+        
+        return {
+            'status': 'success',
+            'adaptations': adaptations,
+            'message': f"Processed ArcanBrain feedback and made {len(adaptations)} adaptations"
+        }
 
 
 class ReflexEval:
