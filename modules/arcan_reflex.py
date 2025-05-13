@@ -17,7 +17,7 @@ class ArcanReflex:
     Continuously monitors module performance and adjusts activation patterns.
     """
     
-    def __init__(self, arcan_x=None, shadow_odds=None, convergence=None, meta_systems=None):
+    def __init__(self, arcan_x=None, shadow_odds=None, convergence=None, meta_systems=None, arcan_brain=None):
         """
         Initialize the ArcanReflex module with references to other system components.
         
@@ -26,12 +26,14 @@ class ArcanReflex:
             shadow_odds: ShadowOdds module instance
             convergence: Convergence module instance
             meta_systems: MetaSystems module instance
+            arcan_brain: ArcanBrain module instance
         """
         # Store module references
         self.arcan_x = arcan_x
         self.shadow_odds = shadow_odds
         self.convergence = convergence
         self.meta_systems = meta_systems
+        self.arcan_brain = arcan_brain  # New reference to ArcanBrain
         
         # Initialize internal components
         self.reflex_eval = ReflexEval()
@@ -46,9 +48,18 @@ class ArcanReflex:
         self.learning_rate = 0.05  # Rate at which module weights are adjusted
         self.memory_retention = 90  # Days to retain performance memory
         
+        # ArcanBrain parameter control ranges (meta-cognition)
+        self.brain_param_ranges = {
+            'learning_rate': (0.01, 0.1),
+            'pattern_threshold': (0.45, 0.85),
+            'anomaly_threshold': (0.7, 0.95),
+            'insight_temperature': (0.4, 0.9)
+        }
+        
         # Current state
         self.active_modules = {}  # Currently active modules
         self.module_performance = {}  # Recent performance of modules
+        self.brain_param_history = []  # History of ArcanBrain parameter adjustments
         self.pattern_library = {}  # Identified effective patterns
         
         # Performance metrics
