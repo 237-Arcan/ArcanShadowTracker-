@@ -312,6 +312,38 @@ class ArcanSentinel:
         arcan_x_results = self.arcan_x.analyze_match(current_state)
         shadow_odds_results = self.shadow_odds.analyze_match(current_state)
         
+        # Use advanced modules if meta_systems is available
+        if self.meta_systems:
+            # Check for collapse risk
+            collapse_detector = self.meta_systems.adv_modules.get('collapse_detector')
+            if collapse_detector:
+                collapse_analysis = collapse_detector.analyze_match_state(
+                    current_state, 
+                    self.match_minute, 
+                    self.score[0], 
+                    self.score[1], 
+                    self.key_events
+                )
+                current_state['collapse_analysis'] = collapse_analysis
+            
+            # Check for youth impact
+            youth_analyzer = self.meta_systems.adv_modules.get('youth_impact_analyzer')
+            if youth_analyzer and 'players' in current_state:
+                youth_analysis = youth_analyzer.analyze_impact(current_state['players'], self.match_minute)
+                current_state['youth_analysis'] = youth_analysis
+                
+            # Check for captain influence
+            captain_analyzer = self.meta_systems.adv_modules.get('captain_switch')
+            if captain_analyzer and 'players' in current_state:
+                captain_analysis = captain_analyzer.analyze_influence(current_state)
+                current_state['captain_analysis'] = captain_analysis
+                
+            # Analyze set piece threats
+            set_piece_analyzer = self.meta_systems.adv_modules.get('set_piece_threat_evaluator')
+            if set_piece_analyzer:
+                set_piece_analysis = set_piece_analyzer.evaluate_threat(current_state)
+                current_state['set_piece_analysis'] = set_piece_analysis
+        
         # Generate base prediction from convergence module
         base_prediction = self.convergence.generate_prediction(
             current_state,

@@ -14,6 +14,11 @@ from modules.arcan_sentinel import ArcanSentinel
 from modules.numeri_code import NumeriCode
 from modules.tarot_echo import TarotEcho
 from modules.astro_impact_lite import AstroImpactLite
+# Import des modules prédictifs
+from modules.collapse_detector import CollapseDetector
+from modules.youth_impact_analyzer import YouthImpactAnalyzer
+from modules.captain_switch import CaptainSwitch
+from modules.set_piece_threat_evaluator import SetPieceThreatEvaluator
 # Import des modules avancés
 from modules.karmic_flow_plus import KarmicFlowPlus
 from modules.momentum_tracker_2 import MomentumTracker2
@@ -96,6 +101,12 @@ numeri_code = NumeriCode()
 tarot_echo = TarotEcho()
 astro_impact = AstroImpactLite()
 
+# Initialize predictive modules
+collapse_detector = CollapseDetector()
+youth_impact_analyzer = YouthImpactAnalyzer()
+captain_switch = CaptainSwitch()
+set_piece_threat_evaluator = SetPieceThreatEvaluator()
+
 # Initialize advanced modules
 karmic_flow = KarmicFlowPlus()
 momentum_tracker = MomentumTracker2()
@@ -109,7 +120,11 @@ meta_systems = MetaSystems(
     },
     advanced_modules={
         'karmic_flow': karmic_flow,
-        'momentum_tracker': momentum_tracker
+        'momentum_tracker': momentum_tracker,
+        'collapse_detector': collapse_detector,
+        'youth_impact_analyzer': youth_impact_analyzer,
+        'captain_switch': captain_switch,
+        'set_piece_threat_evaluator': set_piece_threat_evaluator
     }
 )
 

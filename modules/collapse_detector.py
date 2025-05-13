@@ -49,11 +49,11 @@ class CollapseDetector:
                 ]
             },
             'key_player_impact': {
-                'description': 'Effondrement suite à la perte d'un joueur clé',
+                'description': "Effondrement suite à la perte d'un joueur clé",
                 'importance': 0.75,
                 'time_window': 20,  # minutes
                 'indicators': [
-                    'blessure ou remplacement d'un joueur clé',
+                    "blessure ou remplacement d'un joueur clé",
                     'désorganisation défensive après le changement',
                     'absence de leadership sur le terrain'
                 ]
