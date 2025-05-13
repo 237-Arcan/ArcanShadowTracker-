@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import math
+import os
+from utils.api_integrations import APIIntegrations
 
 class ArcanX:
     """
@@ -20,6 +22,9 @@ class ArcanX:
             'RadiEsthesiaMap': self.radiesthesia_map,
             'CycleMirror': self.cycle_mirror
         }
+        
+        # Initialize API integrations
+        self.api = APIIntegrations()
         
         # Initialize gematria values for common names in sports
         self.gematria_values = self._initialize_gematria_values()
@@ -649,14 +654,56 @@ class ArcanX:
         home_team = match_data.get('home_team', '')
         away_team = match_data.get('away_team', '')
         
-        # Check if we have historical matchup data
-        history = match_data.get('historical_matchups', [])
+        # First, try to get real head-to-head data from the API
+        api_h2h = None
+        if self.api.api_sports_available and home_team and away_team:
+            try:
+                api_h2h = self.api.get_head_to_head(home_team, away_team, last_n_matches=10)
+                if api_h2h:
+                    print(f"Retrieved real head-to-head data for {home_team} vs {away_team}")
+            except Exception as e:
+                print(f"Error getting head-to-head data: {e}")
+        
+        # If we have API data, convert it to our format
+        if api_h2h and 'matches' in api_h2h:
+            # Convert API data to our historical_matchups format
+            history = []
+            for match in api_h2h['matches']:
+                # Parse the score, format is typically "1 - 0"
+                score_parts = match.get('score', '0 - 0').split(' - ')
+                if len(score_parts) == 2:
+                    try:
+                        home_score = int(score_parts[0])
+                        away_score = int(score_parts[1])
+                        
+                        # Determine if home team was first in the score (depends on API format)
+                        if match.get('result', '').startswith(home_team):
+                            # Home team was first
+                            pass
+                        elif match.get('result', '').startswith(away_team):
+                            # Away team was first, swap scores
+                            home_score, away_score = away_score, home_score
+                        
+                        historical_match = {
+                            'date': match.get('date'),
+                            'competition': match.get('competition'),
+                            'venue': match.get('venue'),
+                            'home_score': home_score,
+                            'away_score': away_score
+                        }
+                        history.append(historical_match)
+                    except ValueError:
+                        # Skip if we can't parse the score
+                        pass
+        else:
+            # Use the historical matchups from match_data as fallback
+            history = match_data.get('historical_matchups', [])
         
         if not history:
             # No history available, use simplified analysis
             result['factors'].append({
                 'name': 'Karmic Analysis',
-                'value': "Insufficient historical data for karmic analysis"
+                'value': "Attempting to retrieve historical data for karmic analysis"
             })
             return result
         
