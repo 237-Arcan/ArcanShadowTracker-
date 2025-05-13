@@ -477,34 +477,100 @@ with tab4:
     with col2:
         selected_module = st.selectbox(t('specific_module'), module_categories[selected_category])
     
-    # Module descriptions (hardcoded for demonstration)
+    # Module descriptions with translation keys
     module_descriptions = {
         "NumeriCode": {
-            "description": "Interprets numérological patterns in dates, dossards, cycles, scores and calendar days.",
+            "description_key": "module_description_numericode",
             "inputs": ["Match date", "Player numbers", "Team formation", "Historical scores"],
             "output": "Numerical pattern significance score (0-100)",
             "accuracy": "76.3%"
         },
         "GematriaPulse": {
-            "description": "Analyzes kabbalistic values of team names, players, cities, stadiums, and competitions.",
+            "description_key": "module_description_gematriapulse",
             "inputs": ["Team names", "Player names", "Stadium name", "City name"],
             "output": "Gematria correlation strength (0-100)",
             "accuracy": "71.8%"
         },
+        "AstroImpact Lite": {
+            "description_key": "module_description_astroimpact",
+            "inputs": ["Match date", "Team foundation dates", "Player birth dates", "Venue location"],
+            "output": "Celestial influence score (0-100)",
+            "accuracy": "72.5%"
+        },
+        "TarotEcho": {
+            "description_key": "module_description_tarotecho",
+            "inputs": ["Team archetypes", "Match context", "Historical pattern", "Energy signatures"],
+            "output": "Tarot correspondence map",
+            "accuracy": "70.9%"
+        },
+        "YiFlow": {
+            "description_key": "module_description_yiflow",
+            "inputs": ["Match dynamics", "Team energies", "Historical patterns", "Contextual factors"],
+            "output": "Hexagram interpretation and prediction",
+            "accuracy": "73.2%"
+        },
+        "KarmicFlow+": {
+            "description_key": "module_description_karmicflow",
+            "inputs": ["Team history", "Past confrontations", "Pattern evolution", "Karmic debt"],
+            "output": "Karmic balance prediction",
+            "accuracy": "74.8%"
+        },
+        "RadiEsthesiaMap": {
+            "description_key": "module_description_radiesthesiamap",
+            "inputs": ["Venue data", "Team energy signatures", "Historical venue performance", "Environmental factors"],
+            "output": "Venue energy impact analysis",
+            "accuracy": "72.1%"
+        },
+        "CycleMirror": {
+            "description_key": "module_description_cyclemirror",
+            "inputs": ["Historical matches", "Cyclical patterns", "Time intervals", "Pattern evolution"],
+            "output": "Cyclical pattern prediction",
+            "accuracy": "75.5%"
+        },
         "LineTrap": {
-            "description": "Identifies trapped odds that are misaligned with actual sport dynamics.",
+            "description_key": "module_description_linetrap",
             "inputs": ["Opening odds", "Current odds", "Market movement", "Betting volumes"],
             "output": "Trap probability percentage",
             "accuracy": "83.1%"
         },
         "BetPulse": {
-            "description": "Tracks real-time rhythm and peaks in market betting patterns.",
+            "description_key": "module_description_betpulse",
             "inputs": ["Betting volumes", "Timing of bets", "Bet distribution", "Market reactions"],
             "output": "Market confidence map",
             "accuracy": "79.4%"
         },
+        "CrowdPressureIndex": {
+            "description_key": "module_description_crowdpressure",
+            "inputs": ["Public betting percentages", "Line movement", "Public sentiment", "Social media activity"],
+            "output": "Crowd pressure distortion score",
+            "accuracy": "81.2%"
+        },
+        "MarketEcho": {
+            "description_key": "module_description_marketecho",
+            "inputs": ["Bookmaker odds comparison", "Line movements", "Market timing", "Discrepancy patterns"],
+            "output": "Bookmaker alignment index",
+            "accuracy": "82.7%"
+        },
+        "CollapseDetector": {
+            "description_key": "module_description_collapsedetektor",
+            "inputs": ["Team form", "Internal dynamics", "Recent patterns", "Market behavior"],
+            "output": "Collapse probability score",
+            "accuracy": "76.3%"
+        },
+        "ShadowMomentum": {
+            "description_key": "module_description_shadowmomentum",
+            "inputs": ["Odds evolution", "Betting patterns", "Timing of movements", "Volume changes"],
+            "output": "Momentum shift analysis",
+            "accuracy": "78.9%"
+        },
+        "SetTrapIndicator": {
+            "description_key": "module_description_settrapindicator",
+            "inputs": ["Line pricing", "Public tendencies", "Historical trap cases", "Bookmaker behavior"],
+            "output": "Trap setting probability",
+            "accuracy": "77.3%"
+        },
         "Convergia Core": {
-            "description": "Core fusion engine merging ArcanX and ShadowOdds outputs into a unified decision matrix.",
+            "description_key": "module_description_numericode",
             "inputs": ["ArcanX signals", "ShadowOdds signals", "Historical correlations", "Current match context"],
             "output": "Integrated prediction with confidence level",
             "accuracy": "84.2%"
@@ -513,7 +579,7 @@ with tab4:
     
     # Display default description for modules not explicitly defined
     default_description = {
-        "description": "Advanced prediction module within the ArcanShadow system.",
+        "description_key": "module_description_numericode",
         "inputs": ["Match data", "Historical patterns", "Contextual information"],
         "output": "Specialized prediction signals",
         "accuracy": "75-85%"
@@ -524,19 +590,19 @@ with tab4:
     
     # Display module information
     st.markdown(f"### {selected_module}")
-    st.markdown(f"**Description:** {module_info['description']}")
+    st.markdown(f"**{t('description')}:** {t(module_info['description_key'])}")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### Inputs")
+        st.markdown(f"#### {t('module_inputs')}")
         for input_item in module_info['inputs']:
             st.markdown(f"- {input_item}")
     
     with col2:
-        st.markdown("#### Output")
+        st.markdown(f"#### {t('module_output')}")
         st.markdown(module_info['output'])
-        st.markdown(f"**Historical Accuracy:** {module_info['accuracy']}")
+        st.markdown(f"**{t('module_accuracy')}:** {module_info['accuracy']}")
     
     # Visualization of module performance
     st.markdown("### Module Performance Visualization")

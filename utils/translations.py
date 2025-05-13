@@ -102,6 +102,7 @@ en = {
     "module_inputs": "Inputs",
     "module_output": "Output",
     "module_accuracy": "Historical Accuracy",
+    "description": "Description",
     
     # Prediction outcomes
     "home_win": "Home Win",
@@ -211,10 +212,34 @@ fr = {
     "module_details": "Détails des Modules",
     "module_description": "Explorez le fonctionnement interne des modules de prédiction d'ArcanShadow.",
     "select_module": "Sélectionner un Module",
+    "module_category": "Catégorie de Module",
+    "specific_module": "Module Spécifique",
     "module_info": "Informations sur le Module",
     "performance_metrics": "Métriques de Performance",
     "module_relationships": "Relations entre Modules",
     "module_interactions": "Comment {module} interagit avec les autres composants d'ArcanShadow.",
+    
+    # Module descriptions
+    "module_description_numericode": "Interprète les schémas numériques dans les dates, numéros de maillot, cycles, scores et jours calendaires.",
+    "module_description_gematriapulse": "Analyse les valeurs kabbalistiques des noms d'équipes, de joueurs, de villes, de stades et de compétitions.",
+    "module_description_astroimpact": "Analyse les positions célestes et leur influence sur des matchs et des équipes spécifiques.",
+    "module_description_tarotecho": "Applique le symbolisme du tarot pour évaluer l'énergie et les résultats potentiels des matchs.",
+    "module_description_yiflow": "Utilise les hexagrammes du Yi King pour analyser le flux d'énergie dans les compétitions sportives.",
+    "module_description_karmicflow": "Détecte les schémas karmiques dans les historiques d'équipes et les confrontations.",
+    "module_description_radiesthesiamap": "Mesure les champs énergétiques des lieux et leur impact sur la performance des équipes.",
+    "module_description_cyclemirror": "Identifie les schémas cycliques dans les historiques de matchs entre équipes.",
+    "module_description_linetrap": "Identifie les cotes pièges qui sont en décalage avec la dynamique sportive réelle.",
+    "module_description_betpulse": "Analyse le volume et les schémas temporels des paris pour détecter les mouvements significatifs du marché.",
+    "module_description_crowdpressure": "Surveille les paris publics excessifs sur un côté qui peuvent fausser les cotes.",
+    "module_description_marketecho": "Analyse les écarts entre les bookmakers et les mouvements suspects.",
+    "module_description_collapsedetektor": "Détecte les signes qu'une équipe pourrait être sur le point de sous-performer dramatiquement.",
+    "module_description_shadowmomentum": "Identifie les changements subtils de momentum dans les schémas de paris avant qu'ils ne deviennent évidents.",
+    "module_description_settrapindicator": "Évalue si les bookmakers pourraient être en train de tendre un piège aux parieurs publics.",
+    
+    # Module inputs/outputs
+    "module_inputs": "Entrées",
+    "module_output": "Sortie",
+    "module_accuracy": "Précision Historique",
     
     # Prediction outcomes
     "home_win": "Victoire à Domicile",
