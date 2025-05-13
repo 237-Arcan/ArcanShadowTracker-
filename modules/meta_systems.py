@@ -15,7 +15,7 @@ class MetaSystems:
     Handles system adaptivity, learning, and high-level pattern recognition.
     """
     
-    def __init__(self, arcan_x=None, shadow_odds=None, convergence=None):
+    def __init__(self, arcan_x=None, shadow_odds=None, convergence=None, suspended_modules=None, advanced_modules=None):
         """
         Initialize the MetaSystems module with necessary components.
         
@@ -23,11 +23,19 @@ class MetaSystems:
             arcan_x: ArcanX module instance for esoteric analysis
             shadow_odds: ShadowOdds module instance for odds analysis
             convergence: Convergence module instance for integrated analysis
+            suspended_modules: Dictionary of esoteric "suspended" modules (NumeriCode, TarotEcho, AstroImpactLite)
+            advanced_modules: Dictionary of advanced modules (KarmicFlow+, MomentumTracker2, etc.)
         """
         # Store module references
         self.arcan_x = arcan_x
         self.shadow_odds = shadow_odds
         self.convergence = convergence
+        
+        # Store suspended modules
+        self.suspended_modules = suspended_modules or {}
+        
+        # Store advanced modules
+        self.adv_modules = advanced_modules or {}
         
         # Initialize system state tracking
         self.system_state = {
@@ -42,6 +50,22 @@ class MetaSystems:
                 'eastern_gate': {'active': True, 'last_used': None},
                 'd_forge': {'active': True, 'modules_generated': 0},
                 'arcan_brain': {'active': True, 'last_analysis': None}
+            },
+            'suspended_modules': {
+                'numeri_code': {'active': True, 'last_used': None},
+                'tarot_echo': {'active': True, 'last_used': None},
+                'astro_impact': {'active': True, 'last_used': None}
+            },
+            'predictive_modules': {
+                'collapse_detector': {'active': True, 'last_used': None},
+                'youth_impact_analyzer': {'active': True, 'last_used': None},
+                'captain_switch': {'active': True, 'last_used': None},
+                'set_piece_threat_evaluator': {'active': True, 'last_used': None}
+            },
+            'realtime_modules': {
+                'crowd_pressure_index': {'active': True, 'last_used': None},
+                'clutch_time_scanner': {'active': True, 'last_used': None},
+                'momentum_shift_tracker': {'active': True, 'last_used': None}
             }
         }
         

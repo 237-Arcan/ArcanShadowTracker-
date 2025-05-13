@@ -20,7 +20,7 @@ class ArcanSentinel:
     Optimized for live match monitoring and rapid prediction updates
     """
     
-    def __init__(self, arcan_x, shadow_odds, convergence):
+    def __init__(self, arcan_x, shadow_odds, convergence, meta_systems=None):
         """
         Initialize the ArcanSentinel with references to core modules
         
@@ -28,11 +28,13 @@ class ArcanSentinel:
             arcan_x: ArcanX module instance for esoteric analysis
             shadow_odds: ShadowOdds module instance for odds analysis
             convergence: Convergence module instance for integrated analysis
+            meta_systems: MetaSystems module for accessing advanced modules
         """
         # Store module references
         self.arcan_x = arcan_x
         self.shadow_odds = shadow_odds
         self.convergence = convergence
+        self.meta_systems = meta_systems
         
         # Initialize API integrations
         self.api = APIIntegrations()

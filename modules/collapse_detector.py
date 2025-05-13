@@ -1,1558 +1,1079 @@
 """
-CollapseDetector - Module d'analyse des effondrements probables d'équipes favorites.
-Détecte les équipes à risque d'effondrement psychologique ou tactique à partir de modèles statistiques et psychologiques.
+CollapseDetector - Module de détection des risques d'effondrement d'une équipe.
+Analyse les patterns de fragilité mentale et d'effondrements historiques.
 """
 
-import numpy as np
 import random
 from datetime import datetime, timedelta
-import json
-import os
-from collections import deque
+import numpy as np
+from collections import defaultdict
 
 class CollapseDetector:
     """
-    CollapseDetector - Analyse les risques d'effondrement des équipes favorites.
-    Évalue les facteurs de risque d'une équipe à s'effondrer malgré un statut de favori.
+    CollapseDetector - Système de détection des risques d'effondrement mental et de performance.
+    Identifie les moments clés où une équipe est susceptible de s'effondrer pendant un match.
     """
     
     def __init__(self):
-        """Initialise le module CollapseDetector."""
-        # Facteurs de risque d'effondrement
-        self.collapse_factors = {
-            'psychological': {
-                'pressure_threshold': 0.7,      # Seuil de pression mentale
-                'ego_factor': 0.6,              # Impact de l'ego/arrogance
-                'complacency_risk': 0.5,        # Risque de complaisance
-                'fan_expectation_weight': 0.45, # Poids des attentes des supporters
-                'media_pressure_factor': 0.4    # Facteur de pression médiatique
-            },
-            'tactical': {
-                'substitution_impact': 0.55,    # Impact des changements tactiques
-                'formation_rigidity': 0.5,      # Rigidité tactique
-                'plan_b_availability': 0.65,    # Disponibilité d'un plan B
-                'adaptability_factor': 0.6      # Facteur d'adaptabilité tactique
-            },
-            'physical': {
-                'fatigue_threshold': 0.7,       # Seuil de fatigue
-                'injury_impact': 0.8,           # Impact des blessures
-                'fixture_congestion': 0.6,      # Congestion du calendrier
-                'travel_burden': 0.4,           # Charge liée aux déplacements
-                'weather_adaptation': 0.3       # Adaptation aux conditions météo
-            },
-            'historical': {
-                'bottling_history': 0.75,       # Historique d'effondrements
-                'revenge_factor': 0.5,          # Facteur de revanche
-                'psychological_scars': 0.65,    # Cicatrices psychologiques
-                'underdog_success': 0.55        # Succès précédents contre cette équipe
-            }
-        }
-        
-        # Modèles d'effondrement typiques
+        """Initialise le module CollapseDetector"""
         self.collapse_patterns = {
-            'gradual_fade': {
-                'description': 'Effondrement progressif sur plusieurs matchs',
-                'detection_window': 5,          # Fenêtre de matchs pour détection
-                'confidence_threshold': 0.7,    # Seuil de confiance
-                'key_indicators': ['declining_form', 'increasing_goals_conceded', 'decreasing_xG']
+            'after_conceding': {
+                'description': 'Effondrement après avoir encaissé un but',
+                'importance': 0.85,
+                'time_window': 10,  # minutes
+                'indicators': [
+                    'but encaissé dans les 10 dernières minutes',
+                    'domination adverse après le but',
+                    'changements tactiques désordonnés'
+                ]
             },
-            'sudden_collapse': {
-                'description': 'Effondrement brutal sur un match',
-                'detection_window': 1,
-                'confidence_threshold': 0.8,
-                'key_indicators': ['red_card', 'early_conceded_goal', 'key_injury', 'tactical_mismatch']
+            'late_game_pressure': {
+                'description': 'Effondrement sous pression en fin de match',
+                'importance': 0.9,
+                'time_window': 15,  # dernières minutes
+                'indicators': [
+                    'minute > 75',
+                    'lead < 2 buts',
+                    'domination adverse croissante',
+                    'fatigue visible'
+                ]
             },
-            'psychological_meltdown': {
-                'description': 'Effondrement psychologique après un événement traumatique',
-                'detection_window': 3,
-                'confidence_threshold': 0.75,
-                'key_indicators': ['critical_mistake', 'missed_opportunity', 'public_criticism', 'internal_conflict']
+            'momentum_shift': {
+                'description': 'Effondrement suite à un changement de momentum',
+                'importance': 0.8,
+                'time_window': 15,  # minutes
+                'indicators': [
+                    'occasions manquées suivies par contre rapide',
+                    'carton rouge ou pénalty controversé',
+                    'changement tactique adverse efficace'
+                ]
             },
-            'strategic_exposure': {
-                'description': 'Vulnérabilités stratégiques exposées par un adversaire',
-                'detection_window': 2,
-                'confidence_threshold': 0.65,
-                'key_indicators': ['tactical_vulnerability', 'repeated_mistake', 'failed_adjustment', 'overconfidence']
+            'key_player_impact': {
+                'description': 'Effondrement suite à la perte d'un joueur clé',
+                'importance': 0.75,
+                'time_window': 20,  # minutes
+                'indicators': [
+                    'blessure ou remplacement d'un joueur clé',
+                    'désorganisation défensive après le changement',
+                    'absence de leadership sur le terrain'
+                ]
             }
         }
         
-        # Seuils de détection d'effondrement
-        self.detection_thresholds = {
-            'high_risk': 0.7,      # Risque élevé d'effondrement
-            'medium_risk': 0.5,    # Risque moyen d'effondrement
-            'low_risk': 0.3        # Risque faible d'effondrement
+        # Historique des analyses
+        self.analysis_history = []
+        
+        # Indicateurs psychologiques potentiels d'effondrement
+        self.psychological_indicators = {
+            'frustration_visible': 0.8,
+            'communication_breakdown': 0.85,
+            'body_language_negative': 0.7,
+            'blame_shifting': 0.75,
+            'tactical_confusion': 0.9,
+            'excessive_complaints': 0.6,
+            'time_wasting_desperate': 0.65,
+            'defensive_disorganization': 0.95
         }
         
-        # Historique des analyses d'effondrement
-        self.collapse_analysis_history = []
-        
-        # Buffer pour le suivi de la forme récente
-        self.form_tracker = {}  # team_id -> [résultats récents]
-        
-        # État actuel de l'analyse
-        self.current_state = {
-            'teams_at_risk': [],
-            'ongoing_collapses': [],
-            'last_update': None
+        # Facteurs historiques de résilience
+        self.resilience_factors = {
+            'strong_leadership': -0.8,  # Facteurs réduisant le risque
+            'comeback_history': -0.7,
+            'experienced_squad': -0.65,
+            'tactical_flexibility': -0.75,
+            'strong_bench_options': -0.6,
+            'positive_momentum': -0.7,
+            'good_fitness_levels': -0.65,
+            'psychological_preparation': -0.8
         }
     
-    def analyze_collapse_risk(self, team_data, match_data=None, form_data=None):
+    def analyze_match_state(self, match_data, current_minute, team1_score, team2_score, recent_events=None):
         """
-        Analyser le risque d'effondrement d'une équipe.
+        Analyser l'état actuel du match et détecter les risques d'effondrement.
         
         Args:
-            team_data (dict): Données de l'équipe à analyser
-            match_data (dict, optional): Données du match à venir
-            form_data (dict, optional): Données de forme récente
+            match_data (dict): Données du match
+            current_minute (int): Minute actuelle du match
+            team1_score (int): Score actuel de l'équipe 1
+            team2_score (int): Score actuel de l'équipe 2
+            recent_events (list, optional): Liste des événements récents du match
             
         Returns:
-            dict: Analyse du risque d'effondrement avec scores
+            dict: Analyse des risques d'effondrement
         """
-        # Extraire les informations pertinentes
-        team_id = team_data.get('id', '')
-        team_name = team_data.get('name', '')
+        # Par défaut, utiliser des événements vides si non fournis
+        if recent_events is None:
+            recent_events = []
         
-        # Initialiser les scores de risque par catégorie
-        risk_scores = {
-            'psychological': 0.0,
-            'tactical': 0.0,
-            'physical': 0.0,
-            'historical': 0.0
-        }
+        # Extraire les noms des équipes
+        team1_name = match_data.get('home_team', 'Équipe 1')
+        team2_name = match_data.get('away_team', 'Équipe 2')
         
-        # 1. Évaluer les facteurs psychologiques
-        psychological_risk = self._evaluate_psychological_factors(team_data, match_data)
-        risk_scores['psychological'] = psychological_risk
-        
-        # 2. Évaluer les facteurs tactiques
-        tactical_risk = self._evaluate_tactical_factors(team_data, match_data)
-        risk_scores['tactical'] = tactical_risk
-        
-        # 3. Évaluer les facteurs physiques
-        physical_risk = self._evaluate_physical_factors(team_data, match_data)
-        risk_scores['physical'] = physical_risk
-        
-        # 4. Évaluer les facteurs historiques
-        historical_risk = self._evaluate_historical_factors(team_data, match_data)
-        risk_scores['historical'] = historical_risk
-        
-        # 5. Analyser la forme récente si disponible
-        form_analysis = None
-        if form_data:
-            form_analysis = self._analyze_recent_form(team_id, form_data)
-            
-            # Mettre à jour le tracker de forme
-            if team_id not in self.form_tracker:
-                self.form_tracker[team_id] = deque(maxlen=10)  # Suivre les 10 derniers résultats
-            
-            # Ajouter le résultat le plus récent
-            latest_result = form_data.get('latest_result', None)
-            if latest_result:
-                self.form_tracker[team_id].append(latest_result)
-        
-        # 6. Détecter les patterns d'effondrement
-        detected_patterns = self._detect_collapse_patterns(team_data, risk_scores, form_analysis)
-        
-        # 7. Calculer le score de risque global
-        overall_risk = (
-            risk_scores['psychological'] * 0.3 +
-            risk_scores['tactical'] * 0.25 +
-            risk_scores['physical'] * 0.2 +
-            risk_scores['historical'] * 0.25
+        # Analyse des risques pour chaque équipe
+        team1_analysis = self._analyze_team_collapse_risk(
+            team1_name, team1_score, team2_score, current_minute, recent_events, is_home=True
         )
         
-        # Déterminer le niveau de risque
-        risk_level = 'low'
-        if overall_risk >= self.detection_thresholds['high_risk']:
-            risk_level = 'high'
-        elif overall_risk >= self.detection_thresholds['medium_risk']:
-            risk_level = 'medium'
+        team2_analysis = self._analyze_team_collapse_risk(
+            team2_name, team2_score, team1_score, current_minute, recent_events, is_home=False
+        )
         
-        # 8. Générer les points faibles spécifiques
-        weaknesses = self._identify_specific_weaknesses(risk_scores, form_analysis, team_data)
+        # Analyse comparative entre les équipes
+        comparative_analysis = self._compare_collapse_risks(team1_analysis, team2_analysis)
         
-        # 9. Préparer les recommandations pour éviter l'effondrement
-        recommendations = self._generate_recommendations(risk_scores, detected_patterns, weaknesses)
+        # Recommandations d'action
+        recommendations = self._generate_recommendations(
+            team1_analysis, team2_analysis, comparative_analysis
+        )
         
-        # Mettre à jour l'état actuel
-        is_at_risk = overall_risk >= self.detection_thresholds['medium_risk']
-        if is_at_risk:
-            self.current_state['teams_at_risk'].append({
-                'team_id': team_id,
-                'team_name': team_name,
-                'risk_score': overall_risk,
-                'risk_level': risk_level,
-                'timestamp': datetime.now().isoformat()
-            })
-        
-        # Nettoyer la liste des équipes à risque (garder uniquement les entrées récentes)
-        now = datetime.now()
-        self.current_state['teams_at_risk'] = [
-            team for team in self.current_state['teams_at_risk']
-            if datetime.fromisoformat(team['timestamp']) > now - timedelta(days=7)
-        ]
-        
-        # Enregistrer l'analyse dans l'historique
-        analysis_record = {
-            'team_id': team_id,
-            'team_name': team_name,
-            'timestamp': datetime.now().isoformat(),
-            'risk_scores': risk_scores,
-            'overall_risk': overall_risk,
-            'risk_level': risk_level,
-            'detected_patterns': detected_patterns,
-            'match_id': match_data.get('id', '') if match_data else ''
-        }
-        
-        self.collapse_analysis_history.append(analysis_record)
-        
-        # Limiter la taille de l'historique
-        if len(self.collapse_analysis_history) > 100:
-            self.collapse_analysis_history = self.collapse_analysis_history[-100:]
-        
-        # Préparer le résultat
-        result = {
-            'team_name': team_name,
-            'overall_collapse_risk': overall_risk,
-            'risk_level': risk_level,
-            'risk_breakdown': risk_scores,
-            'detected_patterns': detected_patterns,
-            'specific_weaknesses': weaknesses,
+        # Préparer l'analyse complète
+        analysis = {
+            'match_state': {
+                'minute': current_minute,
+                'team1_name': team1_name,
+                'team2_name': team2_name,
+                'team1_score': team1_score,
+                'team2_score': team2_score
+            },
+            'team1_analysis': team1_analysis,
+            'team2_analysis': team2_analysis,
+            'comparative_analysis': comparative_analysis,
             'recommendations': recommendations,
-            'form_analysis': form_analysis,
             'analysis_timestamp': datetime.now().isoformat()
         }
         
-        return result
+        # Ajouter à l'historique
+        self.analysis_history.append({
+            'type': 'match_state_analysis',
+            'timestamp': datetime.now().isoformat(),
+            'match': f"{team1_name} vs {team2_name}",
+            'minute': current_minute,
+            'analysis': analysis
+        })
+        
+        return analysis
     
-    def predict_collapse_potential(self, season_data, team_id):
+    def analyze_team_susceptibility(self, team_data, match_history=None):
         """
-        Prédire le potentiel d'effondrement d'une équipe sur une saison entière.
-        
-        Args:
-            season_data (dict): Données de la saison actuelle
-            team_id (str): Identifiant de l'équipe à analyser
-            
-        Returns:
-            dict: Prédiction du potentiel d'effondrement
-        """
-        # Extraire les données de l'équipe
-        team_info = None
-        for team in season_data.get('teams', []):
-            if team.get('id', '') == team_id:
-                team_info = team
-                break
-        
-        if not team_info:
-            return {
-                'status': 'error',
-                'message': 'Équipe non trouvée dans les données de la saison'
-            }
-        
-        # Analyser les périodes critiques de la saison
-        season_timeline = season_data.get('timeline', {})
-        critical_periods = self._identify_critical_periods(season_timeline, team_info)
-        
-        # Évaluer les facteurs de risque structurels
-        structural_risks = self._evaluate_structural_risks(team_info)
-        
-        # Analyser l'historique d'effondrements
-        collapse_history = self._analyze_historical_collapses(team_info)
-        
-        # Calculer la résilience de l'équipe
-        resilience_score = self._calculate_team_resilience(team_info)
-        
-        # Calculer le potentiel d'effondrement
-        collapse_potential = (
-            structural_risks['overall'] * 0.4 +
-            (1 - resilience_score) * 0.3 +
-            collapse_history['collapse_frequency'] * 0.3
-        )
-        
-        # Classification du potentiel
-        potential_category = 'average'
-        if collapse_potential >= 0.7:
-            potential_category = 'high'
-        elif collapse_potential >= 0.5:
-            potential_category = 'above_average'
-        elif collapse_potential <= 0.3:
-            potential_category = 'low'
-        
-        # Générer la prédiction
-        most_vulnerable_period = max(critical_periods, key=lambda x: x['risk_score']) if critical_periods else None
-        
-        prediction = {
-            'team_name': team_info.get('name', ''),
-            'collapse_potential': collapse_potential,
-            'potential_category': potential_category,
-            'structural_risks': structural_risks,
-            'resilience_score': resilience_score,
-            'historical_collapse_rate': collapse_history['collapse_frequency'],
-            'critical_periods': critical_periods,
-            'most_vulnerable_period': most_vulnerable_period,
-            'key_risk_factors': structural_risks['key_factors'],
-            'conditional_factors': self._identify_conditional_factors(team_info)
-        }
-        
-        return prediction
-    
-    def detect_ongoing_collapse(self, team_data, recent_results, competition_data=None):
-        """
-        Détecter si une équipe est actuellement en train de s'effondrer.
+        Analyser la susceptibilité générale d'une équipe aux effondrements.
         
         Args:
             team_data (dict): Données de l'équipe
-            recent_results (list): Résultats récents de l'équipe
-            competition_data (dict, optional): Données de la compétition
+            match_history (list, optional): Historique des matchs de l'équipe
             
         Returns:
-            dict: Analyse d'un effondrement en cours
+            dict: Profil de susceptibilité aux effondrements
         """
-        # Minimum de résultats pour une analyse valide
-        if not recent_results or len(recent_results) < 3:
-            return {
-                'status': 'insufficient_data',
-                'message': 'Pas assez de résultats récents pour analyser'
-            }
+        # Par défaut, utiliser un historique vide si non fourni
+        if match_history is None:
+            match_history = []
         
-        # Extraire les informations pertinentes
-        team_name = team_data.get('name', '')
-        expected_performance = team_data.get('expected_performance', 0.6)  # Performance attendue (0-1)
+        team_name = team_data.get('name', 'Équipe')
         
-        # Calculer les indicateurs d'effondrement
-        indicators = self._calculate_collapse_indicators(recent_results, expected_performance)
+        # Initialiser le profil
+        susceptibility_profile = {
+            'team_name': team_name,
+            'overall_score': 0.5,  # Score neutre par défaut
+            'key_weaknesses': [],
+            'historical_patterns': [],
+            'psychological_profile': {},
+            'triggering_events': []
+        }
         
-        # Vérifier si les critères d'effondrement sont remplis
-        is_collapsing = False
-        confidence = 0.0
-        collapse_pattern = None
-        
-        # Critère 1: Baisse significative de la performance
-        if indicators['performance_drop'] > 0.3:
-            is_collapsing = True
-            confidence += 0.4
-            collapse_pattern = 'performance_drop'
-        
-        # Critère 2: Séquence de défaites
-        if indicators['consecutive_losses'] >= 3:
-            is_collapsing = True
-            confidence += 0.3 + (min(indicators['consecutive_losses'] - 3, 2) * 0.1)  # +0.1 par défaite supplémentaire, max +0.2
-            collapse_pattern = collapse_pattern or 'losing_streak'
-        
-        # Critère 3: Détérioration défensive
-        if indicators['defensive_collapse']:
-            is_collapsing = True
-            confidence += 0.25
-            collapse_pattern = collapse_pattern or 'defensive_collapse'
-        
-        # Critère 4: Chute dans le classement
-        if indicators['ranking_drop'] >= 3:
-            confidence += 0.2
-            collapse_pattern = collapse_pattern or 'ranking_collapse'
-        
-        # Limiter la confiance à 1.0
-        confidence = min(1.0, confidence)
-        
-        # Identifier le type d'effondrement
-        collapse_type = self._identify_collapse_type(indicators, recent_results)
-        
-        # Enregistrer l'effondrement s'il est détecté avec une confiance suffisante
-        if is_collapsing and confidence > 0.6:
-            # Vérifier si cet effondrement est déjà suivi
-            team_id = team_data.get('id', '')
-            already_tracked = False
+        # Analyser l'historique des matchs si disponible
+        if match_history:
+            collapse_instances = self._identify_historical_collapses(match_history)
+            susceptibility_profile['historical_patterns'] = collapse_instances
             
-            for collapse in self.current_state['ongoing_collapses']:
-                if collapse['team_id'] == team_id:
-                    # Mettre à jour l'effondrement existant
-                    collapse['confidence'] = confidence
-                    collapse['intensity'] = indicators['performance_drop']
-                    collapse['last_update'] = datetime.now().isoformat()
-                    already_tracked = True
-                    break
-            
-            if not already_tracked:
-                # Ajouter un nouvel effondrement
-                self.current_state['ongoing_collapses'].append({
-                    'team_id': team_id,
-                    'team_name': team_name,
-                    'start_date': recent_results[0].get('date', datetime.now().isoformat()),
-                    'confidence': confidence,
-                    'pattern': collapse_pattern,
-                    'type': collapse_type,
-                    'intensity': indicators['performance_drop'],
-                    'last_update': datetime.now().isoformat()
-                })
+            # Calculer un score basé sur l'historique
+            historical_score = self._calculate_historical_susceptibility(collapse_instances)
+            susceptibility_profile['historical_score'] = historical_score
         
-        # Nettoyer la liste des effondrements en cours (supprimer ceux qui sont résolus)
-        now = datetime.now()
-        self.current_state['ongoing_collapses'] = [
-            collapse for collapse in self.current_state['ongoing_collapses']
-            if datetime.fromisoformat(collapse['last_update']) > now - timedelta(days=14)
+        # Analyser la composition de l'équipe
+        squad_analysis = self._analyze_squad_vulnerability(team_data)
+        susceptibility_profile['squad_analysis'] = squad_analysis
+        
+        # Identifier les faiblesses clés
+        key_weaknesses = self._identify_key_weaknesses(team_data, match_history)
+        susceptibility_profile['key_weaknesses'] = key_weaknesses
+        
+        # Générer un profil psychologique
+        psychological_profile = self._generate_psychological_profile(team_data, match_history)
+        susceptibility_profile['psychological_profile'] = psychological_profile
+        
+        # Identifier les événements déclencheurs
+        triggering_events = self._identify_triggering_events(match_history)
+        susceptibility_profile['triggering_events'] = triggering_events
+        
+        # Calculer le score global
+        if match_history:
+            susceptibility_profile['overall_score'] = (
+                historical_score * 0.4 +
+                squad_analysis['vulnerability_score'] * 0.3 +
+                psychological_profile['vulnerability_score'] * 0.3
+            )
+        else:
+            susceptibility_profile['overall_score'] = (
+                squad_analysis['vulnerability_score'] * 0.5 +
+                psychological_profile['vulnerability_score'] * 0.5
+            )
+        
+        # Ajouter à l'historique
+        self.analysis_history.append({
+            'type': 'team_susceptibility_analysis',
+            'timestamp': datetime.now().isoformat(),
+            'team': team_name,
+            'analysis': susceptibility_profile
+        })
+        
+        return susceptibility_profile
+    
+    def predict_collapse_windows(self, match_data, team_susceptibility=None):
+        """
+        Prédire les fenêtres temporelles où un effondrement est le plus probable.
+        
+        Args:
+            match_data (dict): Données du match
+            team_susceptibility (dict, optional): Analyse de susceptibilité pré-calculée
+            
+        Returns:
+            dict: Fenêtres temporelles à risque d'effondrement
+        """
+        team1_name = match_data.get('home_team', 'Équipe 1')
+        team2_name = match_data.get('away_team', 'Équipe 2')
+        
+        # Générer des susceptibilités si non fournies
+        if team_susceptibility is None:
+            team1_susceptibility = self.analyze_team_susceptibility({'name': team1_name})
+            team2_susceptibility = self.analyze_team_susceptibility({'name': team2_name})
+        else:
+            team1_susceptibility = team_susceptibility.get(team1_name, self.analyze_team_susceptibility({'name': team1_name}))
+            team2_susceptibility = team_susceptibility.get(team2_name, self.analyze_team_susceptibility({'name': team2_name}))
+        
+        # Identifier les fenêtres génériques à risque
+        generic_risk_windows = [
+            {'start': 40, 'end': 45, 'description': 'Fin de première mi-temps', 'base_risk': 0.6},
+            {'start': 45, 'end': 55, 'description': 'Début de seconde mi-temps', 'base_risk': 0.55},
+            {'start': 75, 'end': 90, 'description': 'Fin de match', 'base_risk': 0.7}
         ]
         
-        # Prédire la durée et la sévérité de l'effondrement
-        recovery_prediction = None
-        if is_collapsing and confidence > 0.5:
-            recovery_prediction = self._predict_collapse_recovery(team_data, indicators, collapse_type)
+        # Ajuster les risques pour chaque équipe
+        team1_windows = self._customize_risk_windows(generic_risk_windows, team1_susceptibility)
+        team2_windows = self._customize_risk_windows(generic_risk_windows, team2_susceptibility)
+        
+        # Ajouter des fenêtres spécifiques au match
+        match_specific_windows = self._identify_match_specific_windows(match_data, team1_susceptibility, team2_susceptibility)
+        
+        team1_windows.extend([w for w in match_specific_windows if w['team'] == team1_name])
+        team2_windows.extend([w for w in match_specific_windows if w['team'] == team2_name])
+        
+        # Trier les fenêtres par risque pour chaque équipe
+        team1_windows.sort(key=lambda x: x['risk_score'], reverse=True)
+        team2_windows.sort(key=lambda x: x['risk_score'], reverse=True)
         
         # Préparer le résultat
-        result = {
+        prediction = {
+            'match': f"{team1_name} vs {team2_name}",
+            'team1_name': team1_name,
+            'team2_name': team2_name,
+            'team1_windows': team1_windows,
+            'team2_windows': team2_windows,
+            'high_risk_moments': [
+                w for w in team1_windows + team2_windows if w['risk_score'] > 0.7
+            ],
+            'prediction_timestamp': datetime.now().isoformat()
+        }
+        
+        # Ajouter à l'historique
+        self.analysis_history.append({
+            'type': 'collapse_windows_prediction',
+            'timestamp': datetime.now().isoformat(),
+            'match': f"{team1_name} vs {team2_name}",
+            'prediction': prediction
+        })
+        
+        return prediction
+    
+    def evaluate_resilience_factor(self, team_data, resilience_type, match_data=None):
+        """
+        Évaluer un facteur spécifique de résilience pour une équipe.
+        
+        Args:
+            team_data (dict): Données de l'équipe
+            resilience_type (str): Type de résilience à évaluer
+            match_data (dict, optional): Données du match pour contexte
+            
+        Returns:
+            dict: Évaluation du facteur de résilience
+        """
+        team_name = team_data.get('name', 'Équipe')
+        
+        if resilience_type not in self.resilience_factors:
+            return {
+                'team_name': team_name,
+                'resilience_type': resilience_type,
+                'error': 'Type de résilience non reconnu'
+            }
+        
+        # Base de l'évaluation
+        evaluation = {
             'team_name': team_name,
-            'is_collapsing': is_collapsing,
-            'confidence': confidence,
-            'collapse_pattern': collapse_pattern,
-            'collapse_type': collapse_type,
-            'indicators': indicators,
-            'recovery_prediction': recovery_prediction,
-            'analysis_timestamp': datetime.now().isoformat()
+            'resilience_type': resilience_type,
+            'factor_base_value': abs(self.resilience_factors[resilience_type]),
+            'contextual_score': 0.5,  # Score neutre par défaut
+            'description': '',
+            'relevance_to_match': 0.5  # Pertinence moyenne par défaut
         }
         
-        return result
-    
-    def _evaluate_psychological_factors(self, team_data, match_data=None):
-        """Évaluer les facteurs de risque psychologiques d'effondrement."""
-        # Extraction des données pertinentes
-        pressure_level = team_data.get('pressure_level', 0.5)
-        ego_level = team_data.get('ego_level', 0.5)
-        experience_rating = team_data.get('experience_rating', 0.5)
-        fan_expectation = team_data.get('fan_expectation', 0.5)
-        media_scrutiny = team_data.get('media_scrutiny', 0.5)
+        # Générer une évaluation du facteur
+        if resilience_type == 'strong_leadership':
+            evaluation['description'] = self._evaluate_leadership(team_data)
+            if match_data:
+                evaluation['relevance_to_match'] = self._evaluate_leadership_relevance(match_data)
         
-        # Ajuster selon le match à venir si disponible
-        if match_data:
-            match_importance = match_data.get('importance', 0.5)
-            is_derby = match_data.get('is_derby', False)
-            
-            # Augmenter la pression pour les matchs importants
-            pressure_level = min(1.0, pressure_level + (match_importance * 0.2))
-            
-            # Augmenter la pression médiatique pour les derbies
-            if is_derby:
-                media_scrutiny = min(1.0, media_scrutiny + 0.15)
-                fan_expectation = min(1.0, fan_expectation + 0.1)
+        elif resilience_type == 'comeback_history':
+            evaluation['description'] = self._evaluate_comeback_history(team_data)
+            if match_data:
+                evaluation['relevance_to_match'] = self._evaluate_comeback_relevance(match_data)
         
-        # Calcul des facteurs de risque
-        pressure_risk = pressure_level * self.collapse_factors['psychological']['pressure_threshold']
-        ego_risk = ego_level * self.collapse_factors['psychological']['ego_factor']
+        elif resilience_type == 'experienced_squad':
+            evaluation['description'] = self._evaluate_experience(team_data)
+            if match_data:
+                evaluation['relevance_to_match'] = self._evaluate_experience_relevance(match_data)
         
-        # Facteur d'expérience (inverse - plus d'expérience = moins de risque)
-        experience_factor = (1 - experience_rating) * 0.5
+        elif resilience_type == 'tactical_flexibility':
+            evaluation['description'] = self._evaluate_tactical_flexibility(team_data)
+            if match_data:
+                evaluation['relevance_to_match'] = self._evaluate_tactical_relevance(match_data)
         
-        # Attentes des supporters et pression médiatique
-        expectation_risk = fan_expectation * self.collapse_factors['psychological']['fan_expectation_weight']
-        media_risk = media_scrutiny * self.collapse_factors['psychological']['media_pressure_factor']
-        
-        # Risque psychologique global
-        psychological_risk = (
-            pressure_risk * 0.3 +
-            ego_risk * 0.2 +
-            experience_factor * 0.2 +
-            expectation_risk * 0.15 +
-            media_risk * 0.15
+        # Générer un score contextuel
+        # Dans une implémentation réelle, cela serait basé sur des données réelles
+        evaluation['contextual_score'] = random.uniform(
+            max(0.3, evaluation['factor_base_value'] - 0.2),
+            min(0.9, evaluation['factor_base_value'] + 0.2)
         )
         
-        return min(1.0, psychological_risk)
+        return evaluation
     
-    def _evaluate_tactical_factors(self, team_data, match_data=None):
-        """Évaluer les facteurs de risque tactiques d'effondrement."""
-        # Extraction des données
-        formation_rigidity = team_data.get('formation_rigidity', 0.5)
-        tactical_adaptability = team_data.get('tactical_adaptability', 0.5)
-        substitution_impact = team_data.get('substitution_impact', 0.5)
-        has_plan_b = team_data.get('has_plan_b', True)
+    def _analyze_team_collapse_risk(self, team_name, team_score, opponent_score, current_minute, recent_events, is_home=True):
+        """Analyser le risque d'effondrement pour une équipe spécifique."""
+        # Base de l'analyse
+        analysis = {
+            'team_name': team_name,
+            'current_risk_score': 0.5,  # Score neutre par défaut
+            'risk_factors': [],
+            'active_patterns': [],
+            'psychological_state': {},
+            'trend': 'stable'  # stable, increasing, decreasing
+        }
         
-        # Ajuster selon le match à venir si disponible
-        if match_data:
-            opponent_style = match_data.get('opponent_style', 'balanced')
-            team_style = team_data.get('playing_style', 'balanced')
-            
-            # Évaluer la compatibilité des styles
-            style_compatibility = self._evaluate_style_compatibility(team_style, opponent_style)
-            
-            # Augmenter la rigidité si le style est incompatible
-            if style_compatibility < 0.4:
-                formation_rigidity = min(1.0, formation_rigidity + 0.15)
+        # Facteurs de base
+        base_factors = []
         
-        # Calcul des facteurs de risque
-        rigidity_risk = formation_rigidity * self.collapse_factors['tactical']['formation_rigidity']
-        adaptability_risk = (1 - tactical_adaptability) * self.collapse_factors['tactical']['adaptability_factor']
-        substitution_risk = (1 - substitution_impact) * self.collapse_factors['tactical']['substitution_impact']
-        plan_b_risk = 0.0 if has_plan_b else self.collapse_factors['tactical']['plan_b_availability']
+        # Facteur 1: Minute du match
+        if current_minute > 75:
+            factor = {'name': 'late_game_pressure', 'impact': 0.2}
+            base_factors.append(factor)
+        elif 40 <= current_minute <= 45:
+            factor = {'name': 'end_of_half_pressure', 'impact': 0.15}
+            base_factors.append(factor)
+        elif 45 <= current_minute <= 55:
+            factor = {'name': 'start_of_second_half_adjustment', 'impact': 0.1}
+            base_factors.append(factor)
         
-        # Risque tactique global
-        tactical_risk = (
-            rigidity_risk * 0.3 +
-            adaptability_risk * 0.3 +
-            substitution_risk * 0.2 +
-            plan_b_risk * 0.2
+        # Facteur 2: État du score
+        score_diff = team_score - opponent_score
+        if score_diff == -1:
+            factor = {'name': 'narrow_deficit', 'impact': 0.15}
+            base_factors.append(factor)
+        elif score_diff <= -2:
+            factor = {'name': 'significant_deficit', 'impact': 0.25}
+            base_factors.append(factor)
+        elif score_diff == 1:
+            factor = {'name': 'protecting_narrow_lead', 'impact': 0.2}
+            base_factors.append(factor)
+        
+        # Facteur 3: Domicile/Extérieur
+        if not is_home:
+            factor = {'name': 'away_team_pressure', 'impact': 0.1}
+            base_factors.append(factor)
+        
+        # Ajouter nos facteurs de base
+        analysis['risk_factors'] = base_factors
+        
+        # Calculer le score de risque actuel
+        risk_score = 0.4  # Base neutre légèrement optimiste
+        for factor in base_factors:
+            risk_score += factor['impact']
+        
+        # Limiter entre 0.1 et 0.9
+        analysis['current_risk_score'] = max(0.1, min(0.9, risk_score))
+        
+        # Analyser les patterns actifs
+        active_patterns = []
+        for pattern_name, pattern_data in self.collapse_patterns.items():
+            is_active = self._check_pattern_active(
+                pattern_name, pattern_data, current_minute, 
+                team_score, opponent_score, recent_events
+            )
+            if is_active:
+                active_patterns.append({
+                    'pattern': pattern_name,
+                    'description': pattern_data['description'],
+                    'importance': pattern_data['importance'],
+                    'remaining_window': pattern_data['time_window'] - self._get_time_since_trigger(pattern_name, recent_events, current_minute)
+                })
+        
+        analysis['active_patterns'] = active_patterns
+        
+        # Ajuster le score en fonction des patterns actifs
+        for pattern in active_patterns:
+            analysis['current_risk_score'] = min(
+                0.9, 
+                analysis['current_risk_score'] + (pattern['importance'] * 0.1)
+            )
+        
+        # Simuler un état psychologique (dans une implémentation réelle, cela viendrait d'une analyse)
+        psychological_state = self._simulate_psychological_state(
+            team_name, team_score, opponent_score, current_minute
+        )
+        analysis['psychological_state'] = psychological_state
+        
+        # Ajuster le score en fonction de l'état psychologique
+        psych_adjustment = (psychological_state['frustration'] * 0.1 + 
+                           psychological_state['cohesion'] * -0.1 +
+                           psychological_state['confidence'] * -0.15)
+        analysis['current_risk_score'] = max(0.1, min(0.9, analysis['current_risk_score'] + psych_adjustment))
+        
+        # Déterminer la tendance
+        analysis['trend'] = self._determine_risk_trend(
+            analysis['current_risk_score'], current_minute, recent_events
         )
         
-        return min(1.0, tactical_risk)
+        return analysis
     
-    def _evaluate_physical_factors(self, team_data, match_data=None):
-        """Évaluer les facteurs de risque physiques d'effondrement."""
-        # Extraction des données
-        fatigue_level = team_data.get('fatigue_level', 0.5)
-        injury_concerns = team_data.get('injury_concerns', 0.3)
-        fixture_congestion = team_data.get('fixture_congestion', 0.3)
-        travel_distance = team_data.get('travel_distance', 0)  # En km
+    def _check_pattern_active(self, pattern_name, pattern_data, current_minute, team_score, opponent_score, recent_events):
+        """Vérifier si un pattern d'effondrement est actif."""
+        if pattern_name == 'after_conceding':
+            # Vérifier s'il y a eu un but encaissé récemment
+            for event in recent_events:
+                if (event.get('type') == 'goal' and 
+                    event.get('against_team', False) and
+                    current_minute - event.get('minute', 0) <= pattern_data['time_window']):
+                    return True
         
-        # Normaliser la distance de voyage
-        normalized_travel = min(1.0, travel_distance / 1000)  # 1000km comme référence max
+        elif pattern_name == 'late_game_pressure':
+            # Vérifier si c'est la fin du match avec un score serré
+            return (current_minute >= 75 and 
+                   abs(team_score - opponent_score) <= 1)
         
-        # Ajuster selon le match à venir si disponible
-        if match_data:
-            is_away = match_data.get('is_away', False)
-            weather_condition = match_data.get('weather_condition', 'normal')
-            days_since_last_match = match_data.get('days_since_last_match', 4)
-            
-            # Augmenter la fatigue pour les matchs à l'extérieur
-            if is_away:
-                fatigue_level = min(1.0, fatigue_level + 0.1)
-            
-            # Ajuster selon les conditions météo
-            if weather_condition in ['extreme_heat', 'extreme_cold', 'heavy_rain', 'snow']:
-                fatigue_level = min(1.0, fatigue_level + 0.15)
-            
-            # Facteur de récupération
-            if days_since_last_match < 3:
-                fatigue_level = min(1.0, fatigue_level + (3 - days_since_last_match) * 0.05)
-                fixture_congestion = min(1.0, fixture_congestion + 0.2)
+        elif pattern_name == 'momentum_shift':
+            # Vérifier s'il y a eu un changement de momentum récent
+            has_momentum_shift = False
+            for event in recent_events:
+                if (event.get('type') in ['missed_chance', 'red_card', 'penalty_against'] and
+                    current_minute - event.get('minute', 0) <= pattern_data['time_window']):
+                    has_momentum_shift = True
+                    break
+            return has_momentum_shift
         
-        # Calcul des facteurs de risque
-        fatigue_risk = fatigue_level * self.collapse_factors['physical']['fatigue_threshold']
-        injury_risk = injury_concerns * self.collapse_factors['physical']['injury_impact']
-        congestion_risk = fixture_congestion * self.collapse_factors['physical']['fixture_congestion']
-        travel_risk = normalized_travel * self.collapse_factors['physical']['travel_burden']
+        elif pattern_name == 'key_player_impact':
+            # Vérifier s'il y a eu une perte de joueur clé
+            for event in recent_events:
+                if (event.get('type') in ['substitution', 'injury'] and
+                    event.get('key_player', False) and
+                    current_minute - event.get('minute', 0) <= pattern_data['time_window']):
+                    return True
         
-        # Risque physique global
-        physical_risk = (
-            fatigue_risk * 0.35 +
-            injury_risk * 0.3 +
-            congestion_risk * 0.25 +
-            travel_risk * 0.1
-        )
-        
-        return min(1.0, physical_risk)
+        return False
     
-    def _evaluate_historical_factors(self, team_data, match_data=None):
-        """Évaluer les facteurs de risque historiques d'effondrement."""
-        # Extraction des données
-        previous_collapses = team_data.get('previous_collapses', 0)  # Nombre d'effondrements précédents
-        similar_situation_success = team_data.get('similar_situation_success', 0.5)
-        psychological_fragility = team_data.get('psychological_fragility', 0.3)
+    def _get_time_since_trigger(self, pattern_name, recent_events, current_minute):
+        """Obtenir le temps écoulé depuis le déclenchement du pattern."""
+        trigger_minute = 0
         
-        # Normaliser le nombre d'effondrements précédents
-        normalized_collapses = min(1.0, previous_collapses / 5)  # 5 collapses comme référence max
+        if pattern_name == 'after_conceding':
+            for event in recent_events:
+                if (event.get('type') == 'goal' and 
+                    event.get('against_team', False)):
+                    trigger_minute = max(trigger_minute, event.get('minute', 0))
         
-        # Ajuster selon le match à venir si disponible
-        if match_data:
-            opponent_id = match_data.get('opponent_id', '')
-            is_revenge_match = match_data.get('is_revenge_match', False)
-            previous_trauma = match_data.get('previous_trauma', False)
+        elif pattern_name == 'late_game_pressure':
+            trigger_minute = 75  # Début de la période de pression
+        
+        elif pattern_name == 'momentum_shift':
+            for event in recent_events:
+                if event.get('type') in ['missed_chance', 'red_card', 'penalty_against']:
+                    trigger_minute = max(trigger_minute, event.get('minute', 0))
+        
+        elif pattern_name == 'key_player_impact':
+            for event in recent_events:
+                if (event.get('type') in ['substitution', 'injury'] and
+                    event.get('key_player', False)):
+                    trigger_minute = max(trigger_minute, event.get('minute', 0))
+        
+        return max(0, current_minute - trigger_minute)
+    
+    def _simulate_psychological_state(self, team_name, team_score, opponent_score, current_minute):
+        """Simuler l'état psychologique d'une équipe (dans une version réelle, cela serait basé sur des données)."""
+        # Base de l'état psychologique
+        psychological_state = {
+            'frustration': 0.5,
+            'cohesion': 0.5,
+            'confidence': 0.5,
+            'energy': 0.5,
+            'focus': 0.5
+        }
+        
+        # Ajuster en fonction du score
+        score_diff = team_score - opponent_score
+        if score_diff < 0:
+            # En déficit, plus de frustration, moins de confiance
+            psychological_state['frustration'] = min(0.9, 0.5 + abs(score_diff) * 0.15)
+            psychological_state['confidence'] = max(0.2, 0.5 - abs(score_diff) * 0.1)
+            psychological_state['cohesion'] = max(0.3, 0.5 - abs(score_diff) * 0.05)
+        elif score_diff > 0:
+            # En avance, plus de confiance
+            psychological_state['confidence'] = min(0.9, 0.5 + score_diff * 0.1)
+            psychological_state['frustration'] = max(0.2, 0.5 - score_diff * 0.1)
             
-            # Chercher les effets psychologiques spécifiques contre cet adversaire
-            historical_record = team_data.get('opponent_record', {}).get(opponent_id, {})
-            underdog_victories = historical_record.get('underdog_victories', 0)
-            
-            # Normaliser les victoires surprises
-            normalized_underdog_wins = min(1.0, underdog_victories / 3)
-            
-            # Facteurs de revanche et trauma psychologique
-            if is_revenge_match:
-                psychological_fragility = min(1.0, psychological_fragility + 0.2)
-            
-            if previous_trauma:
-                psychological_fragility = min(1.0, psychological_fragility + 0.25)
+            # Mais si l'avance est grande en fin de match, possible baisse de concentration
+            if score_diff >= 2 and current_minute > 70:
+                psychological_state['focus'] = max(0.3, 0.5 - 0.1)
+        
+        # Ajuster en fonction du temps de jeu
+        if current_minute > 75:
+            # Fin de match, baisse d'énergie
+            psychological_state['energy'] = max(0.3, 0.5 - (current_minute - 75) / 15 * 0.2)
+        
+        # Ajouter un peu de variabilité pour simuler l'incertitude
+        for key in psychological_state:
+            psychological_state[key] = max(0.1, min(0.9, psychological_state[key] + random.uniform(-0.1, 0.1)))
+        
+        return psychological_state
+    
+    def _determine_risk_trend(self, current_risk, current_minute, recent_events):
+        """Déterminer la tendance du risque d'effondrement."""
+        # Rechercher des événements récents qui pourraient impacter la tendance
+        recent_negative_events = 0
+        recent_positive_events = 0
+        very_recent_window = 5  # 5 dernières minutes
+        
+        for event in recent_events:
+            event_minute = event.get('minute', 0)
+            if current_minute - event_minute > very_recent_window:
+                continue
+                
+            event_type = event.get('type', '')
+            if event_type in ['goal_against', 'red_card', 'missed_chance', 'injury']:
+                recent_negative_events += 1
+            elif event_type in ['goal_for', 'saved_shot', 'successful_tackle', 'key_pass']:
+                recent_positive_events += 1
+        
+        # Déterminer la tendance
+        if recent_negative_events > recent_positive_events + 1:
+            return 'increasing'  # Risque en hausse
+        elif recent_positive_events > recent_negative_events + 1:
+            return 'decreasing'  # Risque en baisse
+        elif current_minute > 80 and current_risk > 0.6:
+            return 'increasing'  # Fin de match à haut risque = tendance à la hausse
         else:
-            normalized_underdog_wins = 0.0
-        
-        # Calcul des facteurs de risque
-        bottling_risk = normalized_collapses * self.collapse_factors['historical']['bottling_history']
-        success_risk = (1 - similar_situation_success) * 0.5  # Facteur inverse
-        psychological_risk = psychological_fragility * self.collapse_factors['historical']['psychological_scars']
-        underdog_risk = normalized_underdog_wins * self.collapse_factors['historical']['underdog_success']
-        
-        # Risque historique global
-        historical_risk = (
-            bottling_risk * 0.4 +
-            success_risk * 0.2 +
-            psychological_risk * 0.3 +
-            underdog_risk * 0.1
-        )
-        
-        return min(1.0, historical_risk)
+            return 'stable'  # Tendance stable
     
-    def _analyze_recent_form(self, team_id, form_data):
-        """Analyser la forme récente d'une équipe pour détecter des signes d'effondrement."""
-        # Extraction des données
-        results = form_data.get('results', [])
-        expected_results = form_data.get('expected_results', [])
-        
-        if not results:
-            return None
-        
-        # Calculer les tendances
-        win_percentage = form_data.get('win_percentage', 0.0)
-        expected_win_percentage = form_data.get('expected_win_percentage', 0.0)
-        form_trend = form_data.get('form_trend', 'stable')
-        
-        # Performance par rapport aux attentes
-        performance_vs_expectation = win_percentage - expected_win_percentage
-        
-        # Analyser la tendance défensive
-        defensive_trend = form_data.get('defensive_trend', 'stable')
-        goals_conceded_trend = form_data.get('goals_conceded_trend', 'stable')
-        
-        # Résultats récents (derniers matchs)
-        recent_results_trend = self._calculate_results_trend(results[:5])
-        
-        # Obtenir l'historique de forme pour ce team_id
-        previous_form = None
-        if team_id in self.form_tracker:
-            previous_form = list(self.form_tracker[team_id])
-        
-        # Analyser l'évolution par rapport à la forme précédente
-        form_evolution = None
-        if previous_form:
-            form_evolution = self._compare_form_periods(previous_form, results[:len(previous_form)])
-        
-        return {
-            'win_percentage': win_percentage,
-            'performance_vs_expectation': performance_vs_expectation,
-            'form_trend': form_trend,
-            'defensive_trend': defensive_trend,
-            'goals_conceded_trend': goals_conceded_trend,
-            'recent_results_trend': recent_results_trend,
-            'form_evolution': form_evolution,
-            'collapse_warning': performance_vs_expectation < -0.2,
-            'expected_correction': performance_vs_expectation < -0.3,
-            'recovery_signs': recent_results_trend == 'improving' and defensive_trend == 'improving'
+    def _compare_collapse_risks(self, team1_analysis, team2_analysis):
+        """Comparer les risques d'effondrement entre les deux équipes."""
+        comparative_analysis = {
+            'team1_name': team1_analysis['team_name'],
+            'team2_name': team2_analysis['team_name'],
+            'team1_risk': team1_analysis['current_risk_score'],
+            'team2_risk': team2_analysis['current_risk_score'],
+            'risk_differential': team1_analysis['current_risk_score'] - team2_analysis['current_risk_score'],
+            'higher_risk_team': team1_analysis['team_name'] if team1_analysis['current_risk_score'] > team2_analysis['current_risk_score'] else team2_analysis['team_name'],
+            'comparative_assessment': ''
         }
+        
+        # Générer une évaluation comparative
+        risk_diff = abs(comparative_analysis['risk_differential'])
+        
+        if risk_diff < 0.1:
+            comparative_analysis['comparative_assessment'] = "Les deux équipes présentent un niveau de risque d'effondrement similaire."
+        elif risk_diff < 0.2:
+            comparative_analysis['comparative_assessment'] = f"{comparative_analysis['higher_risk_team']} présente un risque d'effondrement légèrement plus élevé."
+        elif risk_diff < 0.4:
+            comparative_analysis['comparative_assessment'] = f"{comparative_analysis['higher_risk_team']} présente un risque d'effondrement significativement plus élevé."
+        else:
+            comparative_analysis['comparative_assessment'] = f"{comparative_analysis['higher_risk_team']} présente un risque d'effondrement très élevé par rapport à l'adversaire."
+        
+        return comparative_analysis
     
-    def _detect_collapse_patterns(self, team_data, risk_scores, form_analysis=None):
-        """Détecter des patterns d'effondrement spécifiques."""
-        detected_patterns = []
-        
-        # Pattern 1: Fatigue psychologique
-        if risk_scores['psychological'] > 0.7 and risk_scores['physical'] > 0.6:
-            detected_patterns.append({
-                'pattern': 'psychological_fatigue',
-                'confidence': (risk_scores['psychological'] * 0.7 + risk_scores['physical'] * 0.3),
-                'description': 'Signes de fatigue psychologique et physique combinées',
-                'risk_level': 'high'
-            })
-        
-        # Pattern 2: Rigidité tactique
-        if risk_scores['tactical'] > 0.75:
-            detected_patterns.append({
-                'pattern': 'tactical_rigidity',
-                'confidence': risk_scores['tactical'],
-                'description': 'Manque d\'adaptabilité tactique face à l\'adversité',
-                'risk_level': 'high' if risk_scores['tactical'] > 0.8 else 'medium'
-            })
-        
-        # Pattern 3: Cicatrices historiques
-        if risk_scores['historical'] > 0.7 and risk_scores['psychological'] > 0.6:
-            detected_patterns.append({
-                'pattern': 'historical_scars',
-                'confidence': (risk_scores['historical'] * 0.6 + risk_scores['psychological'] * 0.4),
-                'description': 'Traumatismes historiques affectant la performance actuelle',
-                'risk_level': 'high'
-            })
-        
-        # Pattern 4: Arrogance et complaisance
-        if risk_scores['psychological'] > 0.65 and team_data.get('ego_level', 0) > 0.7:
-            detected_patterns.append({
-                'pattern': 'complacency',
-                'confidence': risk_scores['psychological'] * 0.8,
-                'description': 'Excès de confiance et sous-estimation de l\'adversaire',
-                'risk_level': 'medium'
-            })
-        
-        # Pattern 5: Pression externe
-        media_pressure = team_data.get('media_scrutiny', 0.5)
-        fan_expectation = team_data.get('fan_expectation', 0.5)
-        if media_pressure > 0.7 and fan_expectation > 0.7 and risk_scores['psychological'] > 0.6:
-            detected_patterns.append({
-                'pattern': 'external_pressure',
-                'confidence': (media_pressure * 0.3 + fan_expectation * 0.3 + risk_scores['psychological'] * 0.4),
-                'description': 'Forte pression médiatique et attentes des supporters',
-                'risk_level': 'medium'
-            })
-        
-        # Intégrer l'analyse de forme si disponible
-        if form_analysis:
-            if form_analysis.get('performance_vs_expectation', 0) < -0.25 and form_analysis.get('form_trend', '') == 'declining':
-                detected_patterns.append({
-                    'pattern': 'form_collapse',
-                    'confidence': min(1.0, abs(form_analysis['performance_vs_expectation']) * 2),
-                    'description': 'Baisse marquée de forme par rapport aux attentes',
-                    'risk_level': 'high' if form_analysis['performance_vs_expectation'] < -0.35 else 'medium'
-                })
-            
-            if form_analysis.get('defensive_trend', '') == 'declining' and form_analysis.get('goals_conceded_trend', '') == 'increasing':
-                detected_patterns.append({
-                    'pattern': 'defensive_vulnerability',
-                    'confidence': 0.7,
-                    'description': 'Fragilité défensive croissante, susceptible d\'impacter le moral',
-                    'risk_level': 'medium'
-                })
-        
-        return detected_patterns
-    
-    def _identify_specific_weaknesses(self, risk_scores, form_analysis, team_data):
-        """Identifier les faiblesses spécifiques susceptibles de provoquer un effondrement."""
-        weaknesses = []
-        
-        # Identifier les catégories de risque élevé
-        high_risk_categories = []
-        for category, score in risk_scores.items():
-            if score > 0.7:
-                high_risk_categories.append(category)
-        
-        # Faiblesses psychologiques
-        if 'psychological' in high_risk_categories:
-            if team_data.get('ego_level', 0) > 0.7:
-                weaknesses.append({
-                    'type': 'psychological',
-                    'weakness': 'ego_management',
-                    'description': 'Excès de confiance des joueurs clés',
-                    'severity': 'high'
-                })
-            
-            if team_data.get('pressure_level', 0) > 0.75:
-                weaknesses.append({
-                    'type': 'psychological',
-                    'weakness': 'pressure_handling',
-                    'description': 'Gestion déficiente de la pression dans les moments clés',
-                    'severity': 'high'
-                })
-        
-        # Faiblesses tactiques
-        if 'tactical' in high_risk_categories:
-            if team_data.get('formation_rigidity', 0) > 0.7:
-                weaknesses.append({
-                    'type': 'tactical',
-                    'weakness': 'tactical_flexibility',
-                    'description': 'Manque de flexibilité dans l\'approche tactique',
-                    'severity': 'high'
-                })
-            
-            if not team_data.get('has_plan_b', True):
-                weaknesses.append({
-                    'type': 'tactical',
-                    'weakness': 'plan_b',
-                    'description': 'Absence de plan alternatif en cas de difficulté',
-                    'severity': 'high'
-                })
-        
-        # Faiblesses physiques
-        if 'physical' in high_risk_categories:
-            if team_data.get('fatigue_level', 0) > 0.7:
-                weaknesses.append({
-                    'type': 'physical',
-                    'weakness': 'fatigue_management',
-                    'description': 'Niveaux de fatigue élevés affectant la performance',
-                    'severity': 'high'
-                })
-            
-            if team_data.get('injury_concerns', 0) > 0.6:
-                weaknesses.append({
-                    'type': 'physical',
-                    'weakness': 'injury_problems',
-                    'description': 'Problèmes de blessures impactant la stabilité de l\'équipe',
-                    'severity': 'medium'
-                })
-        
-        # Faiblesses historiques
-        if 'historical' in high_risk_categories:
-            if team_data.get('previous_collapses', 0) > 2:
-                weaknesses.append({
-                    'type': 'historical',
-                    'weakness': 'psychological_scars',
-                    'description': 'Historique d\'effondrements affectant la confiance actuelle',
-                    'severity': 'high'
-                })
-        
-        # Intégrer l'analyse de forme si disponible
-        if form_analysis:
-            if form_analysis.get('defensive_trend', '') == 'declining':
-                weaknesses.append({
-                    'type': 'form',
-                    'weakness': 'defensive_frailty',
-                    'description': 'Tendance défensive en déclin',
-                    'severity': 'medium'
-                })
-            
-            if form_analysis.get('performance_vs_expectation', 0) < -0.3:
-                weaknesses.append({
-                    'type': 'form',
-                    'weakness': 'performance_gap',
-                    'description': 'Performance nettement en-dessous des attentes',
-                    'severity': 'high'
-                })
-        
-        return weaknesses
-    
-    def _generate_recommendations(self, risk_scores, detected_patterns, weaknesses):
-        """Générer des recommandations pour éviter l'effondrement."""
+    def _generate_recommendations(self, team1_analysis, team2_analysis, comparative_analysis):
+        """Générer des recommandations d'observation et d'action basées sur l'analyse."""
         recommendations = []
         
-        # Identifier les catégories à risque
-        high_risk_categories = []
-        for category, score in risk_scores.items():
-            if score > 0.6:
-                high_risk_categories.append(category)
+        # Recommandations pour l'équipe à plus haut risque
+        higher_risk_team = comparative_analysis['higher_risk_team']
+        higher_risk_analysis = team1_analysis if higher_risk_team == team1_analysis['team_name'] else team2_analysis
         
-        # Recommandations psychologiques
-        if 'psychological' in high_risk_categories:
+        if higher_risk_analysis['current_risk_score'] > 0.7:
             recommendations.append({
-                'area': 'psychological',
-                'recommendation': 'Intervention psychologique ciblée',
-                'description': 'Séances spécifiques de gestion du stress et de la pression',
-                'priority': 'high' if risk_scores['psychological'] > 0.7 else 'medium'
+                'priority': 'high',
+                'focus': higher_risk_team,
+                'observation': f"Surveiller attentivement les signes de désorganisation et de frustration chez {higher_risk_team}",
+                'action': f"Considérer une forte probabilité d'effondrement défensif pour {higher_risk_team}"
             })
+        elif higher_risk_analysis['current_risk_score'] > 0.5:
+            recommendations.append({
+                'priority': 'medium',
+                'focus': higher_risk_team,
+                'observation': f"Observer l'attitude corporelle et la communication entre les joueurs de {higher_risk_team}",
+                'action': f"Envisager un risque modéré d'effondrement si un événement déclencheur survient"
+            })
+        
+        # Recommandations basées sur les patterns actifs
+        for team_analysis in [team1_analysis, team2_analysis]:
+            team_name = team_analysis['team_name']
             
-            recommendations.append({
-                'area': 'psychological',
-                'recommendation': 'Gestion de la communication',
-                'description': 'Réduire l\'exposition médiatique des joueurs clés',
-                'priority': 'medium'
-            })
+            for pattern in team_analysis['active_patterns']:
+                if pattern['importance'] > 0.7:
+                    recommendations.append({
+                        'priority': 'high',
+                        'focus': team_name,
+                        'observation': f"Pattern '{pattern['description']}' actif pour {team_name}",
+                        'action': f"Anticiper un possible effondrement dans les {pattern['remaining_window']} prochaines minutes"
+                    })
+                else:
+                    recommendations.append({
+                        'priority': 'medium',
+                        'focus': team_name,
+                        'observation': f"Pattern '{pattern['description']}' actif pour {team_name}",
+                        'action': f"Rester attentif à l'évolution dans les {pattern['remaining_window']} prochaines minutes"
+                    })
         
-        # Recommandations tactiques
-        if 'tactical' in high_risk_categories:
-            recommendations.append({
-                'area': 'tactical',
-                'recommendation': 'Développement d\'un plan B',
-                'description': 'Préparer une approche tactique alternative',
-                'priority': 'high' if risk_scores['tactical'] > 0.75 else 'medium'
-            })
+        # Recommandations basées sur l'état psychologique
+        for team_analysis in [team1_analysis, team2_analysis]:
+            team_name = team_analysis['team_name']
+            psych_state = team_analysis['psychological_state']
             
-            recommendations.append({
-                'area': 'tactical',
-                'recommendation': 'Entraînement d\'adaptabilité',
-                'description': 'Exercices visant à améliorer la réponse aux changements tactiques',
-                'priority': 'medium'
-            })
-        
-        # Recommandations physiques
-        if 'physical' in high_risk_categories:
-            recommendations.append({
-                'area': 'physical',
-                'recommendation': 'Gestion optimisée de la charge',
-                'description': 'Ajuster l\'intensité des entraînements pour maximiser la récupération',
-                'priority': 'high' if risk_scores['physical'] > 0.7 else 'medium'
-            })
-        
-        # Recommandations historiques
-        if 'historical' in high_risk_categories:
-            recommendations.append({
-                'area': 'historical',
-                'recommendation': 'Travail sur le narratif',
-                'description': 'Recadrer les expériences passées comme des apprentissages plutôt que des échecs',
-                'priority': 'medium'
-            })
-        
-        # Recommandations basées sur les patterns détectés
-        for pattern in detected_patterns:
-            if pattern['pattern'] == 'complacency':
+            if psych_state['frustration'] > 0.7 and psych_state['cohesion'] < 0.4:
                 recommendations.append({
-                    'area': 'mentality',
-                    'recommendation': 'Rappel des difficultés potentielles',
-                    'description': 'Séances vidéo spécifiques sur les forces de l\'adversaire',
-                    'priority': 'high'
+                    'priority': 'high',
+                    'focus': team_name,
+                    'observation': f"Niveau élevé de frustration et faible cohésion chez {team_name}",
+                    'action': "Anticiper des erreurs défensives et un manque de coordination"
                 })
-            
-            elif pattern['pattern'] == 'form_collapse':
+            elif psych_state['confidence'] < 0.3:
                 recommendations.append({
-                    'area': 'training',
-                    'recommendation': 'Retour aux fondamentaux',
-                    'description': 'Session d\'entraînement axée sur les bases et la confiance',
-                    'priority': 'high'
+                    'priority': 'medium',
+                    'focus': team_name,
+                    'observation': f"Confiance très basse chez {team_name}",
+                    'action': "Surveiller les signes de repli défensif et de jeu hésitant"
                 })
         
-        # Recommandations basées sur les faiblesses identifiées
-        for weakness in weaknesses:
-            if weakness['weakness'] == 'defensive_frailty':
-                recommendations.append({
-                    'area': 'defensive',
-                    'recommendation': 'Travail défensif intensif',
-                    'description': 'Sessions dédiées à l\'organisation défensive et la communication',
-                    'priority': 'high'
-                })
+        # Trier par priorité
+        recommendations.sort(key=lambda x: 0 if x['priority'] == 'high' else (1 if x['priority'] == 'medium' else 2))
         
         return recommendations
     
-    def _calculate_results_trend(self, results):
-        """Calculer la tendance des résultats récents."""
-        if not results or len(results) < 3:
-            return 'stable'
+    def _identify_historical_collapses(self, match_history):
+        """Identifier les effondrements historiques dans l'historique des matchs."""
+        collapse_instances = []
         
-        # Convertir les résultats en scores numériques
-        scores = []
-        for result in results:
-            result_type = result.get('result', 'D')
-            if result_type == 'W':
-                scores.append(3)
-            elif result_type == 'D':
-                scores.append(1)
-            else:  # 'L'
-                scores.append(0)
-        
-        # Calculer la tendance (linéaire simplifiée)
-        n = len(scores)
-        avg_score = sum(scores) / n
-        
-        if n >= 3:
-            first_half = sum(scores[:n//2]) / (n//2)
-            second_half = sum(scores[n//2:]) / (n - n//2)
+        for match in match_history:
+            # Vérifier si le match montre des signes d'effondrement
+            is_collapse = False
+            collapse_type = None
             
-            if second_half > first_half + 0.5:
-                return 'improving'
-            elif first_half > second_half + 0.5:
-                return 'declining'
+            # Type 1: Perdre un match après avoir mené
+            if ('score_progression' in match and 
+                any(score[0] > score[1] for score in match['score_progression'][:-1]) and
+                match['score_progression'][-1][0] < match['score_progression'][-1][1]):
+                is_collapse = True
+                collapse_type = 'lost_after_leading'
+            
+            # Type 2: Encaisser plusieurs buts en peu de temps
+            if 'goals_conceded_minutes' in match:
+                consecutive_goals = self._find_consecutive_conceded_goals(match['goals_conceded_minutes'])
+                if consecutive_goals:
+                    is_collapse = True
+                    collapse_type = 'multiple_goals_conceded'
+            
+            # Type 3: Effondrement en fin de match
+            if ('score_progression' in match and 
+                len(match['score_progression']) >= 2 and
+                match['score_progression'][-2][0] - match['score_progression'][-2][1] >
+                match['score_progression'][-1][0] - match['score_progression'][-1][1] + 1):
+                is_collapse = True
+                collapse_type = 'late_game_collapse'
+            
+            if is_collapse:
+                collapse_instances.append({
+                    'match_date': match.get('date', 'Unknown'),
+                    'opponent': match.get('opponent', 'Unknown'),
+                    'collapse_type': collapse_type,
+                    'description': self._generate_collapse_description(match, collapse_type)
+                })
         
-        return 'stable'
+        return collapse_instances
     
-    def _compare_form_periods(self, previous_form, current_form):
-        """Comparer deux périodes de forme."""
-        if not previous_form or not current_form or len(previous_form) != len(current_form):
+    def _find_consecutive_conceded_goals(self, goal_minutes):
+        """Trouver des séquences de buts encaissés en peu de temps."""
+        if len(goal_minutes) < 2:
             return None
-        
-        # Convertir les résultats en scores
-        previous_scores = []
-        current_scores = []
-        
-        for result in previous_form:
-            result_type = result.get('result', 'D')
-            if result_type == 'W':
-                previous_scores.append(3)
-            elif result_type == 'D':
-                previous_scores.append(1)
-            else:  # 'L'
-                previous_scores.append(0)
-        
-        for result in current_form:
-            result_type = result.get('result', 'D')
-            if result_type == 'W':
-                current_scores.append(3)
-            elif result_type == 'D':
-                current_scores.append(1)
-            else:  # 'L'
-                current_scores.append(0)
-        
-        # Calculer les moyennes
-        prev_avg = sum(previous_scores) / len(previous_scores)
-        curr_avg = sum(current_scores) / len(current_scores)
-        
-        # Déterminer l'évolution
-        if curr_avg > prev_avg + 0.5:
-            return 'improved'
-        elif prev_avg > curr_avg + 0.5:
-            return 'deteriorated'
-        else:
-            return 'similar'
+            
+        goal_minutes.sort()
+        for i in range(len(goal_minutes) - 1):
+            if goal_minutes[i+1] - goal_minutes[i] <= 10:  # Buts encaissés en 10 minutes ou moins
+                return (goal_minutes[i], goal_minutes[i+1])
+                
+        return None
     
-    def _evaluate_style_compatibility(self, team_style, opponent_style):
-        """Évaluer la compatibilité des styles de jeu."""
-        # Table simplifiée de compatibilité des styles
-        compatibility_matrix = {
-            'attacking': {
-                'attacking': 0.6,   # Compatible (ouvert)
-                'defensive': 0.3,   # Peu compatible (fermé)
-                'possession': 0.5,  # Modérément compatible
-                'counter': 0.4,     # Modérément compatible
-                'balanced': 0.6     # Compatible
-            },
-            'defensive': {
-                'attacking': 0.3,   # Peu compatible
-                'defensive': 0.2,   # Très peu compatible (fermé)
-                'possession': 0.4,  # Modérément compatible
-                'counter': 0.3,     # Peu compatible
-                'balanced': 0.5     # Modérément compatible
-            },
-            'possession': {
-                'attacking': 0.5,   # Modérément compatible
-                'defensive': 0.4,   # Modérément compatible
-                'possession': 0.6,  # Compatible
-                'counter': 0.3,     # Peu compatible
-                'balanced': 0.6     # Compatible
-            },
-            'counter': {
-                'attacking': 0.4,   # Modérément compatible
-                'defensive': 0.3,   # Peu compatible
-                'possession': 0.3,  # Peu compatible
-                'counter': 0.5,     # Modérément compatible
-                'balanced': 0.5     # Modérément compatible
-            },
-            'balanced': {
-                'attacking': 0.6,   # Compatible
-                'defensive': 0.5,   # Modérément compatible
-                'possession': 0.6,  # Compatible
-                'counter': 0.5,     # Modérément compatible
-                'balanced': 0.7     # Très compatible
-            }
-        }
-        
-        # Obtenir la compatibilité de la matrice
-        if team_style in compatibility_matrix and opponent_style in compatibility_matrix[team_style]:
-            return compatibility_matrix[team_style][opponent_style]
-        
-        # Valeur par défaut si styles non trouvés
-        return 0.5
-    
-    def _identify_critical_periods(self, season_timeline, team_info):
-        """Identifier les périodes critiques pour une équipe au cours d'une saison."""
-        critical_periods = []
-        
-        # Périodes traditionnellement difficiles
-        traditional_periods = [
-            {'name': 'holiday_fixtures', 'start_month': 12, 'end_month': 1, 'description': 'Période chargée des fêtes'},
-            {'name': 'season_end', 'start_month': 4, 'end_month': 5, 'description': 'Fin de saison sous pression'},
-            {'name': 'champions_league_ko', 'start_month': 2, 'end_month': 3, 'description': 'Phase à élimination directe en compétition européenne'}
-        ]
-        
-        # Forces et faiblesses de l'équipe
-        squad_depth = team_info.get('squad_depth', 0.5)
-        experience_level = team_info.get('experience_level', 0.5)
-        historical_endurance = team_info.get('historical_endurance', 0.5)
-        
-        # Évaluer chaque période traditionnelle
-        for period in traditional_periods:
-            # Calculer le facteur de risque pour cette période
-            risk_score = 0.5  # Base
-            
-            if period['name'] == 'holiday_fixtures':
-                risk_score += (1 - squad_depth) * 0.3  # Manque de profondeur = plus de risque
-                
-                # Vérifier si des matchs difficiles sont prévus
-                has_difficult_fixtures = False
-                for fixture in season_timeline.get('fixtures', []):
-                    if fixture.get('month') in [period['start_month'], period['end_month']] and fixture.get('difficulty', 0) > 0.7:
-                        has_difficult_fixtures = True
-                        break
-                
-                if has_difficult_fixtures:
-                    risk_score += 0.15
-            
-            elif period['name'] == 'season_end':
-                risk_score += (1 - experience_level) * 0.25  # Manque d'expérience = plus de risque
-                risk_score += (1 - historical_endurance) * 0.25  # Faible endurance historique = plus de risque
-                
-                # Vérifier si l'équipe joue pour un enjeu important
-                if team_info.get('title_race', False) or team_info.get('relegation_battle', False):
-                    risk_score += 0.2
-            
-            elif period['name'] == 'champions_league_ko' and team_info.get('in_champions_league', False):
-                risk_score += (1 - experience_level) * 0.3  # L'expérience est cruciale en Europe
-                
-                # Pression supplémentaire si haute attente européenne
-                if team_info.get('european_expectations', 0) > 0.7:
-                    risk_score += 0.15
-            
-            # Ajouter la période si le score de risque est significatif
-            if risk_score > 0.6:
-                critical_periods.append({
-                    'period_name': period['name'],
-                    'description': period['description'],
-                    'risk_score': risk_score,
-                    'risk_level': 'high' if risk_score > 0.75 else 'medium',
-                    'start_month': period['start_month'],
-                    'end_month': period['end_month']
-                })
-        
-        # Ajouter des périodes spécifiques selon le calendrier
-        fixture_clusters = self._identify_fixture_clusters(season_timeline)
-        for cluster in fixture_clusters:
-            risk_score = 0.5 + (cluster['difficulty'] * 0.3) + ((1 - squad_depth) * 0.2)
-            
-            if risk_score > 0.65:
-                critical_periods.append({
-                    'period_name': 'fixture_congestion',
-                    'description': f"Séquence intense de {cluster['count']} matchs en {cluster['days']} jours",
-                    'risk_score': risk_score,
-                    'risk_level': 'high' if risk_score > 0.75 else 'medium',
-                    'start_date': cluster['start_date'],
-                    'end_date': cluster['end_date']
-                })
-        
-        return critical_periods
-    
-    def _identify_fixture_clusters(self, season_timeline):
-        """Identifier les périodes de congestion de matchs."""
-        fixtures = season_timeline.get('fixtures', [])
-        
-        # Trier les matchs par date
-        fixtures = sorted(fixtures, key=lambda x: x.get('date', ''))
-        
-        clusters = []
-        current_start = None
-        current_fixtures = []
-        
-        # Identifier les séquences de matchs rapprochés
-        for i in range(len(fixtures) - 1):
-            current = fixtures[i]
-            next_match = fixtures[i + 1]
-            
-            # Calculer le nombre de jours entre les matchs
-            current_date = datetime.fromisoformat(current.get('date', '')) if isinstance(current.get('date', ''), str) else current.get('date')
-            next_date = datetime.fromisoformat(next_match.get('date', '')) if isinstance(next_match.get('date', ''), str) else next_match.get('date')
-            
-            days_between = (next_date - current_date).days
-            
-            # Si les matchs sont rapprochés (moins de 4 jours)
-            if days_between < 4:
-                if not current_start:
-                    current_start = current_date
-                    current_fixtures = [current]
-                
-                current_fixtures.append(next_match)
-            else:
-                # Fin d'un cluster potentiel
-                if current_start and len(current_fixtures) >= 3:
-                    # Calculer la difficulté moyenne
-                    avg_difficulty = sum(match.get('difficulty', 0.5) for match in current_fixtures) / len(current_fixtures)
+    def _generate_collapse_description(self, match, collapse_type):
+        """Générer une description de l'effondrement historique."""
+        if collapse_type == 'lost_after_leading':
+            lead_score = None
+            for i, score in enumerate(match.get('score_progression', [])):
+                if score[0] > score[1]:
+                    lead_score = score
+                    break
                     
-                    clusters.append({
-                        'start_date': current_start,
-                        'end_date': next_date,
-                        'count': len(current_fixtures),
-                        'days': (next_date - current_start).days,
-                        'difficulty': avg_difficulty,
-                        'fixtures': current_fixtures
-                    })
-                
-                # Réinitialiser
-                current_start = None
-                current_fixtures = []
-        
-        # Vérifier le dernier cluster potentiel
-        if current_start and len(current_fixtures) >= 3:
-            avg_difficulty = sum(match.get('difficulty', 0.5) for match in current_fixtures) / len(current_fixtures)
+            final_score = match.get('score_progression', [])[-1]
+            return f"Défaite {final_score[0]}-{final_score[1]} après avoir mené {lead_score[0]}-{lead_score[1]}"
             
-            clusters.append({
-                'start_date': current_start,
-                'end_date': current_fixtures[-1].get('date'),
-                'count': len(current_fixtures),
-                'days': (current_fixtures[-1].get('date') - current_start).days,
-                'difficulty': avg_difficulty,
-                'fixtures': current_fixtures
-            })
-        
-        return clusters
+        elif collapse_type == 'multiple_goals_conceded':
+            consecutive_goals = self._find_consecutive_conceded_goals(match.get('goals_conceded_minutes', []))
+            if consecutive_goals:
+                return f"Plusieurs buts encaissés en peu de temps (minutes {consecutive_goals[0]} et {consecutive_goals[1]})"
+            
+        elif collapse_type == 'late_game_collapse':
+            progress = match.get('score_progression', [])
+            if len(progress) >= 2:
+                return f"Effondrement en fin de match, passant de {progress[-2][0]}-{progress[-2][1]} à {progress[-1][0]}-{progress[-1][1]}"
+            
+        return "Effondrement notable"
     
-    def _evaluate_structural_risks(self, team_info):
-        """Évaluer les risques structurels d'effondrement."""
-        # Extraire les facteurs de risque structurels
-        squad_depth = team_info.get('squad_depth', 0.5)
-        experience_level = team_info.get('experience_level', 0.5)
-        tactical_rigidity = team_info.get('tactical_rigidity', 0.5)
-        leadership_quality = team_info.get('leadership_quality', 0.5)
-        psychological_resilience = team_info.get('psychological_resilience', 0.5)
+    def _calculate_historical_susceptibility(self, collapse_instances):
+        """Calculer un score de susceptibilité basé sur l'historique."""
+        if not collapse_instances:
+            return 0.5  # Score neutre
+            
+        # Score de base influencé par le nombre d'effondrements
+        base_score = min(0.9, 0.4 + len(collapse_instances) * 0.1)
         
-        # Calculer les scores de risque
-        depth_risk = (1 - squad_depth) * 0.8
-        experience_risk = (1 - experience_level) * 0.7
-        tactical_risk = tactical_rigidity * 0.6
-        leadership_risk = (1 - leadership_quality) * 0.7
-        psychological_risk = (1 - psychological_resilience) * 0.9
+        # Ajuster en fonction des types d'effondrement
+        collapse_types = [instance['collapse_type'] for instance in collapse_instances]
         
-        # Calculer le risque structurel global
-        overall_risk = (
-            depth_risk * 0.2 +
-            experience_risk * 0.2 +
-            tactical_risk * 0.15 +
-            leadership_risk * 0.2 +
-            psychological_risk * 0.25
-        )
+        # Les effondrements répétitifs du même type indiquent une faiblesse structurelle
+        if collapse_types.count('lost_after_leading') > 1:
+            base_score += 0.1
+        if collapse_types.count('multiple_goals_conceded') > 1:
+            base_score += 0.1
+        if collapse_types.count('late_game_collapse') > 1:
+            base_score += 0.1
+            
+        # Limiter entre 0.1 et 0.9
+        return max(0.1, min(0.9, base_score))
+    
+    def _analyze_squad_vulnerability(self, team_data):
+        """Analyser la vulnérabilité de l'effectif aux effondrements."""
+        # Dans une implémentation réelle, cela utiliserait des données d'équipe réelles
+        # Ici, nous simulons pour l'exemple
         
-        # Identifier les facteurs de risque clés (top 2)
-        risk_factors = [
-            {'factor': 'squad_depth', 'risk': depth_risk},
-            {'factor': 'experience', 'risk': experience_risk},
-            {'factor': 'tactical_rigidity', 'risk': tactical_risk},
-            {'factor': 'leadership', 'risk': leadership_risk},
-            {'factor': 'psychological_resilience', 'risk': psychological_risk}
+        squad_analysis = {
+            'vulnerability_score': 0.5,  # Score neutre par défaut
+            'key_factors': [],
+            'strengths': [],
+            'weaknesses': []
+        }
+        
+        # Facteurs simulés (dans une implémentation réelle, ces données viendraient de l'équipe)
+        experience_level = random.uniform(0.3, 0.9)
+        leadership_presence = random.uniform(0.3, 0.9)
+        mental_resilience = random.uniform(0.3, 0.9)
+        squad_depth = random.uniform(0.3, 0.9)
+        tactical_rigidity = random.uniform(0.3, 0.9)
+        
+        # Calculer le score de vulnérabilité
+        vulnerability_factors = [
+            1 - experience_level,  # Moins d'expérience = plus de vulnérabilité
+            1 - leadership_presence,
+            1 - mental_resilience,
+            1 - squad_depth,
+            tactical_rigidity  # Plus de rigidité = plus de vulnérabilité
         ]
         
-        sorted_factors = sorted(risk_factors, key=lambda x: x['risk'], reverse=True)
-        key_factors = sorted_factors[:2]
+        squad_analysis['vulnerability_score'] = sum(vulnerability_factors) / len(vulnerability_factors)
         
-        return {
-            'overall': overall_risk,
-            'depth_risk': depth_risk,
-            'experience_risk': experience_risk,
-            'tactical_risk': tactical_risk,
-            'leadership_risk': leadership_risk,
-            'psychological_risk': psychological_risk,
-            'key_factors': key_factors,
-            'risk_level': 'high' if overall_risk > 0.7 else 'medium' if overall_risk > 0.5 else 'low'
-        }
-    
-    def _analyze_historical_collapses(self, team_info):
-        """Analyser l'historique d'effondrement d'une équipe."""
-        # Extraire les données historiques
-        previous_collapses = team_info.get('previous_collapses', 0)
-        seasons_analyzed = team_info.get('seasons_analyzed', 5)
-        complete_collapses = team_info.get('complete_collapses', 0)
-        partial_recoveries = team_info.get('partial_recoveries', 0)
-        
-        # Éviter la division par zéro
-        if seasons_analyzed == 0:
-            seasons_analyzed = 1
-        
-        # Calculer les métriques
-        collapse_frequency = previous_collapses / seasons_analyzed
-        recovery_rate = partial_recoveries / max(1, previous_collapses)
-        complete_collapse_rate = complete_collapses / max(1, previous_collapses)
-        
-        # Analyser les types d'effondrement historiques
-        collapse_types = team_info.get('collapse_types', {})
-        dominant_type = max(collapse_types.items(), key=lambda x: x[1])[0] if collapse_types else None
-        
-        return {
-            'collapse_frequency': collapse_frequency,
-            'recovery_rate': recovery_rate,
-            'complete_collapse_rate': complete_collapse_rate,
-            'dominant_type': dominant_type,
-            'collapses_per_season': collapse_frequency,
-            'recovery_potential': recovery_rate,
-            'collapse_severity': complete_collapse_rate,
-            'historical_risk': 'high' if collapse_frequency > 0.5 else 'medium' if collapse_frequency > 0.2 else 'low'
-        }
-    
-    def _calculate_team_resilience(self, team_info):
-        """Calculer la résilience d'une équipe face à l'adversité."""
-        # Extraire les métriques de résilience
-        comeback_rate = team_info.get('comeback_rate', 0.5)
-        recovery_after_loss = team_info.get('recovery_after_loss', 0.5)
-        psychological_resilience = team_info.get('psychological_resilience', 0.5)
-        leadership_quality = team_info.get('leadership_quality', 0.5)
-        manager_experience = team_info.get('manager_experience', 0.5)
-        
-        # Facteurs supplémentaires
-        strong_dressing_room = team_info.get('strong_dressing_room', False)
-        experienced_core = team_info.get('experienced_core', False)
-        
-        # Calculer le score de résilience
-        resilience_score = (
-            comeback_rate * 0.2 +
-            recovery_after_loss * 0.2 +
-            psychological_resilience * 0.2 +
-            leadership_quality * 0.2 +
-            manager_experience * 0.2
-        )
-        
-        # Ajustements pour facteurs supplémentaires
-        if strong_dressing_room:
-            resilience_score = min(1.0, resilience_score + 0.1)
-        
-        if experienced_core:
-            resilience_score = min(1.0, resilience_score + 0.1)
-        
-        return resilience_score
-    
-    def _identify_conditional_factors(self, team_info):
-        """Identifier les facteurs conditionnels qui peuvent influencer le potentiel d'effondrement."""
-        conditional_factors = []
-        
-        # Facteur 1: Dépendance à un joueur clé
-        key_player_dependency = team_info.get('key_player_dependency', 0.0)
-        if key_player_dependency > 0.7:
-            conditional_factors.append({
-                'factor': 'key_player_dependency',
-                'description': 'Forte dépendance à un joueur clé - risque d\'effondrement en cas de blessure/suspension',
-                'impact': 'high',
-                'trigger_condition': 'absence du joueur clé'
+        # Identifier les forces et faiblesses clés
+        if experience_level > 0.7:
+            squad_analysis['strengths'].append("Équipe expérimentée")
+        elif experience_level < 0.4:
+            squad_analysis['weaknesses'].append("Manque d'expérience dans l'effectif")
+            squad_analysis['key_factors'].append({
+                'factor': 'inexperience',
+                'impact': 0.7
             })
         
-        # Facteur 2: Vulnérabilité aux matchs à l'extérieur
-        away_form_differential = team_info.get('away_form_differential', 0.0)
-        if away_form_differential > 0.3:  # Grande différence entre domicile et extérieur
-            conditional_factors.append({
-                'factor': 'away_vulnerability',
-                'description': 'Performance nettement inférieure à l\'extérieur',
-                'impact': 'medium',
-                'trigger_condition': 'série de matchs à l\'extérieur'
+        if leadership_presence > 0.7:
+            squad_analysis['strengths'].append("Leadership fort sur le terrain")
+        elif leadership_presence < 0.4:
+            squad_analysis['weaknesses'].append("Absence de leaders clairs")
+            squad_analysis['key_factors'].append({
+                'factor': 'leadership_vacuum',
+                'impact': 0.8
             })
         
-        # Facteur 3: Vulnérabilité aux blessures
-        injury_impact = team_info.get('injury_impact', 0.0)
-        if injury_impact > 0.6:
-            conditional_factors.append({
-                'factor': 'injury_cascade',
-                'description': 'Risque d\'effondrement si plusieurs blessures surviennent',
-                'impact': 'high',
-                'trigger_condition': 'accumulation de blessures'
+        if mental_resilience > 0.7:
+            squad_analysis['strengths'].append("Forte résilience mentale")
+        elif mental_resilience < 0.4:
+            squad_analysis['weaknesses'].append("Fragilité mentale")
+            squad_analysis['key_factors'].append({
+                'factor': 'mental_fragility',
+                'impact': 0.9
             })
         
-        # Facteur 4: Réaction aux changements de manager
-        manager_change_sensitivity = team_info.get('manager_change_sensitivity', 0.0)
-        if manager_change_sensitivity > 0.7:
-            conditional_factors.append({
-                'factor': 'manager_change',
-                'description': 'Forte sensibilité aux changements d\'entraîneur',
-                'impact': 'high',
-                'trigger_condition': 'spéculation sur l\'avenir du manager'
+        if squad_depth > 0.7:
+            squad_analysis['strengths'].append("Effectif profond")
+        elif squad_depth < 0.4:
+            squad_analysis['weaknesses'].append("Manque de profondeur d'effectif")
+            squad_analysis['key_factors'].append({
+                'factor': 'thin_squad',
+                'impact': 0.6
             })
         
-        # Facteur 5: Vulnérabilité face à certains styles de jeu
-        style_vulnerabilities = team_info.get('style_vulnerabilities', {})
-        for style, vulnerability in style_vulnerabilities.items():
-            if vulnerability > 0.7:
-                conditional_factors.append({
-                    'factor': f'vulnerability_{style}',
-                    'description': f'Faiblesse face au style de jeu "{style}"',
-                    'impact': 'medium',
-                    'trigger_condition': f'affronter une équipe jouant en "{style}"'
-                })
+        if tactical_rigidity < 0.4:
+            squad_analysis['strengths'].append("Flexibilité tactique")
+        elif tactical_rigidity > 0.7:
+            squad_analysis['weaknesses'].append("Rigidité tactique")
+            squad_analysis['key_factors'].append({
+                'factor': 'tactical_inflexibility',
+                'impact': 0.7
+            })
         
-        return conditional_factors
+        return squad_analysis
     
-    def _calculate_collapse_indicators(self, recent_results, expected_performance):
-        """Calculer les indicateurs d'effondrement à partir des résultats récents."""
-        # Initialiser les indicateurs
-        indicators = {
-            'performance_drop': 0.0,
-            'consecutive_losses': 0,
-            'defensive_collapse': False,
-            'ranking_drop': 0
+    def _identify_key_weaknesses(self, team_data, match_history):
+        """Identifier les faiblesses clés d'une équipe en termes de risque d'effondrement."""
+        # Dans une implémentation réelle, cela utiliserait l'analyse des données
+        # Ici, nous simulons pour l'exemple
+        
+        weaknesses = []
+        
+        # Simuler l'identification de faiblesses basées sur des patterns imaginaires
+        if random.random() < 0.3:
+            weaknesses.append({
+                'type': 'defensive_organization',
+                'description': "Désorganisation défensive sous pression",
+                'severity': random.uniform(0.6, 0.9),
+                'evidence': f"Visible dans {random.randint(1, 5)} matchs récents"
+            })
+            
+        if random.random() < 0.25:
+            weaknesses.append({
+                'type': 'set_piece_vulnerability',
+                'description': "Vulnérabilité sur coups de pied arrêtés défensifs",
+                'severity': random.uniform(0.5, 0.8),
+                'evidence': f"{random.randint(20, 40)}% des buts encaissés sur phases arrêtées"
+            })
+            
+        if random.random() < 0.2:
+            weaknesses.append({
+                'type': 'counterattack_exposure',
+                'description': "Exposition aux contre-attaques en fin de match",
+                'severity': random.uniform(0.6, 0.85),
+                'evidence': f"{random.randint(3, 8)} buts encaissés en contre-attaque en fin de match"
+            })
+            
+        if random.random() < 0.3:
+            weaknesses.append({
+                'type': 'mental_resilience',
+                'description': "Baisse de performances après avoir encaissé",
+                'severity': random.uniform(0.7, 0.9),
+                'evidence': f"Temps de récupération mental moyen de {random.randint(8, 15)} minutes après un but encaissé"
+            })
+            
+        if random.random() < 0.25:
+            weaknesses.append({
+                'type': 'squad_depth',
+                'description': "Baisse de niveau significative avec les remplaçants",
+                'severity': random.uniform(0.5, 0.85),
+                'evidence': f"Performance réduite de {random.randint(15, 30)}% après les changements"
+            })
+        
+        # Trier par sévérité
+        weaknesses.sort(key=lambda x: x['severity'], reverse=True)
+        
+        return weaknesses
+    
+    def _generate_psychological_profile(self, team_data, match_history):
+        """Générer un profil psychologique de l'équipe par rapport aux effondrements."""
+        # Dans une implémentation réelle, cela utiliserait l'analyse des données
+        # Ici, nous simulons pour l'exemple
+        
+        profile = {
+            'vulnerability_score': random.uniform(0.4, 0.7),
+            'traits': {},
+            'key_observations': []
         }
         
-        # Calculer la performance actuelle
-        n_results = len(recent_results)
-        win_count = sum(1 for result in recent_results if result.get('result', '') == 'W')
-        actual_performance = win_count / n_results if n_results > 0 else 0
-        
-        # Baisse de performance par rapport à l'attendu
-        indicators['performance_drop'] = max(0, expected_performance - actual_performance)
-        
-        # Séquence de défaites
-        consecutive_losses = 0
-        for result in recent_results:
-            if result.get('result', '') == 'L':
-                consecutive_losses += 1
-            else:
-                break
-        indicators['consecutive_losses'] = consecutive_losses
-        
-        # Effondrement défensif (si l'équipe concède beaucoup plus de buts que d'habitude)
-        recent_conceded = [result.get('goals_conceded', 0) for result in recent_results]
-        avg_conceded = sum(recent_conceded) / len(recent_conceded) if recent_conceded else 0
-        expected_conceded = recent_results[0].get('expected_conceded', 1.0) if recent_results else 1.0
-        
-        indicators['defensive_collapse'] = avg_conceded > (expected_conceded * 1.5)
-        
-        # Chute au classement (si disponible)
-        if len(recent_results) >= 2:
-            first_ranking = recent_results[-1].get('ranking', 0)
-            latest_ranking = recent_results[0].get('ranking', 0)
-            indicators['ranking_drop'] = max(0, latest_ranking - first_ranking)
-        
-        return indicators
-    
-    def _identify_collapse_type(self, indicators, recent_results):
-        """Identifier le type d'effondrement en cours."""
-        # Types d'effondrement
-        collapse_types = {
-            'defensive': 0,
-            'offensive': 0,
-            'psychological': 0,
-            'physical': 0,
-            'tactical': 0
+        # Traits simulés
+        profile['traits'] = {
+            'resilience': random.uniform(0.3, 0.8),
+            'collective_confidence': random.uniform(0.4, 0.8),
+            'pressure_handling': random.uniform(0.3, 0.8),
+            'adaptability': random.uniform(0.4, 0.8),
+            'leadership_structure': random.uniform(0.3, 0.8),
+            'emotional_control': random.uniform(0.3, 0.7)
         }
         
-        # Analyser les indicateurs et les résultats
+        # Générer des observations clés basées sur les traits
+        if profile['traits']['resilience'] < 0.5:
+            profile['key_observations'].append("L'équipe montre des signes de fragilité après des revers")
+            
+        if profile['traits']['collective_confidence'] < 0.5:
+            profile['key_observations'].append("Manque de confiance collective dans les moments difficiles")
+            
+        if profile['traits']['pressure_handling'] < 0.5:
+            profile['key_observations'].append("Difficultés à gérer la pression dans les matchs importants")
+            
+        if profile['traits']['adaptability'] < 0.5:
+            profile['key_observations'].append("Manque d'adaptabilité face aux changements tactiques adverses")
+            
+        if profile['traits']['leadership_structure'] < 0.5:
+            profile['key_observations'].append("Structure de leadership fragile en l'absence de certains cadres")
+            
+        if profile['traits']['emotional_control'] < 0.5:
+            profile['key_observations'].append("Contrôle émotionnel insuffisant face à l'adversité")
         
-        # Signes d'effondrement défensif
-        if indicators['defensive_collapse']:
-            collapse_types['defensive'] += 2
-        
-        # Analyser les buts marqués récemment
-        recent_scored = [result.get('goals_scored', 0) for result in recent_results]
-        avg_scored = sum(recent_scored) / len(recent_scored) if recent_scored else 0
-        expected_scored = recent_results[0].get('expected_scored', 1.0) if recent_results else 1.0
-        
-        if avg_scored < (expected_scored * 0.7):
-            collapse_types['offensive'] += 2
-        
-        # Signes d'effondrement psychologique
-        if indicators['consecutive_losses'] >= 3:
-            collapse_types['psychological'] += 1
-        
-        # Défaites lourdes
-        heavy_defeats = sum(1 for result in recent_results if result.get('result', '') == 'L' and 
-                          result.get('goals_conceded', 0) - result.get('goals_scored', 0) >= 3)
-        if heavy_defeats > 0:
-            collapse_types['psychological'] += 1
-            collapse_types['tactical'] += 1
-        
-        # Signes de fatigue physique
-        late_goals_conceded = sum(1 for result in recent_results if result.get('late_goals_conceded', 0) > 0)
-        if late_goals_conceded >= 2:
-            collapse_types['physical'] += 2
-        
-        # Analyser la distance parcourue (si disponible)
-        recent_distance = [result.get('distance_covered', 110) for result in recent_results if 'distance_covered' in result]
-        if recent_distance:
-            avg_distance = sum(recent_distance) / len(recent_distance)
-            expected_distance = 110  # Valeur par défaut
-            if avg_distance < (expected_distance * 0.9):
-                collapse_types['physical'] += 1
-        
-        # Signes d'effondrement tactique
-        tactical_issues = sum(1 for result in recent_results if result.get('tactical_issues', False))
-        if tactical_issues >= 2:
-            collapse_types['tactical'] += 2
-        
-        # Déterminer le type dominant
-        dominant_type = max(collapse_types.items(), key=lambda x: x[1])[0]
-        
-        return dominant_type
+        return profile
     
-    def _predict_collapse_recovery(self, team_data, indicators, collapse_type):
-        """Prédire la durée et la sévérité de l'effondrement."""
-        # Facteurs de récupération
-        recovery_factors = {
-            'manager_quality': team_data.get('manager_quality', 0.5),
-            'squad_depth': team_data.get('squad_depth', 0.5),
-            'leadership_quality': team_data.get('leadership_quality', 0.5),
-            'financial_resources': team_data.get('financial_resources', 0.5),
-            'fixture_difficulty': team_data.get('upcoming_fixture_difficulty', 0.5)
-        }
+    def _identify_triggering_events(self, match_history):
+        """Identifier les événements qui déclenchent typiquement un effondrement."""
+        # Dans une implémentation réelle, cela analyserait l'historique des matchs
+        # Ici, nous simulons pour l'exemple
         
-        # Calculer le potentiel de récupération
-        recovery_potential = (
-            recovery_factors['manager_quality'] * 0.25 +
-            recovery_factors['squad_depth'] * 0.2 +
-            recovery_factors['leadership_quality'] * 0.25 +
-            recovery_factors['financial_resources'] * 0.1 -
-            recovery_factors['fixture_difficulty'] * 0.2
-        )
+        triggers = []
         
-        # Ajuster selon le type d'effondrement
-        if collapse_type == 'physical':
-            # Plus facile à récupérer avec une bonne profondeur d'effectif
-            recovery_duration = 3 - round(recovery_factors['squad_depth'] * 2)
-        elif collapse_type == 'psychological':
-            # Plus difficile à récupérer, dépend fortement du leadership
-            recovery_duration = 5 - round(recovery_factors['leadership_quality'] * 3)
-        elif collapse_type == 'tactical':
-            # Dépend fortement de la qualité du manager
-            recovery_duration = 4 - round(recovery_factors['manager_quality'] * 3)
-        else:  # defensive ou offensive
-            recovery_duration = 4 - round(recovery_potential * 3)
+        possible_triggers = [
+            {'type': 'goal_conceded', 'description': "But encaissé contre le cours du jeu"},
+            {'type': 'referee_decision', 'description': "Décision arbitrale controversée"},
+            {'type': 'key_player_injury', 'description': "Blessure d'un joueur clé"},
+            {'type': 'tactical_change', 'description': "Changement tactique adverse efficace"},
+            {'type': 'momentum_loss', 'description': "Perte de momentum après occasions manquées"},
+            {'type': 'individual_error', 'description': "Erreur individuelle majeure"},
+            {'type': 'set_piece_conceded', 'description': "But encaissé sur coup de pied arrêté"}
+        ]
         
-        # Limiter à des valeurs raisonnables
-        recovery_duration = max(1, min(6, recovery_duration))
+        # Sélectionner aléatoirement 2-4 déclencheurs
+        num_triggers = random.randint(2, 4)
+        selected_triggers = random.sample(possible_triggers, num_triggers)
         
-        # Prédire la sévérité finale
-        severity = indicators['performance_drop'] * (1 - recovery_potential)
+        for trigger in selected_triggers:
+            trigger_data = trigger.copy()
+            trigger_data['impact_score'] = random.uniform(0.6, 0.9)
+            trigger_data['frequency'] = f"{random.randint(3, 8)} occurrences identifiées"
+            triggers.append(trigger_data)
         
-        # Classification de la sévérité
-        severity_level = 'moderate'
-        if severity > 0.3:
-            severity_level = 'severe'
-        elif severity < 0.15:
-            severity_level = 'mild'
+        # Trier par impact
+        triggers.sort(key=lambda x: x['impact_score'], reverse=True)
         
-        # Préparer la prédiction
-        return {
-            'expected_duration': recovery_duration,
-            'severity': severity,
-            'severity_level': severity_level,
-            'recovery_potential': recovery_potential,
-            'recovery_plan': self._generate_recovery_plan(collapse_type, recovery_factors),
-            'key_recovery_factor': max(recovery_factors.items(), key=lambda x: x[1])[0]
-        }
+        return triggers
     
-    def _generate_recovery_plan(self, collapse_type, recovery_factors):
-        """Générer un plan de récupération adapté au type d'effondrement."""
-        recovery_plan = []
+    def _customize_risk_windows(self, generic_windows, team_susceptibility):
+        """Personnaliser les fenêtres de risque génériques pour une équipe spécifique."""
+        team_name = team_susceptibility['team_name']
+        susceptibility_score = team_susceptibility['overall_score']
         
-        if collapse_type == 'defensive':
-            recovery_plan.append({
-                'action': 'session_défensive_intensive',
-                'description': 'Sessions d\'entraînement axées sur l\'organisation défensive et la communication',
-                'priority': 'high'
-            })
-            recovery_plan.append({
-                'action': 'analyse_vidéo_défensive',
-                'description': 'Analyse approfondie des erreurs défensives récentes',
-                'priority': 'high'
-            })
+        customized_windows = []
         
-        elif collapse_type == 'offensive':
-            recovery_plan.append({
-                'action': 'session_finition',
-                'description': 'Entraînement intensif de finition et création d\'occasions',
-                'priority': 'high'
-            })
-            recovery_plan.append({
-                'action': 'simplification_offensive',
-                'description': 'Simplifier temporairement le schéma offensif pour restaurer la confiance',
-                'priority': 'medium'
-            })
+        for window in generic_windows:
+            custom_window = window.copy()
+            custom_window['team'] = team_name
+            
+            # Ajuster le risque en fonction de la susceptibilité
+            risk_adjustment = (susceptibility_score - 0.5) * 0.4  # -0.2 à +0.2
+            custom_window['risk_score'] = max(0.1, min(0.9, custom_window['base_risk'] + risk_adjustment))
+            
+            # Ajuster légèrement les minutes pour créer une variabilité
+            minute_adjustment = random.randint(-2, 2)
+            custom_window['start'] = max(1, custom_window['start'] + minute_adjustment)
+            custom_window['end'] = min(90, custom_window['end'] + minute_adjustment)
+            
+            customized_windows.append(custom_window)
         
-        elif collapse_type == 'psychological':
-            recovery_plan.append({
-                'action': 'intervention_psychologique',
-                'description': 'Sessions avec un psychologue sportif pour restaurer la confiance',
-                'priority': 'high'
-            })
-            recovery_plan.append({
-                'action': 'activités_de_cohésion',
-                'description': 'Activités extra-sportives pour renforcer la cohésion du groupe',
-                'priority': 'medium'
-            })
+        return customized_windows
+    
+    def _identify_match_specific_windows(self, match_data, team1_susceptibility, team2_susceptibility):
+        """Identifier des fenêtres de risque spécifiques au match."""
+        match_specific_windows = []
         
-        elif collapse_type == 'physical':
-            recovery_plan.append({
-                'action': 'allègement_charge',
-                'description': 'Réduction temporaire de l\'intensité des entraînements',
-                'priority': 'high'
-            })
-            recovery_plan.append({
-                'action': 'rotation_effectif',
-                'description': 'Utilisation plus large de l\'effectif pour les prochains matchs',
-                'priority': 'high'
+        team1_name = team1_susceptibility['team_name']
+        team2_name = team2_susceptibility['team_name']
+        
+        # Fenêtre 1: Début de match pour l'équipe ayant un historique de départs difficiles
+        if random.random() < 0.3:  # 30% de chance
+            team_with_slow_starts = team1_name if random.random() < 0.5 else team2_name
+            match_specific_windows.append({
+                'team': team_with_slow_starts,
+                'start': 1,
+                'end': 15,
+                'description': "Début de match difficile",
+                'risk_score': random.uniform(0.6, 0.8),
+                'specific_factor': "Historique de départs lents"
             })
         
-        elif collapse_type == 'tactical':
-            recovery_plan.append({
-                'action': 'revue_tactique',
-                'description': 'Révision complète de l\'approche tactique',
-                'priority': 'high'
-            })
-            recovery_plan.append({
-                'action': 'retour_aux_fondamentaux',
-                'description': 'Se concentrer sur les principes de jeu de base',
-                'priority': 'medium'
-            })
-        
-        # Ajouter des actions génériques
-        recovery_plan.append({
-            'action': 'communication_claire',
-            'description': 'Communication transparente sur les objectifs à court terme',
-            'priority': 'medium'
+        # Fenêtre 2: Risque après un but potentiel
+        goal_minute = random.randint(25, 65)
+        conceding_team = team1_name if random.random() < 0.5 else team2_name
+        match_specific_windows.append({
+            'team': conceding_team,
+            'start': goal_minute,
+            'end': goal_minute + 10,
+            'description': "Après un but potentiel",
+            'risk_score': random.uniform(0.65, 0.85),
+            'specific_factor': "Vulnérabilité après avoir encaissé"
         })
         
-        # Ajuster selon les facteurs de récupération
-        if recovery_factors['leadership_quality'] < 0.4:
-            recovery_plan.append({
-                'action': 'responsabilisation_leaders',
-                'description': 'Impliquer davantage les leaders naturels du vestiaire',
-                'priority': 'high'
-            })
+        # Fenêtre 3: Risque lié à la fatigue pour une équipe ayant joué récemment
+        tired_team = team1_name if random.random() < 0.5 else team2_name
+        match_specific_windows.append({
+            'team': tired_team,
+            'start': 65,
+            'end': 90,
+            'description': "Phase de fatigue",
+            'risk_score': random.uniform(0.6, 0.8),
+            'specific_factor': "Fatigue accumulée"
+        })
         
-        if recovery_factors['fixture_difficulty'] > 0.7:
-            recovery_plan.append({
-                'action': 'approche_match_par_match',
-                'description': 'Se concentrer uniquement sur le prochain match, sans projection',
-                'priority': 'high'
-            })
-        
-        return recovery_plan
+        return match_specific_windows
+    
+    def _evaluate_leadership(self, team_data):
+        """Évaluer le leadership dans l'équipe."""
+        # Dans une implémentation réelle, cela utiliserait des données d'équipe
+        return "Présence de leaders clés sur le terrain avec influence positive en situation de stress" if random.random() < 0.6 else "Structure de leadership fragile dépendant fortement du capitaine"
+    
+    def _evaluate_leadership_relevance(self, match_data):
+        """Évaluer la pertinence du facteur leadership pour le match."""
+        return random.uniform(0.5, 0.9)  # Plus élevé = plus pertinent
+    
+    def _evaluate_comeback_history(self, team_data):
+        """Évaluer l'historique de remontées de l'équipe."""
+        return f"Historique de {random.randint(2, 8)} remontées significatives sur la saison, démontrant une forte capacité à réagir" if random.random() < 0.5 else f"Seulement {random.randint(0, 2)} remontées réussies cette saison, indiquant une fragilité mentale lorsque menée au score"
+    
+    def _evaluate_comeback_relevance(self, match_data):
+        """Évaluer la pertinence du facteur de remontée pour le match."""
+        return random.uniform(0.5, 0.9)
+    
+    def _evaluate_experience(self, team_data):
+        """Évaluer l'expérience de l'équipe."""
+        return f"Équipe expérimentée avec âge moyen de {random.randint(27, 31)} ans et {random.randint(500, 1500)} matchs professionnels cumulés" if random.random() < 0.6 else f"Équipe relativement jeune avec âge moyen de {random.randint(22, 26)} ans et manque d'expérience dans les moments décisifs"
+    
+    def _evaluate_experience_relevance(self, match_data):
+        """Évaluer la pertinence du facteur expérience pour le match."""
+        return random.uniform(0.5, 0.9)
+    
+    def _evaluate_tactical_flexibility(self, team_data):
+        """Évaluer la flexibilité tactique de l'équipe."""
+        return f"Équipe ayant utilisé {random.randint(3, 6)} systèmes tactiques cette saison avec transitions fluides" if random.random() < 0.5 else f"Équipe rigide tactiquement, limitée à {random.randint(1, 2)} systèmes de jeu et adaptations lentes aux changements adverses"
+    
+    def _evaluate_tactical_relevance(self, match_data):
+        """Évaluer la pertinence du facteur tactique pour le match."""
+        return random.uniform(0.5, 0.9)
