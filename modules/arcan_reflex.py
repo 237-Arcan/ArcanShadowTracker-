@@ -1071,6 +1071,48 @@ class ReflexMemory:
         
         return relevant_patterns
     
+    def store_adaptation(self, adaptation_data):
+        """
+        Store adaptation data from ArcanBrain feedback.
+        This is part of the bidirectional communication between ArcanBrain and ArcanReflex.
+        
+        Args:
+            adaptation_data (dict): Data about the adaptation including metrics and changes
+            
+        Returns:
+            bool: True if storage was successful
+        """
+        # Ensure adaptation_data has required fields
+        if not all(key in adaptation_data for key in ['timestamp', 'adaptations']):
+            return False
+            
+        # Store adaptation data for future reference
+        # In a real implementation, this would be stored in a database
+        
+        # Create a new database field if this is the first adaptation
+        if not hasattr(self, 'adaptations'):
+            self.adaptations = []
+            
+        # Add to the adaptations history
+        self.adaptations.append(adaptation_data)
+        
+        # Keep adaptations list manageable
+        if len(self.adaptations) > 50:  # Store last 50 adaptations
+            self.adaptations = self.adaptations[-50:]
+            
+        # Update any system-wide parameters based on adaptations
+        if 'new_settings' in adaptation_data:
+            settings = adaptation_data['new_settings']
+            
+            # Apply settings that are relevant to ReflexMemory
+            if 'memory_retention' in settings:
+                self.memory_retention_days = settings['memory_retention']
+                
+            if 'similarity_threshold' in settings:
+                self.similarity_threshold = settings['similarity_threshold']
+                
+        return True
+        
     def get_pattern_stats(self):
         """
         Get statistics about the pattern library.

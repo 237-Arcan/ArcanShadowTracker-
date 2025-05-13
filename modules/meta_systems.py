@@ -797,7 +797,7 @@ class MetaSystems:
             match_data (dict): Match information
             
         Returns:
-            dict: ArcanBrain neural analysis results
+            dict: ArcanBrain neural analysis results with bidirectional integration
         """
         # Check if the module is active
         if not self.system_state['advanced_modules']['arcan_brain']['active']:
@@ -825,55 +825,29 @@ class MetaSystems:
                 shadow_odds_results = self.shadow_odds.analyze(match_data)
                 self.cache[cache_key] = shadow_odds_results
         
-        # Run neural analysis
+        # Step 1: Run neural analysis
         analysis_result = self.arcan_brain.analyze_match(match_data, arcan_x_results, shadow_odds_results)
         
-        # Check for emerging insights if we have enough data
+        # Step 2: Check for emerging insights
         insights = self.arcan_brain.detect_emerging_insight(match_data)
         
-        # Update module state
+        # Step 3: Update module state
         self.system_state['advanced_modules']['arcan_brain']['last_analysis'] = datetime.now().isoformat()
+        
+        # Track integration status
+        meta_cognitive_status = {
+            'arcan_reflex_integration': 'inactive',
+            'parameter_optimization': 'inactive',
+            'feedback_processing': 'inactive'
+        }
         
         # Combine results
         result = {
             'status': 'active',
             'neural_analysis': analysis_result,
             'insights': insights,
-            'confidence': analysis_result.get('neural_confidence', 0.0)
+            'confidence': analysis_result.get('neural_confidence', 0.0),
+            'meta_cognitive_status': meta_cognitive_status
         }
         
         return result
-            
-        try:
-            db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'arcanshadow.db')
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            
-            # Create table if it doesn't exist
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS prediction_history (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    match_id TEXT,
-                    timestamp TEXT,
-                    prediction_data TEXT
-                )
-            """)
-            
-            # Save recent predictions
-            for prediction in self.prediction_history[:20]:  # Only save most recent
-                match_id = prediction.get('match_id', '')
-                timestamp = prediction.get('timestamp', datetime.now().isoformat())
-                prediction_data = json.dumps(prediction)
-                
-                cursor.execute("""
-                    INSERT OR REPLACE INTO prediction_history
-                    (match_id, timestamp, prediction_data)
-                    VALUES (?, ?, ?)
-                """, (match_id, timestamp, prediction_data))
-            
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Error saving prediction history: {str(e)}")
-            return False
