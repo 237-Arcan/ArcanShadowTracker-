@@ -654,7 +654,7 @@ with tab5:
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            if 'outcome' in st.session_state.live_analysis:
+            if st.session_state.live_analysis and 'outcome' in st.session_state.live_analysis:
                 st.markdown(f"""
                 <div class='prediction-card'>
                     <h3>{home_team} {st.session_state.current_match_score[0]} - {st.session_state.current_match_score[1]} {away_team}</h3>
@@ -662,10 +662,12 @@ with tab5:
                     <p>{t('confidence')}: {st.session_state.live_analysis['confidence']*100:.1f}%</p>
                 </div>
                 """, unsafe_allow_html=True)
+            else:
+                st.info("Prediction will appear when analysis completes")
         
         with col2:
             # Create confidence gauge chart
-            if 'confidence' in st.session_state.live_analysis:
+            if st.session_state.live_analysis and 'confidence' in st.session_state.live_analysis:
                 fig = go.Figure(go.Indicator(
                     mode = "gauge+number",
                     value = st.session_state.live_analysis['confidence']*100,
@@ -696,19 +698,20 @@ with tab5:
             # Momentum analysis
             st.markdown(f"#### {t('momentum_analysis')}")
             
-            if 'shadow_momentum' in st.session_state.live_analysis:
+            if st.session_state.live_analysis and 'shadow_momentum' in st.session_state.live_analysis:
                 momentum_data = st.session_state.live_analysis['shadow_momentum']
                 
                 # Create momentum gauge
-                fig = go.Figure(go.Indicator(
-                    mode = "delta+number",
-                    value = momentum_data['current_momentum'] * 100,
-                    delta = {'reference': 50, 'relative': False},
-                    title = {'text': "Current Momentum"},
-                    domain = {'x': [0, 1], 'y': [0, 1]}
-                ))
-                fig.update_layout(height=150)
-                st.plotly_chart(fig, use_container_width=True, key="momentum_gauge")
+                if 'current_momentum' in momentum_data:
+                    fig = go.Figure(go.Indicator(
+                        mode = "delta+number",
+                        value = momentum_data['current_momentum'] * 100,
+                        delta = {'reference': 50, 'relative': False},
+                        title = {'text': "Current Momentum"},
+                        domain = {'x': [0, 1], 'y': [0, 1]}
+                    ))
+                    fig.update_layout(height=150)
+                    st.plotly_chart(fig, use_container_width=True, key="momentum_gauge")
                 
                 # Momentum timeline
                 if 'momentum_timeline' in momentum_data:
@@ -725,11 +728,12 @@ with tab5:
             # Karmic patterns
             st.markdown(f"#### {t('karmic_patterns')}")
             
-            if 'karmic_flow' in st.session_state.live_analysis:
+            if st.session_state.live_analysis and 'karmic_flow' in st.session_state.live_analysis:
                 karmic_data = st.session_state.live_analysis['karmic_flow']
                 
-                for factor in karmic_data['factors'][:3]:  # Show top 3 factors
-                    st.markdown(f"- {factor}")
+                if 'factors' in karmic_data and karmic_data['factors']:
+                    for factor in karmic_data['factors'][:3]:  # Show top 3 factors
+                        st.markdown(f"- {factor}")
                 
                 # Create karmic balance visualization
                 if 'balance' in karmic_data:
@@ -742,7 +746,7 @@ with tab5:
                         y=['Karmic Balance'],
                         orientation='h',
                         marker=dict(
-                            color='purple' if balance < 0 else 'gold',
+                            color='purple' if float(balance) < 0 else 'gold',
                             line=dict(color='white', width=2)
                         )
                     ))
@@ -758,23 +762,24 @@ with tab5:
         # Betting trends
         st.markdown(f"#### {t('betting_trends')}")
         
-        if 'bet_pulse' in st.session_state.live_analysis:
+        if st.session_state.live_analysis and 'bet_pulse' in st.session_state.live_analysis:
             bet_data = st.session_state.live_analysis['bet_pulse']
             
             # Create betting volume visualization
             col1, col2, col3 = st.columns(3)
             
-            with col1:
-                st.metric("Home", f"{bet_data['home_volume']}%", f"{bet_data['home_change']}%")
-            
-            with col2:
-                st.metric("Draw", f"{bet_data['draw_volume']}%", f"{bet_data['draw_change']}%")
-            
-            with col3:
-                st.metric("Away", f"{bet_data['away_volume']}%", f"{bet_data['away_change']}%")
+            if all(k in bet_data for k in ['home_volume', 'home_change', 'draw_volume', 'draw_change', 'away_volume', 'away_change']):
+                with col1:
+                    st.metric("Home", f"{bet_data['home_volume']}%", f"{bet_data['home_change']}%")
+                
+                with col2:
+                    st.metric("Draw", f"{bet_data['draw_volume']}%", f"{bet_data['draw_change']}%")
+                
+                with col3:
+                    st.metric("Away", f"{bet_data['away_volume']}%", f"{bet_data['away_change']}%")
             
             # Betting timeline
-            if 'volume_timeline' in bet_data:
+            if 'volume_timeline' in bet_data and bet_data['volume_timeline']:
                 df = pd.DataFrame(bet_data['volume_timeline'])
                 
                 fig = px.line(df, x='minute', y=['home', 'draw', 'away'], 
