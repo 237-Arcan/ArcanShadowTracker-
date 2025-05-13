@@ -26,9 +26,10 @@ st.set_page_config(
 if 'selected_sport' not in st.session_state:
     st.session_state.selected_sport = 'Football'
 if 'selected_league' not in st.session_state:
-    st.session_state.selected_league = 'Premier League'
+    st.session_state.selected_league = 'Campeonato Brasileiro Série A'  # We have real matches for this league
 if 'selected_date' not in st.session_state:
-    st.session_state.selected_date = datetime.now().date()
+    # Set the date to May 12, 2025 for which we have real match data
+    st.session_state.selected_date = datetime(2025, 5, 12).date()
 if 'prediction_generated' not in st.session_state:
     st.session_state.prediction_generated = False
 if 'loading_prediction' not in st.session_state:

@@ -21,7 +21,7 @@ class DataHandler:
         
         # Pre-defined leagues by sport
         self.leagues_by_sport = {
-            'Football': ['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'Champions League', 'MLS'],
+            'Football': ['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'Champions League', 'MLS', 'Campeonato Brasileiro Série A'],
             'Basketball': ['NBA', 'EuroLeague', 'NCAA', 'Liga ACB', 'NBL'],
             'Tennis': ['Grand Slam', 'ATP Masters', 'WTA Tour', 'Davis Cup', 'ITF Tour'],
             'Baseball': ['MLB', 'NPB', 'KBO', 'CPBL', 'Mexican League'],

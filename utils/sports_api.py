@@ -38,7 +38,8 @@ class SportsAPI:
             'Serie A': 'SA',
             'Ligue 1': 'FL1',
             'Champions League': 'CL',
-            'MLS': 'MLS'
+            'MLS': 'MLS',
+            'Campeonato Brasileiro Série A': 'BSA'  # Brazilian league added
         }
         
         # Sport mapping
@@ -88,75 +89,125 @@ class SportsAPI:
         
     def _get_football_matches(self, league, date):
         """Get football matches for a specific league and date"""
-        # Get the league code
-        league_code = self.league_mapping.get(league)
-        if not league_code:
-            print(f"No mapping found for league: {league}")
-            return None
-            
         # Format date
         date_str = date.strftime('%Y-%m-%d')
-        
-        # API endpoint for matches
-        endpoint = f"{self.football_base_url}/competitions/{league_code}/matches"
-        
-        # API parameters
-        params = {
-            'dateFrom': date_str,
-            'dateTo': date_str
-        }
         
         # API headers with authentication
         headers = {
             'X-Auth-Token': self.football_api_key
         }
         
+        # Try getting matches for a specific league if we have a mapping
+        league_code = self.league_mapping.get(league)
+        league_matches = []
+        
+        if league_code:
+            # API endpoint for league-specific matches
+            league_endpoint = f"{self.football_base_url}/competitions/{league_code}/matches"
+            
+            # API parameters
+            params = {
+                'dateFrom': date_str,
+                'dateTo': date_str
+            }
+            
+            try:
+                # Make the API request
+                response = requests.get(league_endpoint, params=params, headers=headers)
+                
+                # Check if request was successful
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Process the matches
+                    for match in data.get('matches', []):
+                        match_dict = self._process_match_data(match, league)
+                        league_matches.append(match_dict)
+                        
+                    if league_matches:
+                        return league_matches
+                    
+                else:
+                    print(f"League API request failed with status code: {response.status_code}")
+                    print(f"Response: {response.text}")
+                    
+            except Exception as e:
+                print(f"Error fetching league-specific football matches: {e}")
+        
+        # If we don't have league-specific matches, try getting all matches for this date
         try:
+            # API endpoint for all matches
+            all_matches_endpoint = f"{self.football_base_url}/matches"
+            
+            # API parameters
+            params = {
+                'dateFrom': date_str,
+                'dateTo': date_str
+            }
+            
             # Make the API request
-            response = requests.get(endpoint, params=params, headers=headers)
+            response = requests.get(all_matches_endpoint, params=params, headers=headers)
             
             # Check if request was successful
             if response.status_code == 200:
                 data = response.json()
-                matches = []
+                all_matches = []
                 
-                # Process the matches
+                # Process all matches, filtering for the requested league
                 for match in data.get('matches', []):
-                    match_dict = {
-                        'sport': 'Football',
-                        'league': league,
-                        'home_team': match.get('homeTeam', {}).get('name', 'Unknown'),
-                        'away_team': match.get('awayTeam', {}).get('name', 'Unknown'),
-                        'date': datetime.strptime(match.get('utcDate', ''), '%Y-%m-%dT%H:%M:%SZ'),
-                        'stadium': match.get('venue', 'Unknown Stadium'),
-                        'city': '',  # Not provided by this API
-                        'country': match.get('area', {}).get('name', ''),
-                        'home_odds': 2.0,  # Default odds
-                        'draw_odds': 3.0,  # Default odds
-                        'away_odds': 3.5,  # Default odds
-                        'home_form': '',  # Not provided by this API
-                        'away_form': '',  # Not provided by this API
-                        'historical_matchups': [],  # Not provided by this API
-                        'home_formation': '',  # Not provided by this API
-                        'away_formation': ''  # Not provided by this API
-                    }
+                    # Check if this match is from the requested league
+                    match_league = match.get('competition', {}).get('name', '')
                     
-                    # Add some fictional odds (since the API doesn't provide them)
-                    match_dict['home_odds'] = round(random.uniform(1.5, 4.0), 2)
-                    match_dict['draw_odds'] = round(random.uniform(2.5, 4.5), 2)
-                    match_dict['away_odds'] = round(random.uniform(1.5, 4.0), 2)
-                    
-                    matches.append(match_dict)
+                    if match_league == league or (league_code and match.get('competition', {}).get('code', '') == league_code):
+                        match_dict = self._process_match_data(match, league)
+                        all_matches.append(match_dict)
                 
-                return matches
+                if all_matches:
+                    return all_matches
+                
             else:
-                print(f"API request failed with status code: {response.status_code}")
+                print(f"All matches API request failed with status code: {response.status_code}")
                 print(f"Response: {response.text}")
-                return None
                 
         except Exception as e:
-            print(f"Error fetching football matches: {e}")
-            return None
+            print(f"Error fetching all football matches: {e}")
+        
+        return None
+        
+    def _process_match_data(self, match, league):
+        """Process match data from the API into our format"""
+        match_dict = {
+            'sport': 'Football',
+            'league': league,
+            'home_team': match.get('homeTeam', {}).get('name', 'Unknown'),
+            'away_team': match.get('awayTeam', {}).get('name', 'Unknown'),
+            'date': datetime.strptime(match.get('utcDate', ''), '%Y-%m-%dT%H:%M:%SZ'),
+            'stadium': match.get('venue', 'Unknown Stadium'),
+            'city': '',  # Not provided by this API
+            'country': match.get('area', {}).get('name', ''),
+            'home_odds': 2.0,  # Default odds
+            'draw_odds': 3.0,  # Default odds
+            'away_odds': 3.5,  # Default odds
+            'home_form': '',  # Not provided by this API
+            'away_form': '',  # Not provided by this API
+            'historical_matchups': [],  # Not provided by this API
+            'home_formation': '',  # Not provided by this API
+            'away_formation': ''  # Not provided by this API
+        }
+        
+        # Add score if available (for finished matches)
+        if match.get('status') == 'FINISHED':
+            score = match.get('score', {})
+            full_time = score.get('fullTime', {})
+            match_dict['home_score'] = full_time.get('home')
+            match_dict['away_score'] = full_time.get('away')
+        
+        # Add some randomly generated odds (since the API doesn't provide them)
+        match_dict['home_odds'] = round(random.uniform(1.5, 4.0), 2)
+        match_dict['draw_odds'] = round(random.uniform(2.5, 4.5), 2)
+        match_dict['away_odds'] = round(random.uniform(1.5, 4.0), 2)
+        
+        return match_dict
             
     def check_api_status(self):
         """
