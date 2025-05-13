@@ -40,6 +40,39 @@ def t(key, **format_args):
     """Helper function to get text in the current language"""
     return get_text(key, st.session_state.language, **format_args)
 
+def translate_factor_value(value):
+    """Translate prediction factor value based on known patterns"""
+    # List of keys to check for translation
+    factor_patterns = [
+        "prime_match_day", "dynamic_life_path", "earth_element_match",
+        "full_moon_energy", "match_foundation_sun", "current_energy_moon",
+        "outcome_tendency_fool"
+    ]
+    
+    # Check for match or partial match and return translation
+    for pattern in factor_patterns:
+        if value.startswith("Prime Match Day:"):
+            # Extract day number
+            day = value.split("day")[1].split(",")[0].strip()
+            return t("prime_match_day", day=day)
+        elif value.startswith("Dynamic Life Path:"):
+            # Extract life path number
+            number = value.split("Path")[1].split("suggests")[0].strip()
+            return t("dynamic_life_path", number=number)
+        elif value.startswith("Earth Element Match:"):
+            return t("earth_element_match")
+        elif value.startswith("Full Moon Energy:"):
+            return t("full_moon_energy")
+        elif value.startswith("Match Foundation: The Sun:"):
+            return t("match_foundation_sun")
+        elif value.startswith("Current Energy: The Moon:"):
+            return t("current_energy_moon")
+        elif value.startswith("Outcome Tendency: The Fool:"):
+            return t("outcome_tendency_fool")
+            
+    # Return original if no translation found
+    return value
+
 # Initialize modules
 data_handler = DataHandler()
 arcan_x = ArcanX()
@@ -220,7 +253,10 @@ with tab1:
                         elif factor_name.lower() in ['recent momentum', 'dynamique récente']:
                             factor_name = t('recent_momentum')
                         
-                        st.markdown(f"- {factor_name}: {factor['value']}")
+                        # Translate the factor value if it matches known patterns
+                        factor_value = translate_factor_value(factor['value'])
+                        
+                        st.markdown(f"- {factor_name}: {factor_value}")
                 
                 with col2:
                     st.markdown(f"### {t('esoteric_factors')}")
@@ -242,7 +278,10 @@ with tab1:
                         elif factor_name.lower() in ['cycle pattern', 'motif cyclique']:
                             factor_name = t('cycle_pattern')
                         
-                        st.markdown(f"- {factor_name}: {factor['value']}")
+                        # Translate the factor value if it matches known patterns
+                        factor_value = translate_factor_value(factor['value'])
+                        
+                        st.markdown(f"- {factor_name}: {factor_value}")
                 
                 st.markdown(f"### {t('odds_analysis')}")
                 for factor in prediction['odds_factors']:
@@ -261,7 +300,10 @@ with tab1:
                     elif factor_name.lower() in ['trap indicator', 'indicateur de piège']:
                         factor_name = t('trap_indicator')
                     
-                    st.markdown(f"- {factor_name}: {factor['value']}")
+                    # Translate the factor value if it matches known patterns
+                    factor_value = translate_factor_value(factor['value'])
+                    
+                    st.markdown(f"- {factor_name}: {factor_value}")
     elif not st.session_state.prediction_generated:
         st.info(t('no_predictions'))
     else:

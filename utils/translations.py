@@ -138,7 +138,16 @@ en = {
     "last_30_days": "Last 30 days",
     "last_3_months": "Last 3 months",
     "last_6_months": "Last 6 months",
-    "last_year": "Last year"
+    "last_year": "Last year",
+    
+    # ArcanX factor explanations
+    "prime_match_day": "Prime Match Day: Match occurs on day {day}, a prime number",
+    "dynamic_life_path": "Dynamic Life Path: Match Life Path {number} suggests action/change",
+    "earth_element_match": "Earth Element Match: Match under Taurus - stable, defensive",
+    "full_moon_energy": "Full Moon Energy: Match near Full Moon - heightened energy",
+    "match_foundation_sun": "Match Foundation: The Sun: Success, vitality, positive outcome",
+    "current_energy_moon": "Current Energy: The Moon: Illusion, deception, uncertainty",
+    "outcome_tendency_fool": "Outcome Tendency: The Fool: Unpredictable outcome, new beginnings"
 }
 
 # French translations
@@ -276,7 +285,16 @@ fr = {
     "last_30_days": "30 derniers jours",
     "last_3_months": "3 derniers mois",
     "last_6_months": "6 derniers mois",
-    "last_year": "Année dernière"
+    "last_year": "Année dernière",
+    
+    # ArcanX factor explanations
+    "prime_match_day": "Jour de Match Premier: Le match a lieu le jour {day}, un nombre premier",
+    "dynamic_life_path": "Chemin de Vie Dynamique: Le chemin de vie du match {number} suggère action/changement",
+    "earth_element_match": "Élément Terre du Match: Match sous Taurus - stable, défensif",
+    "full_moon_energy": "Énergie Pleine Lune: Match près de la Pleine Lune - énergie amplifiée",
+    "match_foundation_sun": "Fondation du Match: Le Soleil: Succès, vitalité, résultat positif",
+    "current_energy_moon": "Énergie Actuelle: La Lune: Illusion, tromperie, incertitude",
+    "outcome_tendency_fool": "Tendance du Résultat: Le Fou: Résultat imprévisible, nouveaux départs"
 }
 
 # Dictionary to access translations
