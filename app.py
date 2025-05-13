@@ -42,6 +42,9 @@ def t(key, **format_args):
 
 def translate_factor_value(value):
     """Translate prediction factor value based on known patterns"""
+    # Ensure value is a string
+    value_str = str(value)
+    
     # List of keys to check for translation
     factor_patterns = [
         "prime_match_day", "dynamic_life_path", "earth_element_match",
@@ -50,7 +53,7 @@ def translate_factor_value(value):
     ]
     
     # Check for match or partial match and return translation
-    for pattern in factor_patterns:
+    if isinstance(value, str):  # Only process string values
         if value.startswith("Prime Match Day:"):
             # Extract day number
             day = value.split("day")[1].split(",")[0].strip()
