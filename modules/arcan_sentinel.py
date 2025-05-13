@@ -8,6 +8,8 @@ import random
 import math
 import numpy as np
 from datetime import datetime
+import os
+from utils.api_integrations import APIIntegrations
 
 class ArcanSentinel:
     """
@@ -29,6 +31,10 @@ class ArcanSentinel:
         self.shadow_odds = shadow_odds
         self.convergence = convergence
         
+        # Initialize API integrations
+        self.api = APIIntegrations()
+        self.api_sports_available = self.api.api_sports_available
+        
         # Live tracking state
         self.is_active = False
         self.current_match = None
@@ -36,6 +42,7 @@ class ArcanSentinel:
         self.score = [0, 0]  # Home - Away
         self.key_events = []
         self.predictions_history = []
+        self.fixture_id = None  # Store API-Sports fixture ID when available
         
         # Initialize specialized live modules
         self.live_modules = {
@@ -46,6 +53,10 @@ class ArcanSentinel:
             'mirror_phase': self.mirror_phase_analysis,
             'clutch_time_scanner': self.clutch_time_analysis
         }
+        
+        # API data retrieval timer
+        self.last_api_update = 0
+        self.api_update_interval = 60  # Seconds between live match data updates
         
         # Analysis weights for live mode
         self.live_weights = {
@@ -107,6 +118,52 @@ class ArcanSentinel:
         self.key_events = []
         self.predictions_history = []
         self.start_time = datetime.now()
+        self.fixture_id = match_data.get('fixture_id')  # Try to get fixture_id if provided
+        
+        # If we have API access, try to identify the match in the API
+        if self.api_sports_available and not self.fixture_id:
+            try:
+                # Get today's matches
+                today = datetime.now().date()
+                match_sport = match_data.get('sport', 'Football')
+                match_league = match_data.get('league', 'Premier League')
+                
+                # Convert sport to API format if needed
+                sport_mapping = {
+                    'Football': 'soccer'
+                }
+                api_sport = sport_mapping.get(match_sport, match_sport.lower())
+                
+                # Find matches for today from the API
+                api_matches = self.api.get_live_match_data()
+                
+                if api_matches:
+                    # Try to find a match with matching team names
+                    home_team = match_data.get('home_team', '')
+                    away_team = match_data.get('away_team', '')
+                    
+                    for api_match in api_matches:
+                        api_home = api_match.get('home_team', '')
+                        api_away = api_match.get('away_team', '')
+                        
+                        # Check for team name match (with None protection)
+                        if api_home and api_away and home_team and away_team and \
+                           (home_team.lower() in api_home.lower() or api_home.lower() in home_team.lower()) and \
+                           (away_team.lower() in api_away.lower() or api_away.lower() in away_team.lower()):
+                            # Found a matching match
+                            self.fixture_id = api_match.get('fixture_id')
+                            
+                            # Update initial state if available
+                            if 'elapsed' in api_match and api_match['elapsed'] is not None:
+                                self.match_minute = api_match['elapsed']
+                            
+                            if 'home_score' in api_match and 'away_score' in api_match:
+                                self.score = [api_match['home_score'], api_match['away_score']]
+                            
+                            self.log_activity('api_match_found', f"Found matching fixture in API: ID {self.fixture_id}")
+                            break
+            except Exception as e:
+                self.log_activity('api_error', f"Error identifying match in API: {str(e)}")
         
         # Initialize momentum and betting data
         self.momentum_timeline = [0.5]  # Start at neutral
@@ -116,6 +173,9 @@ class ArcanSentinel:
             'draw': [],
             'away': []
         }
+        
+        # Reset API update timer
+        self.last_api_update = time.time()
         
         # Log activity
         self.log_activity('start_tracking', f"Started tracking match: {match_data['home_team']} vs {match_data['away_team']}")
@@ -127,7 +187,8 @@ class ArcanSentinel:
         self.predictions_history.append({
             'minute': self.match_minute,
             'prediction': initial_analysis['outcome'],
-            'confidence': initial_analysis['confidence']
+            'confidence': initial_analysis['confidence'],
+            'timestamp': datetime.now().isoformat()
         })
         
         return initial_analysis
@@ -147,6 +208,31 @@ class ArcanSentinel:
         if not self.is_active:
             return {"error": "No active match tracking"}
         
+        # If we have API access and fixture_id, try to get real-time data
+        current_time = time.time()
+        api_updated = False
+        
+        if self.api_sports_available and self.fixture_id and (current_time - self.last_api_update > self.api_update_interval):
+            try:
+                live_data = self.api.get_live_match_data(fixture_id=self.fixture_id)
+                if live_data and len(live_data) > 0:
+                    match_data = live_data[0]
+                    
+                    # Update with API data
+                    if 'elapsed' in match_data and match_data['elapsed'] is not None:
+                        minute = match_data['elapsed']
+                    
+                    if 'home_score' in match_data and 'away_score' in match_data:
+                        score = [match_data['home_score'], match_data['away_score']]
+                    
+                    # Update last API check time
+                    self.last_api_update = current_time
+                    api_updated = True
+                    
+                    self.log_activity('api_update', f"Updated match state from live API data at minute {minute}")
+            except Exception as e:
+                self.log_activity('api_error', f"Error getting live match data: {str(e)}")
+        
         # Update match time
         prev_phase = self.determine_match_phase(self.match_minute)
         self.match_minute = minute
@@ -159,6 +245,18 @@ class ArcanSentinel:
         # Update score if provided
         if score is not None:
             if score != self.score:
+                # Check if a goal was just scored
+                if (score[0] > self.score[0] or score[1] > self.score[1]) and not api_updated:
+                    # Create a goal event if user didn't provide one
+                    if event is None or event.get('type') != 'goal':
+                        team_index = 0 if score[0] > self.score[0] else 1
+                        team_name = self.current_match['home_team'] if team_index == 0 else self.current_match['away_team']
+                        event = {
+                            'type': 'goal',
+                            'team': team_name,
+                            'details': f"Goal scored at minute {minute}"
+                        }
+                
                 self.log_activity('score_update', f"Score changed from {self.score[0]}-{self.score[1]} to {score[0]}-{score[1]}")
                 self.score = score
         
@@ -168,7 +266,8 @@ class ArcanSentinel:
                 'minute': minute,
                 'type': event['type'],
                 'team': event['team'],
-                'details': event['details']
+                'details': event['details'],
+                'timestamp': datetime.now().isoformat()
             })
             self.log_activity('event_recorded', f"{event['type']} for {event['team']} at minute {minute}: {event['details']}")
         
@@ -179,7 +278,8 @@ class ArcanSentinel:
         self.predictions_history.append({
             'minute': minute,
             'prediction': new_analysis['outcome'],
-            'confidence': new_analysis['confidence']
+            'confidence': new_analysis['confidence'],
+            'timestamp': datetime.now().isoformat()
         })
         
         return new_analysis
