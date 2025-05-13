@@ -1,6 +1,12 @@
 import numpy as np
 from datetime import datetime, timedelta
 import random
+import os
+import sqlite3
+import json
+from modules.arcan_reflex import ArcanReflex
+from modules.eastern_gate import EasternGate
+from modules.d_forge import DForge
 
 class MetaSystems:
     """
@@ -8,15 +14,19 @@ class MetaSystems:
     Handles system adaptivity, learning, and high-level pattern recognition.
     """
     
-    def __init__(self):
-        """Initialize the MetaSystems module with necessary components."""
-        self.submodules = {
-            'GridSyncAlpha': self.grid_sync_alpha,
-            'ChronoEchoPro': self.chrono_echo_pro,
-            'ArcanSentinel': self.arcan_sentinel,
-            'DForge': self.d_forge,
-            'DGridSyncLambda': self.d_grid_sync_lambda
-        }
+    def __init__(self, arcan_x=None, shadow_odds=None, convergence=None):
+        """
+        Initialize the MetaSystems module with necessary components.
+        
+        Args:
+            arcan_x: ArcanX module instance for esoteric analysis
+            shadow_odds: ShadowOdds module instance for odds analysis
+            convergence: Convergence module instance for integrated analysis
+        """
+        # Store module references
+        self.arcan_x = arcan_x
+        self.shadow_odds = shadow_odds
+        self.convergence = convergence
         
         # Initialize system state tracking
         self.system_state = {
@@ -25,11 +35,28 @@ class MetaSystems:
             'pattern_database': {},
             'adaptation_level': 0.5,  # 0.0 to 1.0
             'learning_rate': 0.05,
-            'module_weights': {}
+            'module_weights': {},
+            'advanced_modules': {
+                'arcan_reflex': {'active': True, 'last_evaluation': None},
+                'eastern_gate': {'active': True, 'last_used': None},
+                'd_forge': {'active': True, 'modules_generated': 0}
+            }
         }
         
         # Track the history of predictions for learning
         self.prediction_history = []
+        
+        self.submodules = {
+            'GridSyncAlpha': self.grid_sync_alpha,
+            'ChronoEchoPro': self.chrono_echo_pro,
+            'ArcanSentinel': self.arcan_sentinel,
+            'DGridSyncLambda': self.d_grid_sync_lambda
+        }
+        
+        # Advanced module initialization - disabled for now
+        # self.arcan_reflex = ArcanReflex(arcan_x, shadow_odds, convergence, self)
+        # self.eastern_gate = EasternGate()
+        # self.d_forge = DForge(self.arcan_reflex, self)
         
         # Cache for results to avoid redundant calculations
         self.cache = {}
@@ -568,3 +595,186 @@ class MetaSystems:
         module_suffix = random.choice(suffixes.get(prefix, ['']))
         
         return f"{module_prefix}{module_suffix}"
+        
+    def arcan_reflex_wrapper(self, match_data):
+        """
+        Wrapper for ArcanReflex module for integration with MetaSystems.
+        
+        Args:
+            match_data (dict): Match information
+            
+        Returns:
+            dict: ArcanReflex analysis results
+        """
+        # Update module usage tracking
+        self.system_state['advanced_modules']['arcan_reflex']['last_evaluation'] = datetime.now().isoformat()
+        
+        # Perform module activation optimization
+        optimization_result = self.arcan_reflex.optimize_module_activation(match_data)
+        
+        return {
+            'status': 'ok',
+            'details': 'ArcanReflex analysis complete',
+            'optimized_modules': optimization_result.get('active_modules', []),
+            'source': optimization_result.get('activation_source', 'unknown'),
+            'confidence': optimization_result.get('pattern_confidence', 0.5)
+        }
+        
+    def eastern_gate_wrapper(self, match_data):
+        """
+        Wrapper for EasternGate module for integration with MetaSystems.
+        
+        Args:
+            match_data (dict): Match information
+            
+        Returns:
+            dict: EasternGate analysis results
+        """
+        # Get league information
+        league = match_data.get('league', '')
+        
+        # Check if this is an Asian competition
+        is_asian_competition = any(asian_league in league for asian_league in [
+            'J-League', 'K-League', 'Chinese Super League', 'AFC Champions League',
+            'J1 League', 'K League 1', 'CSL'
+        ])
+        
+        if not is_asian_competition:
+            return {
+                'status': 'inactive',
+                'details': 'EasternGate only activates for Asian competitions',
+                'active': False
+            }
+        
+        # Update module usage tracking
+        self.system_state['advanced_modules']['eastern_gate']['last_used'] = datetime.now().isoformat()
+        
+        # Perform Eastern Gate analysis
+        analysis_result = self.eastern_gate.analyze_match(match_data)
+        
+        return {
+            'status': 'ok' if analysis_result.get('active', False) else 'inactive',
+            'details': 'EasternGate analysis complete',
+            'region': analysis_result.get('region', 'unknown'),
+            'confidence': analysis_result.get('confidence', 0),
+            'factors': analysis_result.get('factors', [])
+        }
+        
+    def d_forge_wrapper(self, match_data):
+        """
+        Wrapper for D-Forge module for integration with MetaSystems.
+        
+        Args:
+            match_data (dict): Match information
+            
+        Returns:
+            dict: D-Forge analysis results
+        """
+        # Check if we should run needs detection (only occasionally)
+        should_detect = random.random() < 0.2  # 20% chance
+        
+        if not should_detect:
+            return {
+                'status': 'inactive',
+                'details': 'D-Forge in monitoring mode only',
+                'active_forges': len(self.d_forge.active_forges)
+            }
+        
+        # Update module usage tracking
+        self.system_state['advanced_modules']['d_forge']['last_used'] = datetime.now().isoformat()
+        
+        # Detect system needs
+        needs_result = self.d_forge.detect_needs(None, self.system_state)
+        
+        # Record an observation if we have prediction data
+        if match_data.get('prediction_result') and match_data.get('actual_result'):
+            self.d_forge.record_observation(
+                match_data,
+                match_data['prediction_result'],
+                match_data['actual_result']
+            )
+        
+        # Get active forges status
+        forge_status = self.d_forge.get_forge_status()
+        
+        return {
+            'status': 'ok',
+            'details': 'D-Forge analysis complete',
+            'detected_needs': len(needs_result.get('detected_needs', [])),
+            'module_candidates': len(needs_result.get('module_candidates', [])),
+            'active_forges': forge_status.get('active_forges', 0),
+            'recently_deployed': forge_status.get('recently_deployed', [])
+        }
+        
+    def _load_prediction_history(self):
+        """Load prediction history from the database."""
+        try:
+            db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'arcanshadow.db')
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Check if table exists
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='prediction_history'
+            """)
+            
+            if cursor.fetchone():
+                cursor.execute("SELECT prediction_data FROM prediction_history ORDER BY timestamp DESC LIMIT 100")
+                rows = cursor.fetchall()
+                
+                history = []
+                for row in rows:
+                    try:
+                        prediction_data = json.loads(row[0])
+                        history.append(prediction_data)
+                    except:
+                        continue
+                
+                conn.close()
+                return history
+            
+            conn.close()
+        except Exception as e:
+            print(f"Error loading prediction history: {str(e)}")
+        
+        return []
+    
+    def _save_prediction_history(self):
+        """Save prediction history to the database."""
+        if not self.prediction_history:
+            return False
+            
+        try:
+            db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'arcanshadow.db')
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prediction_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id TEXT,
+                    timestamp TEXT,
+                    prediction_data TEXT
+                )
+            """)
+            
+            # Save recent predictions
+            for prediction in self.prediction_history[:20]:  # Only save most recent
+                match_id = prediction.get('match_id', '')
+                timestamp = prediction.get('timestamp', datetime.now().isoformat())
+                prediction_data = json.dumps(prediction)
+                
+                cursor.execute("""
+                    INSERT OR REPLACE INTO prediction_history
+                    (match_id, timestamp, prediction_data)
+                    VALUES (?, ?, ?)
+                """, (match_id, timestamp, prediction_data))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error saving prediction history: {str(e)}")
+            return False
