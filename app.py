@@ -605,7 +605,7 @@ with tab4:
         st.markdown(f"**{t('module_accuracy')}:** {module_info['accuracy']}")
     
     # Visualization of module performance
-    st.markdown("### Module Performance Visualization")
+    st.markdown(f"### {t('performance_metrics')}")
     
     # Generate sample data for this specific module
     accuracy_by_context = {

@@ -240,6 +240,7 @@ fr = {
     "module_inputs": "Entrées",
     "module_output": "Sortie",
     "module_accuracy": "Précision Historique",
+    "description": "Description",
     
     # Prediction outcomes
     "home_win": "Victoire à Domicile",
