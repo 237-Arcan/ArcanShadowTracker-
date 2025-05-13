@@ -1,6 +1,8 @@
 import numpy as np
 from datetime import datetime, timedelta
 import math
+import os
+from utils.api_integrations import APIIntegrations
 
 class ShadowOdds:
     """
@@ -19,6 +21,10 @@ class ShadowOdds:
             'ShadowMomentum': self.shadow_momentum,
             'SetTrapIndicator': self.set_trap_indicator
         }
+        
+        # Initialize API integrations
+        self.api = APIIntegrations()
+        self.api_available = self.api.odds_api_available
         
         # Initialize historical market behavior models
         self.market_models = self._initialize_market_models()
