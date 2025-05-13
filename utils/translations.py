@@ -27,6 +27,7 @@ en = {
     "dashboard_tab": "System Dashboard",
     "historical_tab": "Historical Analysis",
     "module_details_tab": "Module Details",
+    "live_match_tab": "Live Match 🔴",
     
     # Predictions tab
     "match_predictions": "Match Predictions",
@@ -140,6 +141,29 @@ en = {
     "last_6_months": "Last 6 months",
     "last_year": "Last year",
     
+    # Live match mode
+    "live_mode_title": "Live Match Analysis",
+    "live_mode_description": "Real-time match analysis with ArcanSentinel",
+    "match_setup": "Match Setup",
+    "home_team": "Home Team",
+    "away_team": "Away Team",
+    "start_tracking": "Start Live Tracking",
+    "stop_tracking": "Stop Live Tracking",
+    "current_minute": "Current Minute",
+    "update_match_state": "Update Match State",
+    "current_score": "Current Score",
+    "add_event": "Add Match Event",
+    "event_type": "Event Type",
+    "event_details": "Event Details",
+    "live_analysis": "Live Analysis",
+    "active_modules": "Active Modules",
+    "match_phase": "Match Phase",
+    "prediction_evolution": "Prediction Evolution",
+    "key_factors": "Key Factors",
+    "momentum_analysis": "Momentum Analysis",
+    "betting_trends": "Betting Trends",
+    "karmic_patterns": "Karmic Patterns",
+    
     # ArcanX factor explanations
     "prime_match_day": "Prime Match Day: Match occurs on day {day}, a prime number",
     "dynamic_life_path": "Dynamic Life Path: Match Life Path {number} suggests action/change",
@@ -174,6 +198,7 @@ fr = {
     "dashboard_tab": "Tableau de Bord",
     "historical_tab": "Analyse Historique",
     "module_details_tab": "Détails des Modules",
+    "live_match_tab": "Match en Direct 🔴",
     
     # Predictions tab
     "match_predictions": "Prédictions de Matches",
@@ -286,6 +311,29 @@ fr = {
     "last_3_months": "3 derniers mois",
     "last_6_months": "6 derniers mois",
     "last_year": "Année dernière",
+    
+    # Live match mode
+    "live_mode_title": "Analyse de Match en Direct",
+    "live_mode_description": "Analyse en temps réel avec ArcanSentinel",
+    "match_setup": "Configuration du Match",
+    "home_team": "Équipe à Domicile",
+    "away_team": "Équipe Visiteuse",
+    "start_tracking": "Démarrer le Suivi en Direct",
+    "stop_tracking": "Arrêter le Suivi en Direct",
+    "current_minute": "Minute Actuelle",
+    "update_match_state": "Mettre à Jour l'État du Match",
+    "current_score": "Score Actuel",
+    "add_event": "Ajouter un Événement",
+    "event_type": "Type d'Événement",
+    "event_details": "Détails de l'Événement",
+    "live_analysis": "Analyse en Direct",
+    "active_modules": "Modules Actifs",
+    "match_phase": "Phase du Match",
+    "prediction_evolution": "Évolution de la Prédiction",
+    "key_factors": "Facteurs Clés",
+    "momentum_analysis": "Analyse de l'Élan",
+    "betting_trends": "Tendances des Paris",
+    "karmic_patterns": "Modèles Karmiques",
     
     # ArcanX factor explanations
     "prime_match_day": "Jour de Match Premier: Le match a lieu le jour {day}, un nombre premier",

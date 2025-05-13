@@ -83,6 +83,19 @@ arcan_x = ArcanX()
 shadow_odds = ShadowOdds()
 convergence = Convergence()
 meta_systems = MetaSystems()
+arcan_sentinel = ArcanSentinel(arcan_x, shadow_odds, convergence)  # Initialize live mode module
+
+# Initialize session state for live tracking
+if 'live_tracking_active' not in st.session_state:
+    st.session_state.live_tracking_active = False
+if 'live_match_data' not in st.session_state:
+    st.session_state.live_match_data = None
+if 'live_analysis' not in st.session_state:
+    st.session_state.live_analysis = None
+if 'current_match_minute' not in st.session_state:
+    st.session_state.current_match_minute = 0
+if 'current_match_score' not in st.session_state:
+    st.session_state.current_match_score = [0, 0]
 
 # Custom CSS for styling
 def local_css():
@@ -163,11 +176,12 @@ with st.sidebar:
         st.session_state.loading_prediction = True
 
 # Main content area with tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     t('predictions_tab'), 
     t('dashboard_tab'), 
     t('historical_tab'), 
-    t('module_details_tab')
+    t('module_details_tab'),
+    t('live_match_tab')  # New live match tab
 ])
 
 with tab1:
