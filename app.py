@@ -104,6 +104,10 @@ convergence = Convergence()
 numeri_code = NumeriCode()
 tarot_echo = TarotEcho()
 astro_impact = AstroImpactLite()
+shadow_odds_plus = ShadowOddsPlus()
+echo_path = EchoPath()
+fan_sentiment_monitor = FanSentimentMonitor()
+late_surge_detector = LateSurgeDetector()
 
 # Initialize predictive modules
 collapse_detector = CollapseDetector()
@@ -120,7 +124,11 @@ meta_systems = MetaSystems(
     suspended_modules={
         'numeri_code': numeri_code,
         'tarot_echo': tarot_echo,
-        'astro_impact': astro_impact
+        'astro_impact': astro_impact,
+        'shadow_odds_plus': shadow_odds_plus,
+        'echo_path': echo_path,
+        'fan_sentiment_monitor': fan_sentiment_monitor,
+        'late_surge_detector': late_surge_detector
     },
     advanced_modules={
         'karmic_flow': karmic_flow,
