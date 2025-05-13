@@ -11,6 +11,9 @@ from datetime import datetime
 import os
 from utils.api_integrations import APIIntegrations
 
+# Initialize random with a safe seed value
+random.seed(int(time.time()) % (2**32 - 1))
+
 class ArcanSentinel:
     """
     ArcanSentinel - Real-time analysis system for ArcanShadow

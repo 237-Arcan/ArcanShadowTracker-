@@ -758,7 +758,9 @@ class ShadowOdds:
         
         # Generate a unique seed from match data
         match_hash = hash(f"{match_data.get('home_team', '')}_{match_data.get('away_team', '')}_{match_data.get('date', datetime.now())}")
-        np.random.seed(match_hash)
+        # Ensure the seed is within valid range (0 to 2^32 - 1)
+        seed_value = abs(match_hash) % (2**32 - 1)
+        np.random.seed(seed_value)
         
         # Extract odds
         home_odds = match_data.get('home_odds', 0)
