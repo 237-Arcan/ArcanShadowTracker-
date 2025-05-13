@@ -251,10 +251,10 @@ class ArcanSentinel:
             'phase': current_phase,
             'outcome': base_prediction['outcome'],
             'confidence': adjusted_confidence,
-            'factors': base_prediction['factors'],
-            'esoteric_factors': base_prediction['esoteric_factors'],
-            'odds_factors': base_prediction['odds_factors'],
-            'statistical_factors': base_prediction['statistical_factors']
+            'factors': [],  # Initialize empty factors list
+            'esoteric_factors': base_prediction.get('esoteric_factors', []),
+            'odds_factors': base_prediction.get('odds_factors', []),
+            'statistical_factors': base_prediction.get('statistical_factors', [])
         }
         
         # Add live module results
