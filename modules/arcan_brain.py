@@ -465,17 +465,28 @@ class ArcanBrain:
         confident_predictions = 0
         total_predictions = 0
         
-        for category in result.values():
+        # Only analyze list categories for confidence calculation
+        for key, category in result.items():
             if isinstance(category, list):
                 for prediction in category:
                     total_predictions += 1
                     if prediction.get('confidence', 0) > 0.7:
                         confident_predictions += 1
         
+        # Calculate confidence as a float value
         confidence = confident_predictions / total_predictions if total_predictions > 0 else 0
-        result['confidence'] = confidence
         
-        return result
+        # Add meta-information to results outside the category lists
+        result_meta = {
+            'confidence': confidence,
+            'total_predictions': total_predictions,
+            'confident_predictions': confident_predictions
+        }
+        
+        # Combine into final result
+        final_result = {**result, **result_meta}
+        
+        return final_result
     
     def run_counterfactual_analysis(self, match_data, scenario_changes):
         """

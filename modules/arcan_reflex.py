@@ -90,7 +90,10 @@ class ArcanReflex:
         for module, score in module_eval['module_scores'].items():
             if score < self.evaluation_threshold:
                 underperforming.append(module)
-                
+        
+        # Initialize deactivation candidates list
+        deactivation_candidates = []
+        
         # Take action on underperforming modules
         if underperforming:
             deactivation_candidates = self.reflex_switch.suggest_deactivations(
@@ -129,7 +132,7 @@ class ArcanReflex:
             'system_accuracy': self.system_accuracy,
             'module_performance': self.module_performance,
             'underperforming_modules': underperforming,
-            'deactivation_candidates': deactivation_candidates if 'deactivation_candidates' in locals() else [],
+            'deactivation_candidates': deactivation_candidates,
             'performance_improvement': module_eval.get('improvement', 0),
             'timestamp': datetime.now().isoformat()
         }
