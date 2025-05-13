@@ -517,6 +517,274 @@ with tab4:
     st.markdown(f"## {t('module_details')}")
     st.markdown(t('module_description'))
     
+with tab5:
+    st.markdown(f"## {t('live_mode_title')}")
+    st.markdown(t('live_mode_description'))
+    
+    # Match setup section
+    st.markdown(f"### {t('match_setup')}")
+    
+    # Two columns for team inputs
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        home_team = st.text_input(t('home_team'), value="Manchester United" if not st.session_state.live_match_data else st.session_state.live_match_data['home_team'])
+    
+    with col2:
+        away_team = st.text_input(t('away_team'), value="Liverpool" if not st.session_state.live_match_data else st.session_state.live_match_data['away_team'])
+    
+    # Start/stop tracking buttons
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if not st.session_state.live_tracking_active:
+            if st.button(t('start_tracking')):
+                # Create match data dictionary
+                match_data = {
+                    'home_team': home_team,
+                    'away_team': away_team,
+                    'date': datetime.now(),
+                    'sport': st.session_state.selected_sport,
+                    'league': st.session_state.selected_league,
+                    'venue': f"{home_team} Stadium",
+                    'home_odds': 2.10,
+                    'draw_odds': 3.40,
+                    'away_odds': 3.60,
+                    'weather': 'Clear',
+                    'referee': 'Michael Oliver',
+                    'crowd_size': 55000
+                }
+                
+                # Start live tracking
+                initial_analysis = arcan_sentinel.start_live_tracking(match_data)
+                
+                # Update session state
+                st.session_state.live_tracking_active = True
+                st.session_state.live_match_data = match_data
+                st.session_state.live_analysis = initial_analysis
+                st.session_state.current_match_minute = 0
+                st.session_state.current_match_score = [0, 0]
+                
+                # Rerun to update UI
+                st.rerun()
+    
+    with col2:
+        if st.session_state.live_tracking_active:
+            if st.button(t('stop_tracking')):
+                # Stop live tracking
+                final_analysis = arcan_sentinel.stop_live_tracking()
+                
+                # Update session state
+                st.session_state.live_tracking_active = False
+                st.session_state.live_analysis = final_analysis
+                
+                # Rerun to update UI
+                st.rerun()
+    
+    # If live tracking is active, show match control panel and analysis
+    if st.session_state.live_tracking_active:
+        st.markdown("---")
+        
+        # Match state control panel
+        st.markdown(f"### {t('update_match_state')}")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Current minute control
+            current_minute = st.slider(t('current_minute'), 0, 90, st.session_state.current_match_minute)
+            
+            if current_minute != st.session_state.current_match_minute:
+                # Update match state with new minute
+                arcan_sentinel.update_match_state(current_minute, st.session_state.current_match_score)
+                st.session_state.current_match_minute = current_minute
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+        
+        with col2:
+            # Score control
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                home_score = st.number_input(f"{home_team} {t('score')}", min_value=0, value=st.session_state.current_match_score[0])
+            
+            with col2:
+                away_score = st.number_input(f"{away_team} {t('score')}", min_value=0, value=st.session_state.current_match_score[1])
+            
+            if [home_score, away_score] != st.session_state.current_match_score:
+                # Update match state with new score
+                arcan_sentinel.update_match_state(st.session_state.current_match_minute, [home_score, away_score])
+                st.session_state.current_match_score = [home_score, away_score]
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+        
+        # Event addition
+        with st.expander(t('add_event')):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                event_type = st.selectbox(t('event_type'), ["Goal", "Red Card", "Yellow Card", "Substitution", "Injury", "Penalty"])
+            
+            with col2:
+                event_team = st.radio("Team", [home_team, away_team])
+            
+            event_details = st.text_input(t('event_details'), placeholder="E.g. Goal scored by Rashford")
+            
+            if st.button("Add Event"):
+                event = {
+                    'type': event_type,
+                    'team': event_team,
+                    'minute': st.session_state.current_match_minute,
+                    'details': event_details
+                }
+                
+                # Update match state with new event
+                arcan_sentinel.update_match_state(st.session_state.current_match_minute, st.session_state.current_match_score, event)
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+                
+                st.success(f"Event added: {event_type} at minute {st.session_state.current_match_minute}")
+        
+        # Display live analysis results
+        st.markdown("---")
+        st.markdown(f"### {t('live_analysis')}")
+        
+        # Current match phase
+        current_phase = arcan_sentinel.determine_match_phase(st.session_state.current_match_minute)
+        st.info(f"{t('match_phase')}: {current_phase.capitalize()} ({st.session_state.current_match_minute}/90)")
+        
+        # Live prediction visualization
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            if 'outcome' in st.session_state.live_analysis:
+                st.markdown(f"""
+                <div class='prediction-card'>
+                    <h3>{home_team} {st.session_state.current_match_score[0]} - {st.session_state.current_match_score[1]} {away_team}</h3>
+                    <p>{t('prediction')}: <span class='gold-text'>{st.session_state.live_analysis['outcome']}</span></p>
+                    <p>{t('confidence')}: {st.session_state.live_analysis['confidence']*100:.1f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        with col2:
+            # Create confidence gauge chart
+            if 'confidence' in st.session_state.live_analysis:
+                fig = go.Figure(go.Indicator(
+                    mode = "gauge+number",
+                    value = st.session_state.live_analysis['confidence']*100,
+                    domain = {'x': [0, 1], 'y': [0, 1]},
+                    title = {'text': t('confidence')},
+                    gauge = {
+                        'axis': {'range': [0, 100], 'tickwidth': 1},
+                        'bar': {'color': "gold"},
+                        'steps': [
+                            {'range': [0, 50], 'color': "firebrick"},
+                            {'range': [50, 75], 'color': "darkorange"},
+                            {'range': [75, 100], 'color': "forestgreen"}
+                        ],
+                        'threshold': {
+                            'line': {'color': "white", 'width': 2},
+                            'thickness': 0.75,
+                            'value': st.session_state.live_analysis['confidence']*100
+                        }
+                    }
+                ))
+                fig.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=20))
+                st.plotly_chart(fig, use_container_width=True, key="live_confidence_gauge")
+        
+        # Key analysis modules results
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Momentum analysis
+            st.markdown(f"#### {t('momentum_analysis')}")
+            
+            if 'shadow_momentum' in st.session_state.live_analysis:
+                momentum_data = st.session_state.live_analysis['shadow_momentum']
+                
+                # Create momentum gauge
+                fig = go.Figure(go.Indicator(
+                    mode = "delta+number",
+                    value = momentum_data['current_momentum'] * 100,
+                    delta = {'reference': 50, 'relative': False},
+                    title = {'text': "Current Momentum"},
+                    domain = {'x': [0, 1], 'y': [0, 1]}
+                ))
+                fig.update_layout(height=150)
+                st.plotly_chart(fig, use_container_width=True, key="momentum_gauge")
+                
+                # Momentum timeline
+                if 'momentum_timeline' in momentum_data:
+                    minutes = list(range(0, st.session_state.current_match_minute + 1))
+                    values = momentum_data['momentum_timeline']
+                    
+                    fig = px.line(x=minutes, y=values, labels={'x': 'Minute', 'y': 'Momentum'})
+                    fig.update_layout(height=250)
+                    st.plotly_chart(fig, use_container_width=True, key="momentum_timeline")
+            else:
+                st.info("Momentum data will appear as the match progresses")
+        
+        with col2:
+            # Karmic patterns
+            st.markdown(f"#### {t('karmic_patterns')}")
+            
+            if 'karmic_flow' in st.session_state.live_analysis:
+                karmic_data = st.session_state.live_analysis['karmic_flow']
+                
+                for factor in karmic_data['factors'][:3]:  # Show top 3 factors
+                    st.markdown(f"- {factor}")
+                
+                # Create karmic balance visualization
+                if 'balance' in karmic_data:
+                    balance = karmic_data['balance']
+                    
+                    # Visualize balance as a horizontal bar
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(
+                        x=[balance],
+                        y=['Karmic Balance'],
+                        orientation='h',
+                        marker=dict(
+                            color='purple' if balance < 0 else 'gold',
+                            line=dict(color='white', width=2)
+                        )
+                    ))
+                    fig.update_layout(
+                        height=150,
+                        xaxis=dict(range=[-1, 1]),
+                        xaxis_title="Home ← | → Away"
+                    )
+                    st.plotly_chart(fig, use_container_width=True, key="karmic_balance")
+            else:
+                st.info("Karmic pattern data will appear as the match progresses")
+        
+        # Betting trends
+        st.markdown(f"#### {t('betting_trends')}")
+        
+        if 'bet_pulse' in st.session_state.live_analysis:
+            bet_data = st.session_state.live_analysis['bet_pulse']
+            
+            # Create betting volume visualization
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Home", f"{bet_data['home_volume']}%", f"{bet_data['home_change']}%")
+            
+            with col2:
+                st.metric("Draw", f"{bet_data['draw_volume']}%", f"{bet_data['draw_change']}%")
+            
+            with col3:
+                st.metric("Away", f"{bet_data['away_volume']}%", f"{bet_data['away_change']}%")
+            
+            # Betting timeline
+            if 'volume_timeline' in bet_data:
+                df = pd.DataFrame(bet_data['volume_timeline'])
+                
+                fig = px.line(df, x='minute', y=['home', 'draw', 'away'], 
+                             labels={'value': 'Betting Volume %', 'variable': 'Outcome'},
+                             color_discrete_map={'home': 'blue', 'draw': 'purple', 'away': 'red'})
+                fig.update_layout(height=250)
+                st.plotly_chart(fig, use_container_width=True, key="betting_timeline")
+        else:
+            st.info("Betting trend data will appear as the match progresses")
+    
     # Module selection
     module_categories = {
         "ArcanX (Esoteric Analysis)": ["NumeriCode", "GematriaPulse", "AstroImpact Lite", "TarotEcho", 
