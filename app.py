@@ -207,16 +207,61 @@ with tab1:
                 with col1:
                     st.markdown(f"### {t('statistical_factors')}")
                     for factor in prediction['statistical_factors']:
-                        st.markdown(f"- {factor['name']}: {factor['value']}")
+                        factor_name = factor['name']
+                        # Try to translate the factor name
+                        if factor_name.lower() in ['form analysis', 'analyse de forme']:
+                            factor_name = t('form_analysis')
+                        elif factor_name.lower() in ['head-to-head record', 'historique des confrontations']:
+                            factor_name = t('head_to_head')
+                        elif factor_name.lower() in ['home advantage', 'avantage du terrain']:
+                            factor_name = t('home_advantage')
+                        elif factor_name.lower() in ['injury impact', 'impact des blessures']:
+                            factor_name = t('injury_impact')
+                        elif factor_name.lower() in ['recent momentum', 'dynamique récente']:
+                            factor_name = t('recent_momentum')
+                        
+                        st.markdown(f"- {factor_name}: {factor['value']}")
                 
                 with col2:
                     st.markdown(f"### {t('esoteric_factors')}")
                     for factor in prediction['esoteric_factors']:
-                        st.markdown(f"- {factor['name']}: {factor['value']}")
+                        factor_name = factor['name']
+                        # Try to translate the factor name
+                        if factor_name.lower() in ['numerical resonance', 'résonance numérique']:
+                            factor_name = t('numerical_resonance')
+                        elif factor_name.lower() in ['gematria value', 'valeur gématrique']:
+                            factor_name = t('gematria_value')
+                        elif factor_name.lower() in ['astrological position', 'position astrologique']:
+                            factor_name = t('astrological_position')
+                        elif factor_name.lower() in ['tarot association', 'association du tarot']:
+                            factor_name = t('tarot_association')
+                        elif factor_name.lower() in ['karmic balance', 'équilibre karmique']:
+                            factor_name = t('karmic_balance')
+                        elif factor_name.lower() in ['venue energy', 'énergie du stade']:
+                            factor_name = t('venue_energy')
+                        elif factor_name.lower() in ['cycle pattern', 'motif cyclique']:
+                            factor_name = t('cycle_pattern')
+                        
+                        st.markdown(f"- {factor_name}: {factor['value']}")
                 
                 st.markdown(f"### {t('odds_analysis')}")
                 for factor in prediction['odds_factors']:
-                    st.markdown(f"- {factor['name']}: {factor['value']}")
+                    factor_name = factor['name']
+                    # Try to translate the factor name
+                    if factor_name.lower() in ['line movement', 'mouvement des cotes']:
+                        factor_name = t('line_movement')
+                    elif factor_name.lower() in ['public betting %', 'paris publics %']:
+                        factor_name = t('public_betting')
+                    elif factor_name.lower() in ['sharp action', 'action des parieurs pro']:
+                        factor_name = t('sharp_action')
+                    elif factor_name.lower() in ['odds divergence', 'divergence des cotes']:
+                        factor_name = t('odds_divergence')
+                    elif factor_name.lower() in ['market overreaction', 'surréaction du marché']:
+                        factor_name = t('market_overreaction')
+                    elif factor_name.lower() in ['trap indicator', 'indicateur de piège']:
+                        factor_name = t('trap_indicator')
+                    
+                    st.markdown(f"- {factor_name}: {factor['value']}")
     elif not st.session_state.prediction_generated:
         st.info(t('no_predictions'))
     else:
@@ -367,7 +412,7 @@ with tab3:
         
         # Line chart for module performance over time
         fig = px.line(module_perf_df, x='Date', y='Accuracy', color='Module',
-                     labels={'Accuracy': 'Prediction Accuracy', 'Date': 'Date'},
+                     labels={'Accuracy': t('prediction_accuracy'), 'Date': t('date')},
                      color_discrete_map={
                          'ArcanX': 'purple',
                          'ShadowOdds': 'blue',

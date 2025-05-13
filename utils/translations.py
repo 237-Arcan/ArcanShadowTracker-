@@ -88,6 +88,26 @@ en = {
     "btts_yes": "Both Teams To Score: Yes",
     "btts_no": "Both Teams To Score: No",
     
+    # Prediction factors
+    "form_analysis": "Form Analysis",
+    "head_to_head": "Head-to-Head Record",
+    "home_advantage": "Home Advantage",
+    "injury_impact": "Injury Impact",
+    "recent_momentum": "Recent Momentum",
+    "numerical_resonance": "Numerical Resonance",
+    "gematria_value": "Gematria Value",
+    "astrological_position": "Astrological Position",
+    "tarot_association": "Tarot Association",
+    "karmic_balance": "Karmic Balance",
+    "venue_energy": "Venue Energy",
+    "cycle_pattern": "Cycle Pattern",
+    "line_movement": "Line Movement",
+    "public_betting": "Public Betting %",
+    "sharp_action": "Sharp Action",
+    "odds_divergence": "Odds Divergence",
+    "market_overreaction": "Market Overreaction",
+    "trap_indicator": "Trap Indicator",
+    
     # Time periods
     "last_7_days": "Last 7 days",
     "last_30_days": "Last 30 days",
@@ -180,6 +200,26 @@ fr = {
     "under_goals": "Moins de {value} Buts",
     "btts_yes": "Les Deux Équipes Marquent: Oui",
     "btts_no": "Les Deux Équipes Marquent: Non",
+    
+    # Prediction factors
+    "form_analysis": "Analyse de Forme",
+    "head_to_head": "Historique des Confrontations",
+    "home_advantage": "Avantage du Terrain",
+    "injury_impact": "Impact des Blessures",
+    "recent_momentum": "Dynamique Récente",
+    "numerical_resonance": "Résonance Numérique",
+    "gematria_value": "Valeur Gématrique",
+    "astrological_position": "Position Astrologique",
+    "tarot_association": "Association du Tarot",
+    "karmic_balance": "Équilibre Karmique",
+    "venue_energy": "Énergie du Stade",
+    "cycle_pattern": "Motif Cyclique",
+    "line_movement": "Mouvement des Cotes",
+    "public_betting": "Paris Publics %",
+    "sharp_action": "Action des Parieurs Pro",
+    "odds_divergence": "Divergence des Cotes",
+    "market_overreaction": "Surréaction du Marché",
+    "trap_indicator": "Indicateur de Piège",
     
     # Time periods
     "last_7_days": "7 derniers jours",
