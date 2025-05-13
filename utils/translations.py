@@ -74,10 +74,34 @@ en = {
     "module_details": "Module Details",
     "module_description": "Explore the inner workings of ArcanShadow's prediction modules.",
     "select_module": "Select Module",
+    "module_category": "Module Category",
+    "specific_module": "Specific Module",
     "module_info": "Module Information",
     "performance_metrics": "Performance Metrics",
     "module_relationships": "Module Relationships",
     "module_interactions": "How {module} interacts with other components of ArcanShadow.",
+    
+    # Module descriptions
+    "module_description_numericode": "Interprets numérological patterns in dates, jersey numbers, cycles, scores and calendar days.",
+    "module_description_gematriapulse": "Analyzes kabbalistic values of team names, players, cities, stadiums, and competitions.",
+    "module_description_astroimpact": "Analyzes celestial positions and their influence on specific matches and teams.",
+    "module_description_tarotecho": "Applies tarot symbolism to evaluate the energy and potential outcomes of matches.",
+    "module_description_yiflow": "Uses I Ching hexagrams to analyze the flow of energy in sporting contests.",
+    "module_description_karmicflow": "Detects karmic patterns in team histories and confrontations.",
+    "module_description_radiesthesiamap": "Measures energy fields of venues and their impact on team performance.",
+    "module_description_cyclemirror": "Identifies cyclical patterns in match histories between teams.",
+    "module_description_linetrap": "Identifies trapped odds that are misaligned with actual sport dynamics.",
+    "module_description_betpulse": "Analyzes betting volume and timing patterns to detect significant market moves.",
+    "module_description_crowdpressure": "Monitors excessive public betting on one side that can distort odds.",
+    "module_description_marketecho": "Analyzes discrepancies between bookmakers and suspicious movements.",
+    "module_description_collapsedetektor": "Detects signs that a team may be about to dramatically underperform.",
+    "module_description_shadowmomentum": "Identifies subtle momentum shifts in betting patterns before they become obvious.",
+    "module_description_settrapindicator": "Evaluates whether bookmakers may be setting a trap for public bettors.",
+    
+    # Module inputs/outputs
+    "module_inputs": "Inputs",
+    "module_output": "Output",
+    "module_accuracy": "Historical Accuracy",
     
     # Prediction outcomes
     "home_win": "Home Win",

@@ -472,10 +472,10 @@ with tab4:
     col1, col2 = st.columns(2)
     
     with col1:
-        selected_category = st.selectbox("Module Category", list(module_categories.keys()))
+        selected_category = st.selectbox(t('module_category'), list(module_categories.keys()))
     
     with col2:
-        selected_module = st.selectbox("Specific Module", module_categories[selected_category])
+        selected_module = st.selectbox(t('specific_module'), module_categories[selected_category])
     
     # Module descriptions (hardcoded for demonstration)
     module_descriptions = {
