@@ -201,48 +201,48 @@ with tab1:
                 st.plotly_chart(fig, use_container_width=True, key=f"gauge_{match['home_team']}_{match['away_team']}")
             
             # Show prediction details in an expander
-            with st.expander("View Prediction Details"):
+            with st.expander(t('view_details')):
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("### Statistical Factors")
+                    st.markdown(f"### {t('statistical_factors')}")
                     for factor in prediction['statistical_factors']:
                         st.markdown(f"- {factor['name']}: {factor['value']}")
                 
                 with col2:
-                    st.markdown("### Esoteric Factors")
+                    st.markdown(f"### {t('esoteric_factors')}")
                     for factor in prediction['esoteric_factors']:
                         st.markdown(f"- {factor['name']}: {factor['value']}")
                 
-                st.markdown("### Odds Analysis")
+                st.markdown(f"### {t('odds_analysis')}")
                 for factor in prediction['odds_factors']:
                     st.markdown(f"- {factor['name']}: {factor['value']}")
     elif not st.session_state.prediction_generated:
-        st.info("Click 'Generate Predictions' in the sidebar to analyze upcoming matches.")
+        st.info(t('no_predictions'))
     else:
-        st.info(f"No upcoming matches found for {st.session_state.selected_league} on {st.session_state.selected_date}.")
+        st.info(t('no_matches', league=st.session_state.selected_league, date=st.session_state.selected_date.strftime('%d/%m/%Y')))
 
 with tab2:
-    st.markdown("## System Dashboard")
-    st.markdown("Real-time monitoring of ArcanShadow's performance and module activities.")
+    st.markdown(f"## {t('system_dashboard')}")
+    st.markdown(t('dashboard_description'))
     
     # Metrics row
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric(label="Prediction Accuracy (7d)", value="78.3%", delta="2.1%")
+        st.metric(label=t('prediction_accuracy'), value="78.3%", delta="2.1%")
     
     with col2:
-        st.metric(label="ArcanX Confidence", value="72.4%", delta="-1.3%")
+        st.metric(label=t('arcanx_confidence'), value="72.4%", delta="-1.3%")
     
     with col3:
-        st.metric(label="ShadowOdds Accuracy", value="81.5%", delta="3.8%")
+        st.metric(label=t('shadowodds_accuracy'), value="81.5%", delta="3.8%")
     
     with col4:
-        st.metric(label="Active Modules", value="12/18")
+        st.metric(label=t('active_modules_count'), value="12/18")
     
     # System health visualization
-    st.markdown("### System Health & Performance")
+    st.markdown(f"### {t('system_health')}")
     
     # Create sample data for module performance
     modules = ['NumeriCode', 'GematriaPulse', 'AstroImpact', 'TarotEcho', 'LineTrap', 'BetPulse', 
@@ -276,7 +276,7 @@ with tab2:
     st.plotly_chart(fig, use_container_width=True, key="module_performance_chart")
     
     # System activity timeline
-    st.markdown("### System Activity Timeline")
+    st.markdown(f"### {t('system_activity')}")
     
     # Generate sample timeline data
     days = 14
@@ -316,44 +316,43 @@ with tab2:
     st.plotly_chart(fig, use_container_width=True, key="system_activity_chart")
 
 with tab3:
-    st.markdown("## Historical Analysis")
-    st.markdown("Review past predictions and performance metrics to improve future forecasts.")
+    st.markdown(f"## {t('historical_analysis')}")
+    st.markdown(t('historical_description'))
     
     # Filters for historical analysis
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        hist_sport = st.selectbox("Sport", sports, key="hist_sport")
+        hist_sport = st.selectbox(t('sport'), sports, key="hist_sport")
     
     with col2:
         hist_leagues = data_handler.get_leagues_for_sport(hist_sport)
-        hist_league = st.selectbox("League", hist_leagues, key="hist_league")
+        hist_league = st.selectbox(t('league'), hist_leagues, key="hist_league")
     
     with col3:
-        date_range = st.selectbox("Time Period", 
-                               ["Last 7 days", "Last 30 days", "Last 3 months", "Last 6 months", "Last year"],
-                               index=1)
+        date_range_options = [t('last_7_days'), t('last_30_days'), t('last_3_months'), t('last_6_months'), t('last_year')]
+        date_range = st.selectbox(t('time_period'), date_range_options, index=1)
     
     # Historical performance metrics
     hist_data = data_handler.get_historical_predictions(hist_sport, hist_league, date_range)
     
     if hist_data:
         # Performance summary
-        st.markdown("### Prediction Performance Summary")
+        st.markdown(f"### {t('performance_summary')}")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric(label="Overall Accuracy", value=f"{hist_data['accuracy']*100:.1f}%")
+            st.metric(label=t('overall_accuracy'), value=f"{hist_data['accuracy']*100:.1f}%")
         
         with col2:
-            st.metric(label="ROI", value=f"{hist_data['roi']*100:.1f}%")
+            st.metric(label=t('roi'), value=f"{hist_data['roi']*100:.1f}%")
         
         with col3:
-            st.metric(label="Predictions Made", value=hist_data['total_predictions'])
+            st.metric(label=t('predictions_made'), value=hist_data['total_predictions'])
         
         # Historical accuracy by module
-        st.markdown("### Module Performance Over Time")
+        st.markdown(f"### {t('module_performance')}")
         
         # Generate sample data for historical module performance
         dates = pd.date_range(end=datetime.now(), periods=30).strftime('%Y-%m-%d').tolist()
@@ -389,29 +388,29 @@ with tab3:
         st.plotly_chart(fig, use_container_width=True, key="historical_performance_chart")
         
         # Recent predictions
-        st.markdown("### Recent Predictions")
+        st.markdown(f"### {t('recent_predictions')}")
         
         recent_predictions = data_handler.get_recent_predictions(hist_sport, hist_league, 10)
         
         if recent_predictions:
             pred_df = pd.DataFrame(recent_predictions)
             pred_df['Correct'] = pred_df['correct'].apply(lambda x: '✅' if x else '❌')
-            pred_df['Match'] = pred_df['home_team'] + ' vs ' + pred_df['away_team']
+            pred_df['Match'] = pred_df['home_team'] + ' ' + t('vs') + ' ' + pred_df['away_team']
             pred_df['Score'] = pred_df['home_score'].astype(str) + ' - ' + pred_df['away_score'].astype(str)
             
             # Format the dataframe for display
             display_df = pred_df[['date', 'Match', 'prediction', 'Score', 'Correct', 'confidence']]
-            display_df.columns = ['Date', 'Match', 'Prediction', 'Result', 'Correct', 'Confidence']
+            display_df.columns = [t('date'), t('match'), t('prediction'), t('result'), t('correct'), t('confidence')]
             
             st.dataframe(display_df, use_container_width=True)
         else:
-            st.info("No recent prediction data available for the selected filters.")
+            st.info(t('no_recent_data'))
     else:
-        st.info("No historical data available for the selected criteria.")
+        st.info(t('no_historical_data'))
 
 with tab4:
-    st.markdown("## Module Details")
-    st.markdown("Explore the inner workings of ArcanShadow's prediction modules.")
+    st.markdown(f"## {t('module_details')}")
+    st.markdown(t('module_description'))
     
     # Module selection
     module_categories = {
