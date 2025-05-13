@@ -10,11 +10,12 @@ from modules.shadow_odds import ShadowOdds
 from modules.convergence import Convergence
 from modules.meta_systems import MetaSystems
 from utils.data_handler import DataHandler
+from utils.translations import get_text
 from assets.symbols import get_symbol
 
 # Page configuration
 st.set_page_config(
-    page_title="ArcanShadow - Hybrid Sports Prediction System",
+    page_title="ArcanShadow",
     page_icon="🔮",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -31,6 +32,13 @@ if 'prediction_generated' not in st.session_state:
     st.session_state.prediction_generated = False
 if 'loading_prediction' not in st.session_state:
     st.session_state.loading_prediction = False
+if 'language' not in st.session_state:
+    st.session_state.language = 'en'  # Default language is English
+
+# Function to get translated text
+def t(key, **format_args):
+    """Helper function to get text in the current language"""
+    return get_text(key, st.session_state.language, **format_args)
 
 # Initialize modules
 data_handler = DataHandler()
@@ -68,48 +76,67 @@ local_css()
 
 # Main title with mystical element
 st.markdown("<div class='header-container'><h1>🔮 ArcanShadow</h1><div>" + get_symbol('pentagram') + "</div></div>", unsafe_allow_html=True)
-st.markdown("<p class='gold-text'>Hybrid Prediction System: Statistics + Esoteric Analysis + Odds Behavior</p>", unsafe_allow_html=True)
+st.markdown(f"<p class='gold-text'>{t('app_subtitle')}</p>", unsafe_allow_html=True)
 
 # Sidebar for filters and controls
 with st.sidebar:
-    st.markdown("## 🧙‍♂️ System Controls")
+    st.markdown(f"## 🧙‍♂️ {t('system_controls')}")
+    
+    # Language selection
+    languages = {"en": "English", "fr": "Français"}
+    selected_language = st.selectbox(
+        t('select_language'),
+        options=list(languages.keys()),
+        format_func=lambda x: languages[x],
+        index=list(languages.keys()).index(st.session_state.language)
+    )
+    
+    # Update language if changed
+    if selected_language != st.session_state.language:
+        st.session_state.language = selected_language
+        st.rerun()  # Rerun to update all UI text
     
     # Sport selection
     sports = ['Football', 'Basketball', 'Tennis', 'Baseball', 'Hockey']
-    selected_sport = st.selectbox("Select Sport", sports, index=sports.index(st.session_state.selected_sport))
+    selected_sport = st.selectbox(t('select_sport'), sports, index=sports.index(st.session_state.selected_sport))
     st.session_state.selected_sport = selected_sport
     
     # League selection based on sport
     leagues = data_handler.get_leagues_for_sport(selected_sport)
-    selected_league = st.selectbox("Select League", leagues, index=0 if st.session_state.selected_league not in leagues else leagues.index(st.session_state.selected_league))
+    selected_league = st.selectbox(t('select_league'), leagues, index=0 if st.session_state.selected_league not in leagues else leagues.index(st.session_state.selected_league))
     st.session_state.selected_league = selected_league
     
     # Date selection
-    selected_date = st.date_input("Select Date", st.session_state.selected_date)
+    selected_date = st.date_input(t('select_date'), st.session_state.selected_date)
     st.session_state.selected_date = selected_date
     
     # Module activation checkboxes
-    st.markdown("### Active Modules")
+    st.markdown(f"### {t('active_modules')}")
     arcan_x_active = st.checkbox("ArcanX (Esoteric Analysis)", value=True)
     shadow_odds_active = st.checkbox("ShadowOdds (Odds Behavior)", value=True)
     
     # Advanced settings collapsible
-    with st.expander("Advanced Settings"):
-        confidence_threshold = st.slider("Confidence Threshold", 0.0, 1.0, 0.65)
-        cycles_depth = st.slider("Historical Cycles Depth", 1, 10, 5)
-        esoteric_weight = st.slider("Esoteric Influence Weight", 0.0, 1.0, 0.4)
+    with st.expander(t('advanced_settings')):
+        confidence_threshold = st.slider(t('confidence_threshold'), 0.0, 1.0, 0.65)
+        cycles_depth = st.slider(t('cycles_depth'), 1, 10, 5)
+        esoteric_weight = st.slider(t('esoteric_influence'), 0.0, 1.0, 0.4)
     
     # Generate prediction button
-    if st.button("Generate Predictions"):
+    if st.button(t('generate_predictions')):
         st.session_state.loading_prediction = True
 
 # Main content area with tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Predictions", "System Dashboard", "Historical Analysis", "Module Details"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    t('predictions_tab'), 
+    t('dashboard_tab'), 
+    t('historical_tab'), 
+    t('module_details_tab')
+])
 
 with tab1:
     # Header section with explanatory text
-    st.markdown("## Match Predictions")
-    st.markdown("Predictions generated using ArcanShadow's multi-layer architecture combining statistical data, esoteric patterns, and odds behavior analysis.")
+    st.markdown(f"## {t('match_predictions')}")
+    st.markdown(t('predictions_description'))
     
     # Get upcoming matches for selected sport, league and date
     upcoming_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, st.session_state.selected_league, st.session_state.selected_date)
@@ -141,10 +168,10 @@ with tab1:
             with col1:
                 st.markdown(f"""
                 <div class='prediction-card'>
-                    <h3>{match['home_team']} vs {match['away_team']}</h3>
-                    <p>Date: {match['date'].strftime('%d %b %Y %H:%M')}</p>
-                    <p>Prediction: <span class='gold-text'>{prediction['outcome']}</span></p>
-                    <p>Confidence: {prediction['confidence']*100:.1f}%</p>
+                    <h3>{match['home_team']} {t('vs')} {match['away_team']}</h3>
+                    <p>{t('date')}: {match['date'].strftime('%d %b %Y %H:%M')}</p>
+                    <p>{t('prediction')}: <span class='gold-text'>{prediction['outcome']}</span></p>
+                    <p>{t('confidence')}: {prediction['confidence']*100:.1f}%</p>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -154,7 +181,7 @@ with tab1:
                     mode = "gauge+number",
                     value = prediction['confidence']*100,
                     domain = {'x': [0, 1], 'y': [0, 1]},
-                    title = {'text': "Confidence"},
+                    title = {'text': t('confidence')},
                     gauge = {
                         'axis': {'range': [0, 100], 'tickwidth': 1},
                         'bar': {'color': "gold"},
