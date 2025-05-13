@@ -808,7 +808,7 @@ class MetaSystems:
         
         # Get results from ArcanX and ShadowOdds if available
         arcan_x_results = None
-        if self.arcan_x:
+        if hasattr(self, 'arcan_x') and self.arcan_x:
             cache_key = f"arcan_x_{hash(str(match_data))}"
             if cache_key in self.cache:
                 arcan_x_results = self.cache[cache_key]
@@ -817,7 +817,7 @@ class MetaSystems:
                 self.cache[cache_key] = arcan_x_results
         
         shadow_odds_results = None
-        if self.shadow_odds:
+        if hasattr(self, 'shadow_odds') and self.shadow_odds:
             cache_key = f"shadow_odds_{hash(str(match_data))}"
             if cache_key in self.cache:
                 shadow_odds_results = self.cache[cache_key]
@@ -825,21 +825,56 @@ class MetaSystems:
                 shadow_odds_results = self.shadow_odds.analyze(match_data)
                 self.cache[cache_key] = shadow_odds_results
         
-        # Step 1: Run neural analysis
-        analysis_result = self.arcan_brain.analyze_match(match_data, arcan_x_results, shadow_odds_results)
-        
-        # Step 2: Check for emerging insights
-        insights = self.arcan_brain.detect_emerging_insight(match_data)
-        
-        # Step 3: Update module state
-        self.system_state['advanced_modules']['arcan_brain']['last_analysis'] = datetime.now().isoformat()
-        
-        # Track integration status
+        # Initialize bidirectional integration tracking
         meta_cognitive_status = {
             'arcan_reflex_integration': 'inactive',
             'parameter_optimization': 'inactive',
             'feedback_processing': 'inactive'
         }
+        
+        # Stage 1: ArcanReflex optimizes ArcanBrain parameters before analysis
+        if hasattr(self, 'arcan_reflex') and self.arcan_reflex and hasattr(self.arcan_reflex, 'optimize_arcan_brain'):
+            try:
+                # Allow ArcanReflex to optimize ArcanBrain parameters
+                optimization_result = self.arcan_reflex.optimize_arcan_brain(match_data)
+                
+                # Cache this optimization result for future reference
+                cache_key = f"brain_optimization_{hash(str(match_data))}"
+                self.cache[cache_key] = optimization_result
+                
+                # Update status
+                meta_cognitive_status['parameter_optimization'] = 'active'
+                meta_cognitive_status['arcan_reflex_integration'] = 'active'
+            except Exception as e:
+                print(f"ArcanBrain parameter optimization error: {str(e)}")
+        
+        # Stage 2: Run neural analysis with potentially optimized parameters
+        analysis_result = self.arcan_brain.analyze_match(match_data, arcan_x_results, shadow_odds_results)
+        
+        # Stage 3: Check for emerging insights
+        insights = self.arcan_brain.detect_emerging_insight(match_data)
+        
+        # Stage 4: ArcanBrain generates feedback for ArcanReflex
+        if hasattr(self, 'arcan_reflex') and self.arcan_reflex and hasattr(self.arcan_brain, 'generate_reflex_feedback'):
+            try:
+                # Generate feedback for ArcanReflex
+                feedback = self.arcan_brain.generate_reflex_feedback(analysis_result, match_data)
+                
+                # Process the feedback with ArcanReflex
+                if hasattr(self.arcan_reflex, 'receive_brain_feedback'):
+                    feedback_processing = self.arcan_reflex.receive_brain_feedback(feedback)
+                    
+                    # Cache the feedback processing result
+                    cache_key = f"reflex_adaptation_{hash(str(match_data))}"
+                    self.cache[cache_key] = feedback_processing
+                    
+                    # Update status
+                    meta_cognitive_status['feedback_processing'] = 'active'
+            except Exception as e:
+                print(f"ArcanBrain feedback processing error: {str(e)}")
+        
+        # Stage 5: Update module state
+        self.system_state['advanced_modules']['arcan_brain']['last_analysis'] = datetime.now().isoformat()
         
         # Combine results
         result = {
