@@ -10,6 +10,13 @@ from modules.shadow_odds import ShadowOdds
 from modules.convergence import Convergence
 from modules.meta_systems import MetaSystems
 from modules.arcan_sentinel import ArcanSentinel
+# Import des modules "suspendus"
+from modules.numeri_code import NumeriCode
+from modules.tarot_echo import TarotEcho
+from modules.astro_impact_lite import AstroImpactLite
+# Import des modules avancés
+from modules.karmic_flow_plus import KarmicFlowPlus
+from modules.momentum_tracker_2 import MomentumTracker2
 from utils.data_handler import DataHandler
 from utils.translations import get_text
 from assets.symbols import get_symbol
@@ -83,8 +90,36 @@ data_handler = DataHandler()
 arcan_x = ArcanX()
 shadow_odds = ShadowOdds()
 convergence = Convergence()
-meta_systems = MetaSystems()
-arcan_sentinel = ArcanSentinel(arcan_x, shadow_odds, convergence)  # Initialize live mode module
+
+# Initialize esoteric "suspended" modules
+numeri_code = NumeriCode()
+tarot_echo = TarotEcho()
+astro_impact = AstroImpactLite()
+
+# Initialize advanced modules
+karmic_flow = KarmicFlowPlus()
+momentum_tracker = MomentumTracker2()
+
+# Initialize meta systems (coordinating all modules)
+meta_systems = MetaSystems(
+    suspended_modules={
+        'numeri_code': numeri_code,
+        'tarot_echo': tarot_echo,
+        'astro_impact': astro_impact
+    },
+    advanced_modules={
+        'karmic_flow': karmic_flow,
+        'momentum_tracker': momentum_tracker
+    }
+)
+
+# Initialize live mode module
+arcan_sentinel = ArcanSentinel(
+    arcan_x, 
+    shadow_odds, 
+    convergence, 
+    meta_systems=meta_systems  # Pass meta_systems for access to all modules
+)
 
 # Initialize session state for live tracking
 if 'live_tracking_active' not in st.session_state:
