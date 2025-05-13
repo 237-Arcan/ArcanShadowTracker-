@@ -7,6 +7,7 @@ import json
 from modules.arcan_reflex import ArcanReflex
 from modules.eastern_gate import EasternGate
 from modules.d_forge import DForge
+from modules.arcan_brain import ArcanBrain
 
 class MetaSystems:
     """
@@ -39,18 +40,23 @@ class MetaSystems:
             'advanced_modules': {
                 'arcan_reflex': {'active': True, 'last_evaluation': None},
                 'eastern_gate': {'active': True, 'last_used': None},
-                'd_forge': {'active': True, 'modules_generated': 0}
+                'd_forge': {'active': True, 'modules_generated': 0},
+                'arcan_brain': {'active': True, 'last_analysis': None}
             }
         }
         
         # Track the history of predictions for learning
         self.prediction_history = []
         
+        # Initialize the ArcanBrain neural intelligence module
+        self.arcan_brain = ArcanBrain(self)
+        
         self.submodules = {
             'GridSyncAlpha': self.grid_sync_alpha,
             'ChronoEchoPro': self.chrono_echo_pro,
             'ArcanSentinel': self.arcan_sentinel,
-            'DGridSyncLambda': self.d_grid_sync_lambda
+            'DGridSyncLambda': self.d_grid_sync_lambda,
+            'ArcanBrain': self.arcan_brain_wrapper
         }
         
         # Advanced module initialization - disabled for now
@@ -744,6 +750,99 @@ class MetaSystems:
         """Save prediction history to the database."""
         if not self.prediction_history:
             return False
+            
+        try:
+            db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'arcanshadow.db')
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prediction_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id TEXT,
+                    prediction_data TEXT,
+                    timestamp TEXT
+                )
+            """)
+            
+            # Insert all predictions
+            for prediction in self.prediction_history:
+                match_id = prediction.get('match_id', '')
+                prediction_json = json.dumps(prediction)
+                timestamp = datetime.now().isoformat()
+                
+                cursor.execute("""
+                    INSERT INTO prediction_history
+                    (match_id, prediction_data, timestamp)
+                    VALUES (?, ?, ?)
+                """, (match_id, prediction_json, timestamp))
+            
+            conn.commit()
+            conn.close()
+            
+            # Clear in-memory history after saving
+            self.prediction_history = []
+            
+            return True
+        except Exception as e:
+            print(f"Error saving prediction history: {str(e)}")
+            return False
+            
+    def arcan_brain_wrapper(self, match_data):
+        """
+        Wrapper for ArcanBrain module for integration with MetaSystems.
+        
+        Args:
+            match_data (dict): Match information
+            
+        Returns:
+            dict: ArcanBrain neural analysis results
+        """
+        # Check if the module is active
+        if not self.system_state['advanced_modules']['arcan_brain']['active']:
+            return {
+                'status': 'inactive',
+                'message': 'ArcanBrain module is currently inactive'
+            }
+        
+        # Get results from ArcanX and ShadowOdds if available
+        arcan_x_results = None
+        if self.arcan_x:
+            cache_key = f"arcan_x_{hash(str(match_data))}"
+            if cache_key in self.cache:
+                arcan_x_results = self.cache[cache_key]
+            else:
+                arcan_x_results = self.arcan_x.analyze(match_data)
+                self.cache[cache_key] = arcan_x_results
+        
+        shadow_odds_results = None
+        if self.shadow_odds:
+            cache_key = f"shadow_odds_{hash(str(match_data))}"
+            if cache_key in self.cache:
+                shadow_odds_results = self.cache[cache_key]
+            else:
+                shadow_odds_results = self.shadow_odds.analyze(match_data)
+                self.cache[cache_key] = shadow_odds_results
+        
+        # Run neural analysis
+        analysis_result = self.arcan_brain.analyze_match(match_data, arcan_x_results, shadow_odds_results)
+        
+        # Check for emerging insights if we have enough data
+        insights = self.arcan_brain.detect_emerging_insight(match_data)
+        
+        # Update module state
+        self.system_state['advanced_modules']['arcan_brain']['last_analysis'] = datetime.now().isoformat()
+        
+        # Combine results
+        result = {
+            'status': 'active',
+            'neural_analysis': analysis_result,
+            'insights': insights,
+            'confidence': analysis_result.get('neural_confidence', 0.0)
+        }
+        
+        return result
             
         try:
             db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'arcanshadow.db')
