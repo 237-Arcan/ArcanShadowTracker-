@@ -412,12 +412,13 @@ tabs = [
     t('module_details_tab'),
     t('live_match_tab'),
     t('live_monitoring_tab'),
-    t('performance_notifications_tab')  # New tab for performance notifications
+    t('performance_notifications_tab'),  # Tab for performance notifications
+    t('daily_combo_tab')  # New tab for daily betting combo
 ]
 
 # Get the selected tab index from session_state
 selected_tab_idx = st.session_state.active_tab
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(tabs)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(tabs)
 
 with tab1:
     # Header section with explanatory text
