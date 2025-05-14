@@ -593,24 +593,96 @@ with tab5:
     st.markdown(f"## {t('live_mode_title')}")
     st.markdown(t('live_mode_description'))
     
-    # Match setup section
+    # Match setup section with improved interface
     st.markdown(f"### {t('match_setup')}")
     
-    # Two columns for team inputs
-    col1, col2 = st.columns(2)
+    # Get available matches from API if possible
+    today_matches = data_handler.get_matches_for_date(st.session_state.selected_sport, 
+                                                     st.session_state.selected_league, 
+                                                     st.session_state.selected_date)
     
-    with col1:
-        home_team = st.text_input(t('home_team'), value="Manchester United" if not st.session_state.live_match_data else st.session_state.live_match_data['home_team'])
+    use_available_match = False
     
-    with col2:
-        away_team = st.text_input(t('away_team'), value="Liverpool" if not st.session_state.live_match_data else st.session_state.live_match_data['away_team'])
+    if today_matches:
+        use_available_match = st.checkbox("📅 Use available match from schedule", value=True)
+        
+        if use_available_match:
+            # Format matches for selectbox
+            match_options = [f"{m['home_team']} vs {m['away_team']}" for m in today_matches]
+            selected_match_idx = st.selectbox("Select match to track", 
+                                           range(len(match_options)), 
+                                           format_func=lambda i: match_options[i])
+            
+            selected_match = today_matches[selected_match_idx]
+            home_team = selected_match['home_team']
+            away_team = selected_match['away_team']
+            
+            # Display match info
+            match_info_cols = st.columns([2,1,2])
+            with match_info_cols[0]:
+                st.markdown(f"<h3 style='text-align: center'>{home_team}</h3>", unsafe_allow_html=True)
+            with match_info_cols[1]:
+                st.markdown(f"<h3 style='text-align: center'>vs</h3>", unsafe_allow_html=True)
+            with match_info_cols[2]:
+                st.markdown(f"<h3 style='text-align: center'>{away_team}</h3>", unsafe_allow_html=True)
+            
+            # Display match details if available
+            if 'venue' in selected_match or 'kickoff_time' in selected_match or 'referee' in selected_match:
+                info_cols = st.columns(3)
+                with info_cols[0]:
+                    venue = selected_match.get('venue', f"{home_team} Stadium")
+                    st.info(f"🏟️ **Venue**: {venue}")
+                with info_cols[1]:
+                    kickoff = selected_match.get('kickoff_time', "Not specified")
+                    st.info(f"⏰ **Kickoff**: {kickoff}")
+                with info_cols[2]:
+                    referee = selected_match.get('referee', "Not specified")
+                    st.info(f"👨‍⚖️ **Referee**: {referee}")
+    
+    if not today_matches or not use_available_match:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            home_team = st.text_input(t('home_team'), value="Manchester United" if not st.session_state.live_match_data else st.session_state.live_match_data['home_team'])
+        
+        with col2:
+            away_team = st.text_input(t('away_team'), value="Liverpool" if not st.session_state.live_match_data else st.session_state.live_match_data['away_team'])
     
     # Start/stop tracking buttons
     col1, col2 = st.columns(2)
     
     with col1:
         if not st.session_state.live_tracking_active:
-            if st.button(t('start_tracking')):
+            # Add more options for a more detailed analysis
+            with st.expander("Advanced Match Settings (Optional)", expanded=False):
+                adv_cols = st.columns(3)
+                
+                with adv_cols[0]:
+                    weather = st.selectbox("Weather Conditions", 
+                                         ["Clear", "Partly Cloudy", "Cloudy", "Light Rain", "Heavy Rain", "Snow"],
+                                         index=0)
+                    crowd_size = st.number_input("Crowd Size", min_value=0, max_value=100000, value=55000, step=1000)
+                    home_form = st.text_input("Home Team Form (e.g., WWDLW)", value="WDWLW")
+                
+                with adv_cols[1]:
+                    venue = st.text_input("Venue", value=f"{home_team} Stadium")
+                    referee = st.text_input("Referee", value="Michael Oliver")
+                    away_form = st.text_input("Away Team Form (e.g., LWDLW)", value="LDWDL")
+                
+                with adv_cols[2]:
+                    home_odds = st.number_input("Home Odds", min_value=1.01, max_value=20.0, value=2.10, step=0.05)
+                    draw_odds = st.number_input("Draw Odds", min_value=1.01, max_value=20.0, value=3.40, step=0.05)
+                    away_odds = st.number_input("Away Odds", min_value=1.01, max_value=20.0, value=3.60, step=0.05)
+                
+                # Additional special factors
+                special_factors = st.multiselect("Special Match Factors", 
+                                             ["Derby Match", "Title Decider", "Relegation Battle", 
+                                              "European Qualification", "Player Return from Injury",
+                                              "Manager's First Match", "Rivalries", "Weather Impact"],
+                                             default=[])
+            
+            # Create a visually distinct button
+            if st.button(t('start_tracking'), use_container_width=True, type="primary"):
                 # Create match data dictionary
                 match_data = {
                     'home_team': home_team,
@@ -618,13 +690,16 @@ with tab5:
                     'date': datetime.now(),
                     'sport': st.session_state.selected_sport,
                     'league': st.session_state.selected_league,
-                    'venue': f"{home_team} Stadium",
-                    'home_odds': 2.10,
-                    'draw_odds': 3.40,
-                    'away_odds': 3.60,
-                    'weather': 'Clear',
-                    'referee': 'Michael Oliver',
-                    'crowd_size': 55000
+                    'venue': venue,
+                    'home_odds': home_odds,
+                    'draw_odds': draw_odds,
+                    'away_odds': away_odds,
+                    'weather': weather,
+                    'referee': referee,
+                    'crowd_size': crowd_size,
+                    'home_form': home_form,
+                    'away_form': away_form,
+                    'special_factors': special_factors if len(special_factors) > 0 else None
                 }
                 
                 # Start live tracking
