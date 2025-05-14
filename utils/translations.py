@@ -33,8 +33,9 @@ en = {
     "historical_tab": "Historical Analysis",
     "module_details_tab": "Module Details",
     "live_match_tab": "Live Match 🔴",
-    "notifications_tab": "Notifications 🔔",
+    "live_monitoring_tab": "Live Monitoring 🔄",
     "notifications_center": "Notifications Center",
+    "live_match_monitoring": "Live Match Monitoring",
     
     # Predictions tab
     "match_predictions": "Match Predictions",
@@ -236,8 +237,9 @@ fr = {
     "historical_tab": "Analyse Historique",
     "module_details_tab": "Détails des Modules",
     "live_match_tab": "Match en Direct 🔴",
-    "notifications_tab": "Notifications 🔔",
+    "live_monitoring_tab": "Surveillance en Direct 🔄",
     "notifications_center": "Centre de Notifications",
+    "live_match_monitoring": "Surveillance de Match en Direct",
     
     # Predictions tab
     "match_predictions": "Prédictions de Matches",

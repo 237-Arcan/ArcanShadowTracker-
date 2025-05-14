@@ -55,6 +55,10 @@ if 'loading_prediction' not in st.session_state:
     st.session_state.loading_prediction = False
 if 'language' not in st.session_state:
     st.session_state.language = 'en'  # Default language is English
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = 0  # Default to first tab (Predictions)
+if 'match_events' not in st.session_state:
+    st.session_state.match_events = []  # List to store match events in live mode
 
 # Function to get translated text
 def t(key, **format_args):
@@ -400,14 +404,19 @@ with st.sidebar:
         st.session_state.loading_prediction = True
 
 # Main content area with tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+# We'll use the session state active_tab to control which tab is shown
+tabs = [
     t('predictions_tab'), 
     t('dashboard_tab'), 
     t('historical_tab'), 
     t('module_details_tab'),
     t('live_match_tab'),
-    t('notifications_tab')  # New notifications tab
-])
+    t('live_monitoring_tab')  # Renamed from notifications_tab to better describe its function
+]
+
+# Get the selected tab index from session_state
+selected_tab_idx = st.session_state.active_tab
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(tabs)
 
 with tab1:
     # Header section with explanatory text
