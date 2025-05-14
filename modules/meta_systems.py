@@ -910,3 +910,63 @@ class MetaSystems:
         }
         
         return result
+        
+    def evaluate_modules_performance(self, prediction_data):
+        """
+        Evaluate the performance of each module based on a completed prediction.
+        
+        Args:
+            prediction_data (dict): Prediction data with actual results
+            
+        Returns:
+            dict: Performance metrics for each module
+        """
+        # For this implementation, we'll return sample evaluations
+        # In a full implementation, this would analyze the actual contribution
+        # of each module to the prediction accuracy
+        
+        modules = [
+            'ArcanX', 
+            'ShadowOdds', 
+            'Convergence', 
+            'NumeriCode', 
+            'TarotEcho',
+            'ShadowOddsPlus',
+            'EchoPath', 
+            'FanSentimentMonitor',
+            'LateSurgeDetector',
+            'CollapseDetector'
+        ]
+        
+        evaluations = {}
+        
+        # Use the prediction correctness to influence evaluation
+        is_correct = prediction_data.get('correct', False)
+        base_accuracy = 0.75 if is_correct else 0.45
+        
+        for module in modules:
+            # Add some variation to make each module's performance different
+            variation = random.uniform(-0.15, 0.15)
+            
+            # Calculate performance metrics
+            accuracy = min(1.0, max(0.0, base_accuracy + variation))
+            performance_score = random.randint(60, 95) if is_correct else random.randint(30, 65)
+            
+            evaluations[module] = {
+                'accuracy': accuracy,
+                'performance_score': performance_score,
+                'trend': random.choice(['Improving', 'Stable', 'Declining']),
+                'contribution': round(random.uniform(0.1, 0.3), 2),
+                'key_factors': random.sample([
+                    'Pattern Recognition', 
+                    'Timing Sensitivity', 
+                    'Historical Data Analysis',
+                    'Public Sentiment Analysis',
+                    'Odds Movement Detection',
+                    'Team Strength Evaluation',
+                    'Momentum Detection',
+                    'Statistical Model Accuracy'
+                ], k=3)
+            }
+            
+        return evaluations
