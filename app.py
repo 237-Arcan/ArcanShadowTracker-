@@ -1008,50 +1008,101 @@ with tab5:
     # Match setup section with improved interface
     st.markdown(f"### {t('match_setup')}")
     
-    # Get available matches from API if possible
+    # Get available matches from the selected league for today and upcoming days
+    # First try from today's date
     today_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, 
                                                      st.session_state.selected_league, 
-                                                     st.session_state.selected_date)
+                                                     datetime.now().date())
     
-    use_available_match = False
+    # If no matches found for today, try to get matches for the next 7 days
+    future_matches = []
+    if not today_matches:
+        for i in range(1, 8):
+            future_date = datetime.now().date() + timedelta(days=i)
+            matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, 
+                                                      st.session_state.selected_league, 
+                                                      future_date)
+            if matches:
+                for match in matches:
+                    match['date'] = future_date  # Add date to match data
+                future_matches.extend(matches)
     
-    if today_matches:
-        use_available_match = st.checkbox("📅 Use available match from schedule", value=True)
+    # Also get featured matches if we're in football mode
+    featured_matches = []
+    if st.session_state.selected_sport == 'Football':
+        featured_matches = data_handler.get_featured_matches(st.session_state.selected_sport)
+        # Add a marker to differentiate featured matches in selection
+        for match in featured_matches:
+            if 'date' not in match:
+                match['date'] = datetime.now().date()
+            if 'featured' not in match:
+                match['featured'] = True
+    
+    # Combine all available matches
+    all_available_matches = today_matches + future_matches + featured_matches
+    
+    # Remove duplicates (if any match appears in both featured and league matches)
+    unique_matches = []
+    seen_pairs = set()
+    for match in all_available_matches:
+        match_key = (match.get('home_team', ''), match.get('away_team', ''))
+        if match_key not in seen_pairs:
+            unique_matches.append(match)
+            seen_pairs.add(match_key)
+    
+    # Now use these unique matches for selection
+    if unique_matches:
+        # Format matches for selectbox with icons for featured matches and dates for future matches
+        match_options = []
+        for match in unique_matches:
+            match_text = f"{match['home_team']} vs {match['away_team']}"
+            if match.get('featured', False):
+                match_text = f"🔥 {match_text} (Featured)"
+            elif 'date' in match and match['date'] != datetime.now().date():
+                match_text = f"📅 {match_text} ({match['date'].strftime('%d %b')})"
+            match_options.append(match_text)
         
-        if use_available_match:
-            # Format matches for selectbox
-            match_options = [f"{m['home_team']} vs {m['away_team']}" for m in today_matches]
-            selected_match_idx = st.selectbox("Select match to track", 
-                                           range(len(match_options)), 
-                                           format_func=lambda i: match_options[i])
-            
-            selected_match = today_matches[selected_match_idx]
-            home_team = selected_match['home_team']
-            away_team = selected_match['away_team']
-            
-            # Display match info
-            match_info_cols = st.columns([2,1,2])
-            with match_info_cols[0]:
-                st.markdown(f"<h3 style='text-align: center'>{home_team}</h3>", unsafe_allow_html=True)
-            with match_info_cols[1]:
-                st.markdown(f"<h3 style='text-align: center'>vs</h3>", unsafe_allow_html=True)
-            with match_info_cols[2]:
-                st.markdown(f"<h3 style='text-align: center'>{away_team}</h3>", unsafe_allow_html=True)
-            
-            # Display match details if available
-            if 'venue' in selected_match or 'kickoff_time' in selected_match or 'referee' in selected_match:
-                info_cols = st.columns(3)
-                with info_cols[0]:
-                    venue = selected_match.get('venue', f"{home_team} Stadium")
-                    st.info(f"🏟️ **Venue**: {venue}")
-                with info_cols[1]:
-                    kickoff = selected_match.get('kickoff_time', "Not specified")
-                    st.info(f"⏰ **Kickoff**: {kickoff}")
-                with info_cols[2]:
-                    referee = selected_match.get('referee', "Not specified")
-                    st.info(f"👨‍⚖️ **Referee**: {referee}")
-    
-    if not today_matches or not use_available_match:
+        selected_match_idx = st.selectbox(
+            "Select match to track", 
+            range(len(match_options)), 
+            format_func=lambda i: match_options[i]
+        )
+        
+        selected_match = unique_matches[selected_match_idx]
+        home_team = selected_match['home_team']
+        away_team = selected_match['away_team']
+        
+        # Display match info with league information if available
+        st.markdown(
+            f"<div style='text-align: center; margin-bottom: 15px;'>"
+            f"<p style='font-size: 16px; color: #888;'>{selected_match.get('league', st.session_state.selected_league)}</p>"
+            f"</div>", 
+            unsafe_allow_html=True
+        )
+        
+        match_info_cols = st.columns([2,1,2])
+        with match_info_cols[0]:
+            st.markdown(f"<h3 style='text-align: center'>{home_team}</h3>", unsafe_allow_html=True)
+        with match_info_cols[1]:
+            st.markdown(f"<h3 style='text-align: center'>vs</h3>", unsafe_allow_html=True)
+        with match_info_cols[2]:
+            st.markdown(f"<h3 style='text-align: center'>{away_team}</h3>", unsafe_allow_html=True)
+        
+        # Display match details if available
+        info_cols = st.columns(3)
+        with info_cols[0]:
+            venue = selected_match.get('venue', f"{home_team} Stadium")
+            st.info(f"🏟️ **Venue**: {venue}")
+        with info_cols[1]:
+            date_str = selected_match.get('date', datetime.now().date()).strftime('%d %b %Y')
+            kickoff = selected_match.get('kickoff_time', "15:00")
+            st.info(f"⏰ **Date & Time**: {date_str}, {kickoff}")
+        with info_cols[2]:
+            referee = selected_match.get('referee', "Not specified")
+            st.info(f"👨‍⚖️ **Referee**: {referee}")
+    else:
+        st.warning(f"No matches found for {st.session_state.selected_league}. Please select a different league or enter match details manually.")
+        
         col1, col2 = st.columns(2)
         
         with col1:
