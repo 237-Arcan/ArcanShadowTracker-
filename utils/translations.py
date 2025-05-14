@@ -529,7 +529,20 @@ fr = {
     "full_moon_energy": "Énergie Pleine Lune: Match près de la Pleine Lune - énergie amplifiée",
     "match_foundation_sun": "Fondation du Match: Le Soleil: Succès, vitalité, résultat positif",
     "current_energy_moon": "Énergie Actuelle: La Lune: Illusion, tromperie, incertitude",
-    "outcome_tendency_fool": "Tendance du Résultat: Le Fou: Résultat imprévisible, nouveaux départs"
+    "outcome_tendency_fool": "Tendance du Résultat: Le Fou: Résultat imprévisible, nouveaux départs",
+    
+    # Smart Recommendations Tab
+    "smart_recommendations_title": "Recommandations Intelligentes 🎲",
+    "smart_recommendations_description": "Obtenez des recommandations personnalisées de marchés de paris basées sur votre historique et vos préférences",
+    "recommended_markets": "Marchés Recommandés",
+    "preferred_markets": "Vos Marchés Préférés",
+    "your_betting_history": "Votre Historique de Paris",
+    "market_preference_score": "Score de Préférence",
+    "market_success_rate": "Taux de Réussite",
+    "no_betting_history": "Aucun historique de paris trouvé. Ajoutez des paris pour obtenir des recommandations.",
+    "add_bet_button": "Ajouter un Historique de Paris",
+    "recommendation_reason": "Raison",
+    "overall_performance": "Performance Globale"
 }
 
 # Dictionary to access translations
