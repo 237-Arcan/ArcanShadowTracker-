@@ -2388,6 +2388,598 @@ with tab7:
         else:
             st.info(t('no_live_tracked_matches'))
 
+# Daily Combo Tab
+with tab8:
+    # Header section
+    st.markdown(f"## {t('daily_combo_title')}")
+    st.markdown(t('daily_combo_description'))
+    
+    # Initialize session state for combo bets if not exist
+    if 'combo_bets' not in st.session_state:
+        st.session_state.combo_bets = []
+    
+    # Create layout with two columns
+    daily_combo_cols = st.columns([3, 2])
+    
+    with daily_combo_cols[0]:
+        st.markdown(f"### {t('recommended_bets')}")
+        
+        # Get current matches data
+        matches = st.session_state.get('matches', [])
+        predictions = st.session_state.get('predictions', [])
+        live_matches = st.session_state.get('live_matches', [])
+        
+        # Combine regular predictions with live match insights
+        all_matches = []
+        if matches:
+            all_matches.extend(matches)
+        if live_matches:
+            all_matches.extend([m for m in live_matches if m not in all_matches])
+        
+        if all_matches:
+            # Create tabs for different betting markets
+            market_categories = ["Match Result", "Goals", "Both Teams To Score", "Handicap"]
+            market_tabs = st.tabs(market_categories)
+            
+            # 1. Match Result Tab
+            with market_tabs[0]:
+                st.markdown("#### Match Result Markets")
+                
+                for match in all_matches:
+                    match_id = match.get('id', '')
+                    home_team = match.get('home_team', '')
+                    away_team = match.get('away_team', '')
+                    
+                    # Find prediction for this match
+                    match_prediction = None
+                    for pred in predictions:
+                        if pred.get('match_id') == match_id:
+                            match_prediction = pred
+                            break
+                    
+                    # Get live analysis if available
+                    live_analysis = None
+                    for live_match in live_matches:
+                        if live_match.get('id') == match_id:
+                            live_analysis = live_match.get('live_analysis', {})
+                            break
+                    
+                    if match_prediction or live_analysis:
+                        with st.expander(f"{home_team} vs {away_team}"):
+                            # Calculate best market based on module predictions
+                            markets = []
+                            
+                            # 1-X-2 Markets
+                            if match_prediction:
+                                prediction_type = match_prediction.get('prediction_type', '')
+                                confidence = match_prediction.get('confidence', 0)
+                                
+                                if prediction_type == 'home_win':
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': home_team,
+                                        'market': '1X2',
+                                        'odds': match_prediction.get('home_odds', 2.0),
+                                        'confidence': confidence,
+                                        'module_source': 'ArcanX',
+                                        'insight': f"Strong momentum for {home_team}",
+                                        'ev': confidence * match_prediction.get('home_odds', 2.0) - 1
+                                    })
+                                elif prediction_type == 'away_win':
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': away_team,
+                                        'market': '1X2',
+                                        'odds': match_prediction.get('away_odds', 3.5),
+                                        'confidence': confidence,
+                                        'module_source': 'ArcanX',
+                                        'insight': f"Strong momentum for {away_team}",
+                                        'ev': confidence * match_prediction.get('away_odds', 3.5) - 1
+                                    })
+                                elif prediction_type == 'draw':
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': 'Draw',
+                                        'market': '1X2',
+                                        'odds': match_prediction.get('draw_odds', 3.2),
+                                        'confidence': confidence,
+                                        'module_source': 'ArcanX',
+                                        'insight': "Balanced forces suggest draw",
+                                        'ev': confidence * match_prediction.get('draw_odds', 3.2) - 1
+                                    })
+                            
+                            # Live analysis insights
+                            if live_analysis:
+                                # Get momentum analysis
+                                if 'momentum' in live_analysis:
+                                    momentum = live_analysis['momentum'].get('current_momentum', 0)
+                                    normalized_momentum = min(max(momentum * 100, -100), 100)
+                                    
+                                    # Strong momentum for home team
+                                    if normalized_momentum > 30:
+                                        markets.append({
+                                            'match': f"{home_team} vs {away_team}",
+                                            'selection': home_team,
+                                            'market': '1X2 (Live)',
+                                            'odds': 1.8,  # Live odds would be dynamically fetched
+                                            'confidence': min(0.7 + (normalized_momentum / 100), 0.95),
+                                            'module_source': 'ArcanSentinel',
+                                            'insight': f"Strong live momentum swing to {home_team}",
+                                            'ev': min(0.7 + (normalized_momentum / 100), 0.95) * 1.8 - 1
+                                        })
+                                    # Strong momentum for away team
+                                    elif normalized_momentum < -30:
+                                        markets.append({
+                                            'match': f"{home_team} vs {away_team}",
+                                            'selection': away_team,
+                                            'market': '1X2 (Live)',
+                                            'odds': 2.2,  # Live odds would be dynamically fetched
+                                            'confidence': min(0.7 + (abs(normalized_momentum) / 100), 0.95),
+                                            'module_source': 'ArcanSentinel',
+                                            'insight': f"Strong live momentum swing to {away_team}",
+                                            'ev': min(0.7 + (abs(normalized_momentum) / 100), 0.95) * 2.2 - 1
+                                        })
+                            
+                            # Display markets for this match
+                            if markets:
+                                # Sort by expected value
+                                markets.sort(key=lambda x: x.get('ev', 0), reverse=True)
+                                
+                                for i, market in enumerate(markets):
+                                    cols = st.columns([3, 1, 1, 1])
+                                    
+                                    with cols[0]:
+                                        st.markdown(f"**{market['selection']}** ({market['market']})")
+                                        st.markdown(f"_{market['insight']}_")
+                                    
+                                    with cols[1]:
+                                        st.markdown(f"**{t('bet_odds')}:** {market['odds']:.2f}")
+                                    
+                                    with cols[2]:
+                                        confidence_display = market['confidence'] * 100
+                                        confidence_color = "green" if confidence_display > 75 else "orange" if confidence_display > 60 else "red"
+                                        st.markdown(f"**{t('bet_confidence')}:** <span style='color:{confidence_color};'>{confidence_display:.1f}%</span>", unsafe_allow_html=True)
+                                    
+                                    with cols[3]:
+                                        # Generate a unique key for this button based on match and market
+                                        key = f"{match_id}_{market['market']}_{market['selection']}_{i}"
+                                        
+                                        # Check if this bet is already in the combo
+                                        already_in_combo = any(b.get('match') == market['match'] and b.get('selection') == market['selection'] for b in st.session_state.combo_bets)
+                                        
+                                        if already_in_combo:
+                                            if st.button(t('remove_from_combo'), key=f"remove_{key}"):
+                                                # Remove from combo
+                                                st.session_state.combo_bets = [b for b in st.session_state.combo_bets if not (b.get('match') == market['match'] and b.get('selection') == market['selection'])]
+                                                st.rerun()
+                                        else:
+                                            if st.button(t('add_to_combo'), key=f"add_{key}"):
+                                                # Add to combo
+                                                st.session_state.combo_bets.append(market)
+                                                st.rerun()
+                                    
+                                    st.markdown("---")
+                            else:
+                                st.info("No suitable match result markets found for this match")
+            
+            # 2. Goals Tab
+            with market_tabs[1]:
+                st.markdown("#### Goals Markets")
+                
+                for match in all_matches:
+                    match_id = match.get('id', '')
+                    home_team = match.get('home_team', '')
+                    away_team = match.get('away_team', '')
+                    
+                    # Find prediction for this match
+                    match_prediction = None
+                    for pred in predictions:
+                        if pred.get('match_id') == match_id:
+                            match_prediction = pred
+                            break
+                    
+                    # Get live analysis if available
+                    live_analysis = None
+                    for live_match in live_matches:
+                        if live_match.get('id') == match_id:
+                            live_analysis = live_match.get('live_analysis', {})
+                            break
+                    
+                    if match_prediction or live_analysis:
+                        with st.expander(f"{home_team} vs {away_team}"):
+                            # Calculate best market based on module predictions
+                            markets = []
+                            
+                            # Over/Under Markets
+                            if match_prediction:
+                                # Extract goals prediction if available
+                                if 'goals_prediction' in match_prediction:
+                                    goals_pred = match_prediction['goals_prediction']
+                                    
+                                    if goals_pred.get('total_goals_expected', 0) > 2.7:
+                                        markets.append({
+                                            'match': f"{home_team} vs {away_team}",
+                                            'selection': 'Over 2.5 Goals',
+                                            'market': 'O/U 2.5',
+                                            'odds': match_prediction.get('over_odds', 1.95),
+                                            'confidence': goals_pred.get('over_confidence', 0.7),
+                                            'module_source': 'GoalFlowAnalyzer',
+                                            'insight': "Match expected to be open with attacking opportunities",
+                                            'ev': goals_pred.get('over_confidence', 0.7) * match_prediction.get('over_odds', 1.95) - 1
+                                        })
+                                    elif goals_pred.get('total_goals_expected', 0) < 2.3:
+                                        markets.append({
+                                            'match': f"{home_team} vs {away_team}",
+                                            'selection': 'Under 2.5 Goals',
+                                            'market': 'O/U 2.5',
+                                            'odds': match_prediction.get('under_odds', 1.85),
+                                            'confidence': goals_pred.get('under_confidence', 0.7),
+                                            'module_source': 'GoalFlowAnalyzer',
+                                            'insight': "Match expected to be tight with few scoring chances",
+                                            'ev': goals_pred.get('under_confidence', 0.7) * match_prediction.get('under_odds', 1.85) - 1
+                                        })
+                            
+                            # Live analysis insights
+                            if live_analysis:
+                                # Check for match phase insights
+                                if 'arcan_sentinel' in live_analysis and 'insights' in live_analysis['arcan_sentinel']:
+                                    insights = live_analysis['arcan_sentinel'].get('insights', [])
+                                    
+                                    # Look for goal-related insights
+                                    goal_insight = next((i for i in insights if 'goal' in i.lower() or 'score' in i.lower()), None)
+                                    
+                                    if goal_insight and 'increase' in goal_insight.lower():
+                                        markets.append({
+                                            'match': f"{home_team} vs {away_team}",
+                                            'selection': 'Over 0.5 Goals (Next 15min)',
+                                            'market': 'Live Goals',
+                                            'odds': 2.1,  # Live odds would be dynamically fetched
+                                            'confidence': 0.75,
+                                            'module_source': 'ArcanSentinel',
+                                            'insight': goal_insight,
+                                            'ev': 0.75 * 2.1 - 1
+                                        })
+                            
+                            # Display markets for this match
+                            if markets:
+                                # Sort by expected value
+                                markets.sort(key=lambda x: x.get('ev', 0), reverse=True)
+                                
+                                for i, market in enumerate(markets):
+                                    cols = st.columns([3, 1, 1, 1])
+                                    
+                                    with cols[0]:
+                                        st.markdown(f"**{market['selection']}** ({market['market']})")
+                                        st.markdown(f"_{market['insight']}_")
+                                    
+                                    with cols[1]:
+                                        st.markdown(f"**{t('bet_odds')}:** {market['odds']:.2f}")
+                                    
+                                    with cols[2]:
+                                        confidence_display = market['confidence'] * 100
+                                        confidence_color = "green" if confidence_display > 75 else "orange" if confidence_display > 60 else "red"
+                                        st.markdown(f"**{t('bet_confidence')}:** <span style='color:{confidence_color};'>{confidence_display:.1f}%</span>", unsafe_allow_html=True)
+                                    
+                                    with cols[3]:
+                                        # Generate a unique key for this button based on match and market
+                                        key = f"{match_id}_{market['market']}_{market['selection']}_{i}"
+                                        
+                                        # Check if this bet is already in the combo
+                                        already_in_combo = any(b.get('match') == market['match'] and b.get('selection') == market['selection'] for b in st.session_state.combo_bets)
+                                        
+                                        if already_in_combo:
+                                            if st.button(t('remove_from_combo'), key=f"remove_{key}"):
+                                                # Remove from combo
+                                                st.session_state.combo_bets = [b for b in st.session_state.combo_bets if not (b.get('match') == market['match'] and b.get('selection') == market['selection'])]
+                                                st.rerun()
+                                        else:
+                                            if st.button(t('add_to_combo'), key=f"add_{key}"):
+                                                # Add to combo
+                                                st.session_state.combo_bets.append(market)
+                                                st.rerun()
+                                    
+                                    st.markdown("---")
+                            else:
+                                st.info("No suitable goals markets found for this match")
+                    
+            # 3. BTTS Tab
+            with market_tabs[2]:
+                st.markdown("#### Both Teams To Score Markets")
+                
+                for match in all_matches:
+                    match_id = match.get('id', '')
+                    home_team = match.get('home_team', '')
+                    away_team = match.get('away_team', '')
+                    
+                    # Find prediction for this match
+                    match_prediction = None
+                    for pred in predictions:
+                        if pred.get('match_id') == match_id:
+                            match_prediction = pred
+                            break
+                    
+                    if match_prediction:
+                        with st.expander(f"{home_team} vs {away_team}"):
+                            # Calculate best market based on module predictions
+                            markets = []
+                            
+                            # BTTS Markets
+                            if 'btts_prediction' in match_prediction:
+                                btts_pred = match_prediction['btts_prediction']
+                                
+                                if btts_pred.get('btts_probability', 0) > 0.6:
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': 'Yes',
+                                        'market': 'BTTS',
+                                        'odds': match_prediction.get('btts_yes_odds', 1.8),
+                                        'confidence': btts_pred.get('btts_probability', 0.6),
+                                        'module_source': 'DefenseVulnerabilityScanner',
+                                        'insight': "Both teams have scoring ability and defensive weaknesses",
+                                        'ev': btts_pred.get('btts_probability', 0.6) * match_prediction.get('btts_yes_odds', 1.8) - 1
+                                    })
+                                elif btts_pred.get('btts_probability', 0) < 0.4:
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': 'No',
+                                        'market': 'BTTS',
+                                        'odds': match_prediction.get('btts_no_odds', 2.0),
+                                        'confidence': 1 - btts_pred.get('btts_probability', 0.4),
+                                        'module_source': 'DefenseVulnerabilityScanner',
+                                        'insight': "At least one team likely to keep a clean sheet",
+                                        'ev': (1 - btts_pred.get('btts_probability', 0.4)) * match_prediction.get('btts_no_odds', 2.0) - 1
+                                    })
+                            
+                            # Display markets for this match
+                            if markets:
+                                # Sort by expected value
+                                markets.sort(key=lambda x: x.get('ev', 0), reverse=True)
+                                
+                                for i, market in enumerate(markets):
+                                    cols = st.columns([3, 1, 1, 1])
+                                    
+                                    with cols[0]:
+                                        st.markdown(f"**BTTS: {market['selection']}**")
+                                        st.markdown(f"_{market['insight']}_")
+                                    
+                                    with cols[1]:
+                                        st.markdown(f"**{t('bet_odds')}:** {market['odds']:.2f}")
+                                    
+                                    with cols[2]:
+                                        confidence_display = market['confidence'] * 100
+                                        confidence_color = "green" if confidence_display > 75 else "orange" if confidence_display > 60 else "red"
+                                        st.markdown(f"**{t('bet_confidence')}:** <span style='color:{confidence_color};'>{confidence_display:.1f}%</span>", unsafe_allow_html=True)
+                                    
+                                    with cols[3]:
+                                        # Generate a unique key for this button based on match and market
+                                        key = f"{match_id}_{market['market']}_{market['selection']}_{i}"
+                                        
+                                        # Check if this bet is already in the combo
+                                        already_in_combo = any(b.get('match') == market['match'] and b.get('selection') == market['selection'] for b in st.session_state.combo_bets)
+                                        
+                                        if already_in_combo:
+                                            if st.button(t('remove_from_combo'), key=f"remove_{key}"):
+                                                # Remove from combo
+                                                st.session_state.combo_bets = [b for b in st.session_state.combo_bets if not (b.get('match') == market['match'] and b.get('selection') == market['selection'])]
+                                                st.rerun()
+                                        else:
+                                            if st.button(t('add_to_combo'), key=f"add_{key}"):
+                                                # Add to combo
+                                                st.session_state.combo_bets.append(market)
+                                                st.rerun()
+                                    
+                                    st.markdown("---")
+                            else:
+                                st.info("No suitable BTTS markets found for this match")
+            
+            # 4. Handicap Tab
+            with market_tabs[3]:
+                st.markdown("#### Handicap Markets")
+                
+                for match in all_matches:
+                    match_id = match.get('id', '')
+                    home_team = match.get('home_team', '')
+                    away_team = match.get('away_team', '')
+                    
+                    # Find prediction for this match
+                    match_prediction = None
+                    for pred in predictions:
+                        if pred.get('match_id') == match_id:
+                            match_prediction = pred
+                            break
+                    
+                    if match_prediction:
+                        with st.expander(f"{home_team} vs {away_team}"):
+                            # Calculate best market based on module predictions
+                            markets = []
+                            
+                            # Handicap Markets based on team strengths
+                            if 'handicap_prediction' in match_prediction:
+                                handicap_pred = match_prediction['handicap_prediction']
+                                
+                                if handicap_pred.get('home_strength_advantage', 0) > 1.5:
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': f"{home_team} -1.5",
+                                        'market': 'Asian Handicap',
+                                        'odds': handicap_pred.get('home_handicap_odds', 2.7),
+                                        'confidence': handicap_pred.get('home_handicap_confidence', 0.65),
+                                        'module_source': 'StrengthDisparityAnalyzer',
+                                        'insight': f"{home_team} significantly stronger than opponent",
+                                        'ev': handicap_pred.get('home_handicap_confidence', 0.65) * handicap_pred.get('home_handicap_odds', 2.7) - 1
+                                    })
+                                elif handicap_pred.get('away_strength_advantage', 0) > 1.5:
+                                    markets.append({
+                                        'match': f"{home_team} vs {away_team}",
+                                        'selection': f"{away_team} +1.5",
+                                        'market': 'Asian Handicap',
+                                        'odds': handicap_pred.get('away_handicap_odds', 1.65),
+                                        'confidence': handicap_pred.get('away_handicap_confidence', 0.75),
+                                        'module_source': 'StrengthDisparityAnalyzer',
+                                        'insight': f"{away_team} competitive enough to stay within margin",
+                                        'ev': handicap_pred.get('away_handicap_confidence', 0.75) * handicap_pred.get('away_handicap_odds', 1.65) - 1
+                                    })
+                            
+                            # Display markets for this match
+                            if markets:
+                                # Sort by expected value
+                                markets.sort(key=lambda x: x.get('ev', 0), reverse=True)
+                                
+                                for i, market in enumerate(markets):
+                                    cols = st.columns([3, 1, 1, 1])
+                                    
+                                    with cols[0]:
+                                        st.markdown(f"**{market['selection']}**")
+                                        st.markdown(f"_{market['insight']}_")
+                                    
+                                    with cols[1]:
+                                        st.markdown(f"**{t('bet_odds')}:** {market['odds']:.2f}")
+                                    
+                                    with cols[2]:
+                                        confidence_display = market['confidence'] * 100
+                                        confidence_color = "green" if confidence_display > 75 else "orange" if confidence_display > 60 else "red"
+                                        st.markdown(f"**{t('bet_confidence')}:** <span style='color:{confidence_color};'>{confidence_display:.1f}%</span>", unsafe_allow_html=True)
+                                    
+                                    with cols[3]:
+                                        # Generate a unique key for this button based on match and market
+                                        key = f"{match_id}_{market['market']}_{market['selection']}_{i}"
+                                        
+                                        # Check if this bet is already in the combo
+                                        already_in_combo = any(b.get('match') == market['match'] and b.get('selection') == market['selection'] for b in st.session_state.combo_bets)
+                                        
+                                        if already_in_combo:
+                                            if st.button(t('remove_from_combo'), key=f"remove_{key}"):
+                                                # Remove from combo
+                                                st.session_state.combo_bets = [b for b in st.session_state.combo_bets if not (b.get('match') == market['match'] and b.get('selection') == market['selection'])]
+                                                st.rerun()
+                                        else:
+                                            if st.button(t('add_to_combo'), key=f"add_{key}"):
+                                                # Add to combo
+                                                st.session_state.combo_bets.append(market)
+                                                st.rerun()
+                                    
+                                    st.markdown("---")
+                            else:
+                                st.info("No suitable handicap markets found for this match")
+        else:
+            st.info(t('no_recommendations'))
+    
+    with daily_combo_cols[1]:
+        st.markdown(f"### {t('daily_combo_title')}")
+        
+        # Display selected combo bets
+        if st.session_state.combo_bets:
+            # Create visual coupon
+            with st.container():
+                st.markdown("""
+                <style>
+                .coupon-container {
+                    background-color: rgba(49, 51, 63, 0.7);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                }
+                .coupon-header {
+                    text-align: center;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-bottom: 10px;
+                    margin-bottom: 15px;
+                }
+                .coupon-item {
+                    padding: 10px;
+                    margin-bottom: 10px;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 5px;
+                }
+                .coupon-footer {
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-top: 15px;
+                    margin-top: 10px;
+                }
+                </style>
+                
+                <div class="coupon-container">
+                    <div class="coupon-header">
+                        <h3>ArcanShadow Combo</h3>
+                        <p>Based on AI Module Analysis</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                total_odds = 1.0
+                total_confidence = 1.0
+                
+                for bet in st.session_state.combo_bets:
+                    total_odds *= bet['odds']
+                    total_confidence *= bet['confidence']  # Not mathematically correct but gives an idea
+                    
+                    st.markdown(f"""
+                    <div class="coupon-item">
+                        <div><strong>{bet['match']}</strong></div>
+                        <div>{bet['market']}: <span style="color: #9C89FF;"><strong>{bet['selection']}</strong></span> @ {bet['odds']:.2f}</div>
+                        <div style="font-size: 0.8em; font-style: italic; opacity: 0.7;">{bet['insight']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Display total odds and expected value
+                potential_return = total_odds
+                final_confidence = total_confidence ** (1 / len(st.session_state.combo_bets)) if st.session_state.combo_bets else 0
+                expected_value = final_confidence * potential_return - 1
+                
+                ev_color = "green" if expected_value > 0.1 else "orange" if expected_value > 0 else "red"
+                
+                st.markdown(f"""
+                <div class="coupon-footer">
+                    <div><strong>{t('total_combo_odds')}:</strong> {total_odds:.2f}</div>
+                    <div><strong>{t('potential_return')}:</strong> {potential_return:.2f}x</div>
+                    <div><strong>{t('bet_confidence')}:</strong> {final_confidence*100:.1f}%</div>
+                    <div><strong>{t('expected_value')}:</strong> <span style="color: {ev_color};">{expected_value:.2f}</span></div>
+                </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Clear button
+                if st.button(t('clear_combo')):
+                    st.session_state.combo_bets = []
+                    st.rerun()
+                
+                # Display risk assessment
+                st.markdown(f"### {t('risk_assessment')}")
+                
+                # Risk level based on number of bets and total odds
+                risk_level = len(st.session_state.combo_bets) * (total_odds ** 0.5) / 5
+                risk_category = "Élevé" if risk_level > 2 else "Moyen" if risk_level > 1 else "Faible"
+                risk_color = "red" if risk_level > 2 else "orange" if risk_level > 1 else "green"
+                
+                st.markdown(f"**Niveau de risque:** <span style='color:{risk_color};'>{risk_category}</span>", unsafe_allow_html=True)
+                
+                # Progress bar for risk visualization
+                normalized_risk = min(risk_level / 3, 1.0)
+                st.progress(normalized_risk)
+                
+                # Module contribution analysis
+                st.markdown("### Module Contributions")
+                
+                # Count contributions by module
+                module_counts = {}
+                for bet in st.session_state.combo_bets:
+                    module = bet.get('module_source', 'Unknown')
+                    if module in module_counts:
+                        module_counts[module] += 1
+                    else:
+                        module_counts[module] = 1
+                
+                # Create a small pie chart of module contributions
+                fig = px.pie(
+                    values=list(module_counts.values()),
+                    names=list(module_counts.keys()),
+                    title="Module Contributions",
+                    color_discrete_sequence=px.colors.qualitative.Bold
+                )
+                fig.update_layout(margin=dict(t=40, b=40, l=40, r=40))
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Add selections from the recommendations section to build your combo")
+
 # Footer
 st.markdown("---")
 st.markdown(
