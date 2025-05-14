@@ -889,6 +889,18 @@ with tab5:
     
     # Module descriptions with translation keys
     module_descriptions = {
+        "BetTrapMap": {
+            "description_key": "module_description_bettrapmap",
+            "inputs": ["Odds data", "Betting volumes", "Historical trap patterns", "Market movements"],
+            "output": "Trap risk map with danger zones and safe markets",
+            "accuracy": "85.7%"
+        },
+        "StadiumSpirit": {
+            "description_key": "module_description_stadiumspirit",
+            "inputs": ["Stadium data", "Historical matches", "Atmospheric conditions", "Team-venue resonance"],
+            "output": "Stadium energy analysis with influence factors",
+            "accuracy": "77.4%"
+        },
         "NumeriCode": {
             "description_key": "module_description_numericode",
             "inputs": ["Match date", "Player numbers", "Team formation", "Historical scores"],

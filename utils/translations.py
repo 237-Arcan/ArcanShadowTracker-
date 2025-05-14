@@ -83,6 +83,8 @@ en = {
     "module_interactions": "How {module} interacts with other components of ArcanShadow.",
     
     # Module descriptions
+    "module_description_bettrapmap": "Maps betting trap zones and identifies safe markets based on odds anomalies and betting patterns.",
+    "module_description_stadiumspirit": "Analyzes stadium energy, aura and vibrational memory to determine venue influence on matches.",
     "module_description_numericode": "Interprets numérological patterns in dates, jersey numbers, cycles, scores and calendar days.",
     "module_description_gematriapulse": "Analyzes kabbalistic values of team names, players, cities, stadiums, and competitions.",
     "module_description_astroimpact": "Analyzes celestial positions and their influence on specific matches and teams.",
@@ -254,6 +256,8 @@ fr = {
     "module_interactions": "Comment {module} interagit avec les autres composants d'ArcanShadow.",
     
     # Module descriptions
+    "module_description_bettrapmap": "Cartographie les zones de pièges à mise et identifie les marchés sûrs basés sur les anomalies de cotes et les schémas de paris.",
+    "module_description_stadiumspirit": "Analyse l'énergie des stades, leur aura et leur mémoire vibratoire pour déterminer l'influence du lieu sur les matchs.",
     "module_description_numericode": "Interprète les schémas numériques dans les dates, numéros de maillot, cycles, scores et jours calendaires.",
     "module_description_gematriapulse": "Analyse les valeurs kabbalistiques des noms d'équipes, de joueurs, de villes, de stades et de compétitions.",
     "module_description_astroimpact": "Analyse les positions célestes et leur influence sur des matchs et des équipes spécifiques.",
