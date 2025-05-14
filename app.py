@@ -426,45 +426,6 @@ with tab1:
     st.markdown(f"## {t('match_predictions')}")
     st.markdown(t('predictions_description'))
     
-    # Ajout de filtres intelligents pour les prédictions
-    with st.container():
-        st.markdown(f"### {t('prediction_filters')}")
-        
-        # Filtres en colonnes
-        filter_cols = st.columns([2, 1, 1])
-        
-        with filter_cols[0]:
-            # Type de prédiction
-            prediction_types = [
-                t('all_predictions'),
-                t('high_confidence_only'), 
-                t('value_bets_only'),
-                t('contrarian_picks')
-            ]
-            selected_prediction_type = st.selectbox(
-                t('prediction_type'),
-                prediction_types
-            )
-        
-        with filter_cols[1]:
-            # Seuil de confiance minimum
-            min_confidence = st.slider(
-                t('min_confidence'), 
-                50, 
-                95, 
-                70,
-                step=5
-            )
-        
-        with filter_cols[2]:
-            # Nombre de facteurs de confirmation minimum
-            min_factors = st.slider(
-                t('min_factors'), 
-                1, 
-                5, 
-                2
-            )
-    
     # Get upcoming matches for selected sport, league and date
     upcoming_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, st.session_state.selected_league, st.session_state.selected_date)
     
