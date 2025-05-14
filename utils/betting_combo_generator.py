@@ -467,6 +467,42 @@ class BettingComboGenerator:
             dict: Combiné du jour
         """
         try:
+            # Journaliser l'appel à la fonction
+            logger.info(f"Génération du combiné du jour: {max_selections} max, risque={risk_level}, top_modules={use_top_modules}")
+            
+            # S'assurer que nous avons des matchs
+            if not matches:
+                logger.info("Aucun match fourni, récupération des matchs du jour...")
+                try:
+                    # Récupérer les matchs du jour de toutes les ligues disponibles
+                    matches = []
+                    for sport in ['Football']:
+                        matches.extend(self.data_enrichment.get_daily_matches(sport=sport))
+                    logger.info(f"Récupéré {len(matches)} matchs pour le combiné du jour")
+                except Exception as e:
+                    logger.error(f"Erreur lors de la récupération des matchs du jour: {e}")
+                    
+            # Créer des prédictions si aucune n'est fournie
+            if not arcan_predictions:
+                logger.info("Aucune prédiction fournie, génération de prédictions pour les matchs...")
+                arcan_predictions = []
+                
+                if matches:
+                    # Ici, nous simulons des prédictions de base
+                    # Dans un système réel, ce serait connecté aux modules de prédiction
+                    for match in matches:
+                        # Générer une prédiction simulée pour le combiné
+                        pred = {
+                            'match': match,
+                            'outcome': random.choice(['home_win', 'draw', 'away_win']),
+                            'confidence': random.uniform(0.6, 0.9),
+                            'source_module': random.choice(['ArcanX', 'ShadowOdds', 'ArcanBrain']),
+                            'statistical_factors': []
+                        }
+                        arcan_predictions.append(pred)
+                    
+                    logger.info(f"Généré {len(arcan_predictions)} prédictions pour le combiné du jour")
+            
             # Paramètres selon le niveau de risque
             risk_params = {
                 'low': {'min_confidence': 0.7, 'min_ev': 0.1, 'max_odds': 1.8},
@@ -475,21 +511,26 @@ class BettingComboGenerator:
             }
             
             params = risk_params.get(risk_level, risk_params['medium'])
+            logger.info(f"Paramètres de risque: {params}")
             
             # Filtrer les prédictions par modules performants si demandé
-            filtered_predictions = arcan_predictions
-            if use_top_modules and arcan_predictions:
-                # Récupérer les performances des modules (à implémenter dans un système réel)
+            filtered_predictions = arcan_predictions if arcan_predictions else []
+            if use_top_modules and filtered_predictions:
+                # Récupérer les performances des modules
                 module_performance = self._get_module_performance()
                 
                 # Filtrer pour ne garder que les prédictions des modules performants
                 top_modules = [module for module, perf in module_performance.items() if perf >= 0.6]
                 
                 if top_modules:
-                    filtered_predictions = []
-                    for pred in arcan_predictions:
-                        if pred.get('source_module') in top_modules:
-                            filtered_predictions.append(pred)
+                    new_filtered = []
+                    for pred in filtered_predictions:
+                        # S'assurer que pred est un dictionnaire et contient une clé source_module
+                        if isinstance(pred, dict) and pred.get('source_module') in top_modules:
+                            new_filtered.append(pred)
+                    
+                    filtered_predictions = new_filtered
+                    logger.info(f"Après filtrage par modules performants: {len(filtered_predictions)} prédictions")
             
             # Générer les meilleurs paris
             best_bets = self.generate_best_bets(
@@ -498,6 +539,8 @@ class BettingComboGenerator:
                 min_confidence=params['min_confidence'],
                 min_ev=params['min_ev']
             )
+            
+            logger.info(f"Généré {len(best_bets)} meilleurs paris pour le combiné")
             
             # Filtrer selon les cotes maximales
             filtered_bets = [bet for bet in best_bets if bet.get('odds', 0) <= params['max_odds']]

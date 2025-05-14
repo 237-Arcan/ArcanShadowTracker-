@@ -59,6 +59,15 @@ if 'active_tab' not in st.session_state:
     st.session_state.active_tab = 0  # Default to first tab (Predictions)
 if 'match_events' not in st.session_state:
     st.session_state.match_events = []  # List to store match events in live mode
+if 'daily_combo' not in st.session_state:
+    st.session_state.daily_combo = {
+        'selections': [],
+        'total_odds': 0,
+        'avg_confidence': 0,
+        'expected_value': 0,
+        'risk_level': 'medium',
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
 
 # Function to get translated text
 def t(key, **format_args):
@@ -429,28 +438,14 @@ with tab1:
     # Get upcoming matches for selected sport, league and date
     upcoming_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, st.session_state.selected_league, st.session_state.selected_date)
     
-    # Fonction pour vérifier si une prédiction correspond aux filtres
+    # Fonction simplifiée pour vérifier les prédictions (sans filtres)
     def matches_filters(prediction):
-        # Vérifier la confiance minimale
-        if prediction['confidence']*100 < min_confidence:
+        # Vérification de base pour s'assurer que la prédiction est valide
+        if not prediction or 'confidence' not in prediction:
             return False
-            
-        # Vérifier le type de prédiction
-        if selected_prediction_type == t('high_confidence_only') and prediction['confidence'] < 0.8:
-            return False
-        elif selected_prediction_type == t('value_bets_only') and not prediction.get('value_bet', False):
-            return False
-        elif selected_prediction_type == t('contrarian_picks') and not prediction.get('contrarian', False):
-            return False
-            
-        # Vérifier les facteurs de confirmation
-        confirming_factors = 0
-        if 'statistical_factors' in prediction:
-            for factor in prediction['statistical_factors']:
-                if isinstance(factor.get('value'), str) and ('Strong' in factor['value'] or 'Strongly' in factor['value']):
-                    confirming_factors += 1
         
-        if confirming_factors < min_factors:
+        # Vérifier que la confiance est au-dessus d'un seuil minimal (50%)
+        if prediction['confidence']*100 < 50:
             return False
             
         return True
