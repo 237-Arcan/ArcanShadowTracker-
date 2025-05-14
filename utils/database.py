@@ -111,6 +111,64 @@ class SystemMetric(Base):
         return f"<SystemMetric(id={self.id}, metric='{self.metric_name}', value={self.metric_value})>"
 
 
+class UserBettingHistory(Base):
+    """Model for storing user betting history."""
+    __tablename__ = 'user_betting_history'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), nullable=False, default="default_user")  # In a real system, this would be a foreign key
+    date = Column(DateTime, default=datetime.now)
+    sport = Column(String(50), nullable=False)
+    league = Column(String(50), nullable=False)
+    match_id = Column(Integer, nullable=True)
+    market_type = Column(String(50), nullable=False)  # e.g., "1X2", "Over/Under", "BTTS"
+    selection = Column(String(50), nullable=False)    # e.g., "Home Win", "Over 2.5"
+    odds = Column(Float, nullable=False)
+    stake = Column(Float, nullable=True)
+    outcome = Column(String(20), nullable=True)       # "win", "loss", "void", "pending"
+    return_amount = Column(Float, nullable=True)
+    profit_loss = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    
+    def __repr__(self):
+        return f"<UserBettingHistory(id={self.id}, market='{self.market_type}', selection='{self.selection}', outcome='{self.outcome}')>"
+
+
+class UserMarketPreference(Base):
+    """Model for storing user market preferences calculated from betting history."""
+    __tablename__ = 'user_market_preferences'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), nullable=False, default="default_user")
+    market_type = Column(String(50), nullable=False)
+    preference_score = Column(Float, nullable=False)  # 0-100 score representing preference
+    success_rate = Column(Float, nullable=True)       # Success rate in this market
+    avg_odds = Column(Float, nullable=True)           # Average odds for this market
+    frequency = Column(Integer, nullable=False)       # Number of bets in this market
+    last_updated = Column(DateTime, default=datetime.now)
+    
+    def __repr__(self):
+        return f"<UserMarketPreference(id={self.id}, market='{self.market_type}', score={self.preference_score})>"
+
+
+class MarketRecommendation(Base):
+    """Model for storing market recommendations for users."""
+    __tablename__ = 'market_recommendations'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), nullable=False, default="default_user")
+    match_id = Column(Integer, nullable=True)
+    sport = Column(String(50), nullable=False)
+    league = Column(String(50), nullable=False)
+    market_type = Column(String(50), nullable=False)
+    recommendation_score = Column(Float, nullable=False)  # 0-100 score
+    reason = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    
+    def __repr__(self):
+        return f"<MarketRecommendation(id={self.id}, market='{self.market_type}', score={self.recommendation_score})>"
+
+
 # Database connection and session management
 class Database:
     """Database connection and operations manager."""
@@ -419,6 +477,282 @@ class Database:
             
             if module:
                 query = query.filter(SystemMetric.module == module)
+            
+            return query.all()
+        finally:
+            session.close()
+    
+    def save_user_bet(self, bet_data):
+        """
+        Save a user bet to the history.
+        
+        Args:
+            bet_data (dict): Bet information including market type, selection, odds, etc.
+            
+        Returns:
+            UserBettingHistory: The saved bet object
+        """
+        session = self.Session()
+        try:
+            bet = UserBettingHistory(
+                user_id=bet_data.get('user_id', 'default_user'),
+                date=bet_data.get('date', datetime.now()),
+                sport=bet_data.get('sport', ''),
+                league=bet_data.get('league', ''),
+                match_id=bet_data.get('match_id'),
+                market_type=bet_data.get('market_type', ''),
+                selection=bet_data.get('selection', ''),
+                odds=bet_data.get('odds', 0.0),
+                stake=bet_data.get('stake'),
+                outcome=bet_data.get('outcome', 'pending'),
+                return_amount=bet_data.get('return_amount'),
+                profit_loss=bet_data.get('profit_loss')
+            )
+            session.add(bet)
+            session.commit()
+            
+            # Update user preferences after adding a new bet
+            self.update_user_preferences(bet_data.get('user_id', 'default_user'))
+            
+            return bet
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def update_bet_outcome(self, bet_id, outcome, return_amount=None, profit_loss=None):
+        """
+        Update a bet with its outcome.
+        
+        Args:
+            bet_id (int): ID of the bet to update
+            outcome (str): Bet outcome ('win', 'loss', 'void')
+            return_amount (float, optional): Total return amount
+            profit_loss (float, optional): Profit or loss amount
+            
+        Returns:
+            UserBettingHistory: The updated bet object
+        """
+        session = self.Session()
+        try:
+            bet = session.query(UserBettingHistory).filter(UserBettingHistory.id == bet_id).one()
+            bet.outcome = outcome
+            
+            if return_amount is not None:
+                bet.return_amount = return_amount
+                
+            if profit_loss is not None:
+                bet.profit_loss = profit_loss
+                
+            session.commit()
+            
+            # Update user preferences after updating bet outcome
+            self.update_user_preferences(bet.user_id)
+            
+            return bet
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def get_user_betting_history(self, user_id='default_user', days=90, sport=None, market_type=None):
+        """
+        Get a user's betting history.
+        
+        Args:
+            user_id (str): User identifier
+            days (int): Number of days to look back
+            sport (str, optional): Filter by sport
+            market_type (str, optional): Filter by market type
+            
+        Returns:
+            list: List of UserBettingHistory objects
+        """
+        session = self.Session()
+        try:
+            from_date = datetime.now() - timedelta(days=days)
+            
+            query = session.query(UserBettingHistory).filter(
+                UserBettingHistory.user_id == user_id,
+                UserBettingHistory.date >= from_date
+            ).order_by(UserBettingHistory.date.desc())
+            
+            if sport:
+                query = query.filter(UserBettingHistory.sport == sport)
+                
+            if market_type:
+                query = query.filter(UserBettingHistory.market_type == market_type)
+                
+            return query.all()
+        finally:
+            session.close()
+    
+    def update_user_preferences(self, user_id='default_user'):
+        """
+        Update a user's market preferences based on their betting history.
+        
+        Args:
+            user_id (str): User identifier
+            
+        Returns:
+            list: List of updated UserMarketPreference objects
+        """
+        session = self.Session()
+        try:
+            # Get user's betting history
+            bets = session.query(UserBettingHistory).filter(
+                UserBettingHistory.user_id == user_id
+            ).all()
+            
+            # Group bets by market type
+            market_stats = {}
+            for bet in bets:
+                market = bet.market_type
+                if market not in market_stats:
+                    market_stats[market] = {
+                        'count': 0, 
+                        'wins': 0, 
+                        'total_odds': 0,
+                        'total_profit': 0
+                    }
+                
+                market_stats[market]['count'] += 1
+                market_stats[market]['total_odds'] += bet.odds
+                
+                if bet.outcome == 'win':
+                    market_stats[market]['wins'] += 1
+                    
+                if bet.profit_loss:
+                    market_stats[market]['total_profit'] += bet.profit_loss
+            
+            # Calculate preference scores based on frequency, success rate, and profitability
+            updated_preferences = []
+            for market, stats in market_stats.items():
+                # Calculate metrics
+                count = stats['count']
+                win_rate = stats['wins'] / count if count > 0 else 0
+                avg_odds = stats['total_odds'] / count if count > 0 else 0
+                
+                # Calculate preference score (0-100)
+                # Weighted combination of frequency, win rate, and profitability
+                frequency_weight = min(count / 10, 1.0) * 25  # Max 25 points from frequency
+                win_rate_weight = win_rate * 50               # Max 50 points from win rate
+                profit_weight = min(stats['total_profit'] / 100, 1.0) * 25 if stats['total_profit'] > 0 else 0  # Max 25 points from profit
+                
+                preference_score = frequency_weight + win_rate_weight + profit_weight
+                
+                # Update or create preference
+                preference = session.query(UserMarketPreference).filter(
+                    UserMarketPreference.user_id == user_id,
+                    UserMarketPreference.market_type == market
+                ).first()
+                
+                if preference:
+                    preference.preference_score = preference_score
+                    preference.success_rate = win_rate
+                    preference.avg_odds = avg_odds
+                    preference.frequency = count
+                    preference.last_updated = datetime.now()
+                else:
+                    preference = UserMarketPreference(
+                        user_id=user_id,
+                        market_type=market,
+                        preference_score=preference_score,
+                        success_rate=win_rate,
+                        avg_odds=avg_odds,
+                        frequency=count
+                    )
+                    session.add(preference)
+                
+                updated_preferences.append(preference)
+            
+            session.commit()
+            return updated_preferences
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def get_user_market_preferences(self, user_id='default_user'):
+        """
+        Get a user's market preferences.
+        
+        Args:
+            user_id (str): User identifier
+            
+        Returns:
+            list: List of UserMarketPreference objects sorted by preference score
+        """
+        session = self.Session()
+        try:
+            preferences = session.query(UserMarketPreference).filter(
+                UserMarketPreference.user_id == user_id
+            ).order_by(UserMarketPreference.preference_score.desc()).all()
+            
+            return preferences
+        finally:
+            session.close()
+    
+    def save_market_recommendation(self, recommendation_data):
+        """
+        Save a market recommendation.
+        
+        Args:
+            recommendation_data (dict): Recommendation information
+            
+        Returns:
+            MarketRecommendation: The saved recommendation object
+        """
+        session = self.Session()
+        try:
+            recommendation = MarketRecommendation(
+                user_id=recommendation_data.get('user_id', 'default_user'),
+                match_id=recommendation_data.get('match_id'),
+                sport=recommendation_data.get('sport', ''),
+                league=recommendation_data.get('league', ''),
+                market_type=recommendation_data.get('market_type', ''),
+                recommendation_score=recommendation_data.get('recommendation_score', 0),
+                reason=recommendation_data.get('reason', '')
+            )
+            session.add(recommendation)
+            session.commit()
+            return recommendation
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def get_market_recommendations(self, user_id='default_user', sport=None, league=None):
+        """
+        Get market recommendations for a user.
+        
+        Args:
+            user_id (str): User identifier
+            sport (str, optional): Filter by sport
+            league (str, optional): Filter by league
+            
+        Returns:
+            list: List of MarketRecommendation objects sorted by recommendation score
+        """
+        session = self.Session()
+        try:
+            query = session.query(MarketRecommendation).filter(
+                MarketRecommendation.user_id == user_id
+            ).order_by(MarketRecommendation.recommendation_score.desc())
+            
+            if sport:
+                query = query.filter(MarketRecommendation.sport == sport)
+                
+            if league:
+                query = query.filter(MarketRecommendation.league == league)
+                
+            # Only get recommendations from the last day
+            from_date = datetime.now() - timedelta(days=1)
+            query = query.filter(MarketRecommendation.created_at >= from_date)
             
             return query.all()
         finally:
