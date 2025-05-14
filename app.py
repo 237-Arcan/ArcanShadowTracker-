@@ -248,12 +248,13 @@ with st.sidebar:
         st.session_state.loading_prediction = True
 
 # Main content area with tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     t('predictions_tab'), 
     t('dashboard_tab'), 
     t('historical_tab'), 
     t('module_details_tab'),
-    t('live_match_tab')  # New live match tab
+    t('live_match_tab'),
+    t('notifications_tab')  # New notifications tab
 ])
 
 with tab1:
@@ -597,7 +598,7 @@ with tab5:
     st.markdown(f"### {t('match_setup')}")
     
     # Get available matches from API if possible
-    today_matches = data_handler.get_matches_for_date(st.session_state.selected_sport, 
+    today_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, 
                                                      st.session_state.selected_league, 
                                                      st.session_state.selected_date)
     
