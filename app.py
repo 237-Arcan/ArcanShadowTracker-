@@ -2736,10 +2736,238 @@ with tab8:
         else:
             st.info("Aucun combiné disponible pour aujourd'hui. Essayez d'actualiser avec un niveau de risque différent.")
 
+# Smart Market Recommendations Tab
+with tab9:
+    # Import the market recommender
+    from utils.market_recommender import BettingMarketRecommender, get_market_recommendations
+    from utils.database import db, UserBettingHistory, UserMarketPreference, MarketRecommendation
+    
+    # Header section
+    st.markdown(f"## {t('smart_recommendations_title')}")
+    st.markdown(t('smart_recommendations_description'))
+    
+    # Initialize a demonstration user ID
+    user_id = "default_user"
+    
+    # Create layout with two columns for main content
+    smart_rec_cols = st.columns([3, 2])
+    
+    with smart_rec_cols[0]:
+        # Main recommendations area
+        st.markdown(f"### {t('recommended_markets')}")
+        
+        # Get market recommendations for the user
+        recommendations = get_market_recommendations(user_id, sport=st.session_state.selected_sport)
+        
+        if not recommendations:
+            # If no recommendations exist, we need to generate sample historical data
+            st.info(t('no_betting_history'))
+            
+            if st.button(t('add_bet_button')):
+                # Generate some sample betting history to demonstrate functionality
+                sample_bets = [
+                    {
+                        'user_id': user_id,
+                        'sport': 'Football',
+                        'league': 'La Liga',
+                        'market_type': '1X2',
+                        'selection': 'Home Win',
+                        'odds': 1.85,
+                        'stake': 50.0,
+                        'outcome': 'win',
+                        'return_amount': 92.5,
+                        'profit_loss': 42.5
+                    },
+                    {
+                        'user_id': user_id,
+                        'sport': 'Football',
+                        'league': 'Premier League',
+                        'market_type': 'BTTS',
+                        'selection': 'Yes',
+                        'odds': 1.95,
+                        'stake': 30.0,
+                        'outcome': 'win',
+                        'return_amount': 58.5,
+                        'profit_loss': 28.5
+                    },
+                    {
+                        'user_id': user_id,
+                        'sport': 'Football',
+                        'league': 'Bundesliga',
+                        'market_type': 'Over/Under 2.5',
+                        'selection': 'Over 2.5',
+                        'odds': 2.10,
+                        'stake': 40.0,
+                        'outcome': 'loss',
+                        'return_amount': 0.0,
+                        'profit_loss': -40.0
+                    },
+                    {
+                        'user_id': user_id,
+                        'sport': 'Football',
+                        'league': 'Ligue 1',
+                        'market_type': '1X2',
+                        'selection': 'Away Win',
+                        'odds': 3.20,
+                        'stake': 20.0,
+                        'outcome': 'win',
+                        'return_amount': 64.0,
+                        'profit_loss': 44.0
+                    },
+                    {
+                        'user_id': user_id,
+                        'sport': 'Football',
+                        'league': 'Serie A',
+                        'market_type': 'BTTS',
+                        'selection': 'No',
+                        'odds': 2.25,
+                        'stake': 35.0,
+                        'outcome': 'loss',
+                        'return_amount': 0.0,
+                        'profit_loss': -35.0
+                    }
+                ]
+                
+                # Save sample bets to database
+                for bet_data in sample_bets:
+                    db.save_user_bet(bet_data)
+                
+                # Create a recommender and generate recommendations
+                recommender = BettingMarketRecommender(user_id)
+                recommender.generate_recommendations(sport=st.session_state.selected_sport)
+                
+                # Refresh the app
+                st.rerun()
+        else:
+            # Display recommendations grouped by match
+            recommendations_by_match = {}
+            for rec in recommendations:
+                match_id = rec.match_id
+                if match_id not in recommendations_by_match:
+                    recommendations_by_match[match_id] = []
+                recommendations_by_match[match_id].append(rec)
+            
+            # Display each match's recommendations
+            for match_id, match_recs in recommendations_by_match.items():
+                # Get match details from the first recommendation
+                sport = match_recs[0].sport
+                league = match_recs[0].league
+                
+                # Try to find the actual match info
+                match_info = None
+                session = db.Session()
+                try:
+                    match = session.query(db.Match).filter(db.Match.id == match_id).first()
+                    if match:
+                        match_info = {
+                            'home_team': match.home_team,
+                            'away_team': match.away_team,
+                            'date': match.date
+                        }
+                finally:
+                    session.close()
+                
+                # If no actual match found, create a placeholder
+                if not match_info:
+                    match_info = {
+                        'home_team': 'Team A',
+                        'away_team': 'Team B',
+                        'date': datetime.now()
+                    }
+                
+                # Create an expander for each match
+                with st.expander(f"{match_info['home_team']} vs {match_info['away_team']} ({sport} - {league})"):
+                    for rec in match_recs:
+                        # Create a card for each recommendation
+                        st.markdown(f"""
+                        <div style="background-color: rgba(60, 60, 100, 0.1); padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid #9966CC;">
+                            <h4 style="margin-top: 0;">{rec.market_type}</h4>
+                            <p><strong>{t('recommendation_reason')}:</strong> {rec.reason}</p>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>{t('market_preference_score')}:</strong> {rec.recommendation_score:.1f}/100</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+    
+    with smart_rec_cols[1]:
+        # User preferences and betting history area
+        st.markdown(f"### {t('preferred_markets')}")
+        
+        # Get user market preferences
+        preferences = db.get_user_market_preferences(user_id)
+        
+        if not preferences:
+            st.info(t('no_betting_history'))
+        else:
+            # Create a preferences dataframe for display
+            pref_data = []
+            for pref in preferences:
+                pref_data.append({
+                    'Market': pref.market_type,
+                    t('market_preference_score'): f"{pref.preference_score:.1f}",
+                    t('market_success_rate'): f"{pref.success_rate * 100:.1f}%" if pref.success_rate else "N/A",
+                    'Avg. Odds': f"{pref.avg_odds:.2f}" if pref.avg_odds else "N/A",
+                    'Frequency': pref.frequency
+                })
+            
+            if pref_data:
+                pref_df = pd.DataFrame(pref_data)
+                st.dataframe(pref_df, hide_index=True, use_container_width=True)
+        
+        # Display betting history
+        st.markdown(f"### {t('your_betting_history')}")
+        
+        # Get betting history
+        history = db.get_user_betting_history(user_id)
+        
+        if not history:
+            st.info(t('no_betting_history'))
+        else:
+            # Create a history dataframe for display
+            hist_data = []
+            for bet in history:
+                hist_data.append({
+                    'Date': bet.date.strftime('%d %b %Y'),
+                    'Sport': bet.sport,
+                    'Market': bet.market_type,
+                    'Selection': bet.selection,
+                    'Odds': f"{bet.odds:.2f}",
+                    'Outcome': bet.outcome.upper() if bet.outcome else "PENDING",
+                    'P/L': f"{bet.profit_loss:.2f}" if bet.profit_loss is not None else "N/A"
+                })
+            
+            if hist_data:
+                hist_df = pd.DataFrame(hist_data)
+                st.dataframe(hist_df, hide_index=True, use_container_width=True)
+        
+        # Overall performance statistics if history exists
+        if history:
+            st.markdown(f"### {t('overall_performance')}")
+            
+            # Calculate overall stats
+            total_bets = len(history)
+            wins = sum(1 for bet in history if bet.outcome == 'win')
+            losses = sum(1 for bet in history if bet.outcome == 'loss')
+            pending = sum(1 for bet in history if bet.outcome == 'pending')
+            
+            win_rate = wins / (wins + losses) * 100 if (wins + losses) > 0 else 0
+            
+            total_profit = sum(bet.profit_loss for bet in history if bet.profit_loss is not None)
+            
+            # Display stats in a grid
+            stats_cols = st.columns(4)
+            with stats_cols[0]:
+                st.metric("Total Bets", total_bets)
+            with stats_cols[1]:
+                st.metric("Win Rate", f"{win_rate:.1f}%")
+            with stats_cols[2]:
+                st.metric("Wins/Losses", f"{wins}/{losses}")
+            with stats_cols[3]:
+                st.metric("Profit/Loss", f"{total_profit:.2f}")
+
 # Footer
-st.markdown("---")
 st.markdown(
-    "<div style='text-align: center;'>"
+    "<div style='text-align: center; color: grey; padding: 20px; margin-top: 30px; font-size: 13px;'>"
     "<p>ArcanShadow - Hybrid Sports Prediction System</p>"
     f"<p>Current Time: {datetime.now().strftime('%d %b %Y %H:%M:%S')}</p>"
     "</div>", 
