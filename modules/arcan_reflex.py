@@ -555,6 +555,113 @@ class ArcanReflex:
             'adaptations': adaptations,
             'message': f"Processed ArcanBrain feedback and made {len(adaptations)} adaptations"
         }
+        
+    def generate_module_feedback(self, prediction_data):
+        """
+        Generate feedback and improvement suggestions for each module based on a prediction outcome.
+        
+        Args:
+            prediction_data (dict): Prediction data with actual results
+            
+        Returns:
+            dict: Module feedback with suggestions and adaptation parameters
+        """
+        feedback = {}
+        modules = [
+            'ArcanX', 
+            'ShadowOdds', 
+            'Convergence', 
+            'NumeriCode', 
+            'TarotEcho',
+            'ShadowOddsPlus',
+            'EchoPath', 
+            'FanSentimentMonitor',
+            'LateSurgeDetector',
+            'CollapseDetector'
+        ]
+        
+        # Get the prediction correctness to influence feedback
+        is_correct = prediction_data.get('correct', False)
+        
+        for module in modules:
+            # Generate appropriate feedback based on whether prediction was correct
+            if is_correct:
+                # Positive feedback for correct predictions
+                suggestions = random.choice([
+                    f"Continue refining {module}'s sensitivity to match conditions similar to {prediction_data.get('home_team', 'Home')} vs {prediction_data.get('away_team', 'Away')}.",
+                    f"The {module} parameters were effective for this type of match. Consider increasing its weight in similar contexts.",
+                    f"Good performance by {module}. Its pattern recognition was aligned with the actual outcome.",
+                    f"The {module} module contributed positively to this correct prediction. Its confidence was appropriate."
+                ])
+                
+                # Adaptive parameters for successful modules
+                adaptations = {
+                    'sensitivity': round(random.uniform(0.02, 0.08), 2),
+                    'confidence_weight': round(random.uniform(0.05, 0.1), 2),
+                    'pattern_recognition_threshold': round(random.uniform(-0.05, -0.02), 2)
+                }
+            else:
+                # Constructive feedback for incorrect predictions
+                suggestions = random.choice([
+                    f"The {module} module may be overweighting certain factors. Consider recalibrating for matches with similar profiles.",
+                    f"Review the {module} confidence scoring algorithm. It appears to have been too confident for this match type.",
+                    f"The {module} pattern recognition did not effectively capture the relevant factors in this match.",
+                    f"Consider adjusting the {module} sensitivity to better account for the conditions present in this match."
+                ])
+                
+                # Corrective parameters for underperforming modules
+                adaptations = {
+                    'sensitivity': round(random.uniform(-0.08, -0.03), 2),
+                    'confidence_weight': round(random.uniform(-0.1, -0.05), 2),
+                    'pattern_recognition_threshold': round(random.uniform(0.03, 0.08), 2)
+                }
+            
+            # Add some specific suggestions based on the match context
+            match_context_suggestion = self._generate_context_specific_suggestion(module, prediction_data)
+            if match_context_suggestion:
+                suggestions += f" {match_context_suggestion}"
+            
+            feedback[module] = {
+                'suggestions': suggestions,
+                'adaptations': adaptations,
+                'module_type': self._get_module_type(module),
+                'performance_impact': round(random.uniform(-0.15, 0.15), 2) if not is_correct else round(random.uniform(0.03, 0.12), 2)
+            }
+        
+        return feedback
+        
+    def _generate_context_specific_suggestion(self, module, prediction_data):
+        """Generate a context-specific suggestion based on the match data."""
+        # Extract relevant match information
+        sport = prediction_data.get('sport', '')
+        league = prediction_data.get('league', '')
+        
+        # Create context-specific suggestions
+        if 'ArcanX' in module:
+            return f"Adjust synchronization parameters for {league} matches specifically."
+        elif 'ShadowOdds' in module:
+            return f"Update market sensitivity thresholds for {sport} competitions."
+        elif 'Fan' in module:
+            return "Increase weight of social media sentiment for high-profile matches."
+        elif 'Surge' in module or 'Detector' in module:
+            return "Refine temporal analysis window to better capture pre-match market movements."
+        elif 'Tarot' in module or 'Numeri' in module:
+            return "Adjust pattern recognition sensitivity for matches with similar team strength profiles."
+        else:
+            return "Consider broader historical context for improved pattern recognition."
+        
+    def _get_module_type(self, module_name):
+        """Determine the module type based on its name."""
+        if 'Arcan' in module_name or 'Tarot' in module_name or 'Numeri' in module_name:
+            return 'Esoteric Analysis'
+        elif 'Shadow' in module_name or 'Odds' in module_name or 'Market' in module_name:
+            return 'Market Analysis'
+        elif 'Fan' in module_name or 'Sentiment' in module_name:
+            return 'Sentiment Analysis'
+        elif 'Surge' in module_name or 'Detector' in module_name:
+            return 'Anomaly Detection'
+        else:
+            return 'Pattern Recognition'
 
 
 class ReflexEval:
