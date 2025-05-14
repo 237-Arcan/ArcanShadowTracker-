@@ -283,13 +283,55 @@ with st.sidebar:
     
     # Matchs du jour
     st.markdown("---")
+    st.markdown(f"### 🔥 {t('featured_matches')}")
+    
+    # Récupérer les matchs vedettes d'aujourd'hui (toutes les ligues)
+    featured_matches = data_handler.get_featured_matches(selected_sport)
+    
+    if featured_matches:
+        for match in featured_matches:
+            with st.container():
+                st.markdown(f"""
+                <div class="sidebar-match featured-match">
+                    <div class="match-league">{match.get('league', '')}</div>
+                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
+                    <div class="match-teams"><strong>{match['home_team']} vs {match['away_team']}</strong></div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                cols = st.columns(3)
+                with cols[0]:
+                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_featured_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "home_win"
+                with cols[1]:
+                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_featured_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "draw"
+                with cols[2]:
+                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_featured_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "away_win"
+    
+    # Matchs réguliers du jour (de la ligue sélectionnée)
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
-    # Récupérer les matchs d'aujourd'hui
+    # Récupérer les matchs d'aujourd'hui pour la ligue sélectionnée
     today_matches = data_handler.get_upcoming_matches(selected_sport, selected_league, datetime.now().date())
     
     if today_matches:
         for match in today_matches:
+            # Éviter les doublons avec les matchs vedettes
+            is_duplicate = False
+            for featured in featured_matches:
+                if (match.get('home_team') == featured.get('home_team') and 
+                    match.get('away_team') == featured.get('away_team')):
+                    is_duplicate = True
+                    break
+            
+            if is_duplicate:
+                continue
+                
             with st.container():
                 st.markdown(f"""
                 <div class="sidebar-match">
