@@ -1,7 +1,8 @@
 """
 FlashScraper - Module de récupération de données depuis Flashscore
-Ce module permet de collecter des statistiques détaillées, des cotes et des tendances 
-pour alimenter le système de prédiction ArcanShadow.
+Ce module permet de collecter des statistiques détaillées, des cotes, des tendances,
+des compositions d'équipes et des statistiques avancées pour alimenter le système
+de prédiction ArcanShadow.
 """
 
 import time
@@ -13,6 +14,14 @@ from datetime import datetime, timedelta
 import requests
 from trafilatura import fetch_url, extract
 from bs4 import BeautifulSoup
+import logging
+
+# Configuration du logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger('flash_scraper')
 
 class FlashScraper:
     """
@@ -667,3 +676,418 @@ class FlashScraper:
                 enriched_match['head_to_head'] = h2h
         
         return enriched_match
+        
+    def get_match_lineups(self, match_id):
+        """
+        Récupère les compositions d'équipes pour un match.
+        
+        Args:
+            match_id (str): Identifiant unique du match
+            
+        Returns:
+            dict: Compositions d'équipes (titulaires et remplaçants)
+        """
+        url = f"{self.base_url}/match/{match_id}/lineups/"
+        
+        try:
+            logger.info(f"Récupération des compositions pour le match {match_id}")
+            html_content = fetch_url(url, user_agent=self.headers['User-Agent'])
+            if not html_content:
+                logger.warning(f"Aucun contenu HTML récupéré pour les compositions du match {match_id}")
+                return {'home': {'starting': [], 'substitutes': []}, 'away': {'starting': [], 'substitutes': []}}
+                
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Structure de données pour les compositions
+            lineups = {
+                'home': {'starting': [], 'substitutes': []},
+                'away': {'starting': [], 'substitutes': []}
+            }
+            
+            # Récupérer le nom des équipes
+            home_team_elem = soup.select_one('div.participant__participantName--home')
+            away_team_elem = soup.select_one('div.participant__participantName--away')
+            
+            if home_team_elem and away_team_elem:
+                lineups['home']['team_name'] = home_team_elem.text.strip()
+                lineups['away']['team_name'] = away_team_elem.text.strip()
+            
+            # Récupérer la formation (système de jeu)
+            formation_elems = soup.select('div.lineup__formation')
+            if len(formation_elems) >= 2:
+                lineups['home']['formation'] = formation_elems[0].text.strip()
+                lineups['away']['formation'] = formation_elems[1].text.strip()
+            
+            # Récupérer les titulaires
+            for side in ['home', 'away']:
+                side_class = 'lineup__sector--home' if side == 'home' else 'lineup__sector--away'
+                
+                # Titulaires
+                starting_elems = soup.select(f'div.{side_class} div.lineup__player')
+                for player_elem in starting_elems:
+                    try:
+                        # Numéro de maillot
+                        shirt_elem = player_elem.select_one('div.lineup__playerShirt')
+                        shirt_number = shirt_elem.text.strip() if shirt_elem else ""
+                        
+                        # Nom du joueur
+                        name_elem = player_elem.select_one('a.lineup__playerName')
+                        name = name_elem.text.strip() if name_elem else ""
+                        
+                        # Position
+                        position_elem = player_elem.select_one('span.lineup__playerPosition')
+                        position = position_elem.text.strip() if position_elem else ""
+                        
+                        if name:
+                            lineups[side]['starting'].append({
+                                'name': name,
+                                'number': shirt_number,
+                                'position': position
+                            })
+                    except Exception as e:
+                        logger.error(f"Erreur lors de l'extraction d'un joueur titulaire: {e}")
+                        continue
+                
+                # Remplaçants
+                side_bench_class = 'lineup__bench--home' if side == 'home' else 'lineup__bench--away'
+                bench_elems = soup.select(f'div.{side_bench_class} div.lineup__benchRow')
+                
+                for player_elem in bench_elems:
+                    try:
+                        # Numéro de maillot
+                        shirt_elem = player_elem.select_one('div.lineup__playerShirt')
+                        shirt_number = shirt_elem.text.strip() if shirt_elem else ""
+                        
+                        # Nom du joueur
+                        name_elem = player_elem.select_one('a.lineup__playerName')
+                        name = name_elem.text.strip() if name_elem else ""
+                        
+                        # Position
+                        position_elem = player_elem.select_one('span.lineup__playerPosition')
+                        position = position_elem.text.strip() if position_elem else ""
+                        
+                        if name:
+                            lineups[side]['substitutes'].append({
+                                'name': name,
+                                'number': shirt_number,
+                                'position': position
+                            })
+                    except Exception as e:
+                        logger.error(f"Erreur lors de l'extraction d'un joueur remplaçant: {e}")
+                        continue
+            
+            # Récupérer les entraîneurs
+            coach_elems = soup.select('div.lineup__coachName')
+            if len(coach_elems) >= 2:
+                lineups['home']['coach'] = coach_elems[0].text.strip() if coach_elems[0] else "Unknown"
+                lineups['away']['coach'] = coach_elems[1].text.strip() if coach_elems[1] else "Unknown"
+            
+            # Vérifier si c'est une composition officielle ou probable
+            lineup_status_elem = soup.select_one('div.lineup__title')
+            if lineup_status_elem:
+                status_text = lineup_status_elem.text.strip().lower()
+                if "probable" in status_text or "predicted" in status_text:
+                    lineups['status'] = "probable"
+                else:
+                    lineups['status'] = "official"
+            else:
+                lineups['status'] = "unknown"
+            
+            return lineups
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des compositions d'équipes: {e}")
+            return {'home': {'starting': [], 'substitutes': []}, 'away': {'starting': [], 'substitutes': []}}
+            
+        finally:
+            self._random_delay()
+
+    def get_advanced_stats(self, match_id):
+        """
+        Récupère les statistiques avancées pour un match.
+        
+        Args:
+            match_id (str): Identifiant unique du match
+            
+        Returns:
+            dict: Statistiques avancées du match
+        """
+        url = f"{self.base_url}/match/{match_id}/match-statistics/"
+        
+        try:
+            logger.info(f"Récupération des statistiques avancées pour le match {match_id}")
+            html_content = fetch_url(url, user_agent=self.headers['User-Agent'])
+            if not html_content:
+                logger.warning(f"Aucun contenu HTML récupéré pour les statistiques du match {match_id}")
+                return {}
+                
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Structure de données pour les statistiques
+            stats = {
+                'home': {},
+                'away': {},
+                'categories': []
+            }
+            
+            # Récupérer les noms des équipes
+            home_team_elem = soup.select_one('div.participant__participantName--home')
+            away_team_elem = soup.select_one('div.participant__participantName--away')
+            
+            if home_team_elem and away_team_elem:
+                stats['home_team'] = home_team_elem.text.strip()
+                stats['away_team'] = away_team_elem.text.strip()
+            
+            # Récupérer les catégories de statistiques
+            stat_sections = soup.select('div.stat-category')
+            
+            for section in stat_sections:
+                try:
+                    # Titre de la catégorie
+                    title_elem = section.select_one('div.stat-category__title')
+                    if not title_elem:
+                        continue
+                        
+                    category = title_elem.text.strip()
+                    stats['categories'].append(category)
+                    
+                    stats['home'][category] = {}
+                    stats['away'][category] = {}
+                    
+                    # Statistiques individuelles dans cette catégorie
+                    stat_rows = section.select('div.stat-category__item')
+                    
+                    for stat_row in stat_rows:
+                        try:
+                            # Nom de la statistique
+                            name_elem = stat_row.select_one('div.stat-category__name')
+                            if not name_elem:
+                                continue
+                                
+                            stat_name = name_elem.text.strip()
+                            
+                            # Valeurs pour l'équipe à domicile
+                            home_value_elem = stat_row.select_one('div.stat-category__value--home')
+                            home_value = home_value_elem.text.strip() if home_value_elem else "0"
+                            
+                            # Valeurs pour l'équipe à l'extérieur
+                            away_value_elem = stat_row.select_one('div.stat-category__value--away')
+                            away_value = away_value_elem.text.strip() if away_value_elem else "0"
+                            
+                            # Convertir en nombres si possible
+                            try:
+                                if '%' in home_value:
+                                    home_value = float(home_value.replace('%', '')) / 100
+                                else:
+                                    home_value = int(home_value) if home_value.isdigit() else home_value
+                            except:
+                                pass
+                                
+                            try:
+                                if '%' in away_value:
+                                    away_value = float(away_value.replace('%', '')) / 100
+                                else:
+                                    away_value = int(away_value) if away_value.isdigit() else away_value
+                            except:
+                                pass
+                            
+                            stats['home'][category][stat_name] = home_value
+                            stats['away'][category][stat_name] = away_value
+                        
+                        except Exception as e:
+                            logger.error(f"Erreur lors de l'extraction d'une statistique: {e}")
+                            continue
+                
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'extraction d'une catégorie de statistiques: {e}")
+                    continue
+            
+            # Calculer des indicateurs dérivés utiles pour les prédictions
+            
+            # 1. Taux de conversion (buts / tirs)
+            if 'Attack' in stats['home'] and 'Shots on Goal' in stats['home']['Attack'] and 'Goal Attempts' in stats['home']['Attack']:
+                try:
+                    home_conversion = stats['home']['Attack']['Shots on Goal'] / stats['home']['Attack']['Goal Attempts'] if stats['home']['Attack']['Goal Attempts'] > 0 else 0
+                    away_conversion = stats['away']['Attack']['Shots on Goal'] / stats['away']['Attack']['Goal Attempts'] if stats['away']['Attack']['Goal Attempts'] > 0 else 0
+                    
+                    if 'Derived' not in stats['home']:
+                        stats['home']['Derived'] = {}
+                        stats['away']['Derived'] = {}
+                        stats['categories'].append('Derived')
+                    
+                    stats['home']['Derived']['Conversion Rate'] = home_conversion
+                    stats['away']['Derived']['Conversion Rate'] = away_conversion
+                except:
+                    pass
+            
+            # 2. Efficacité des passes
+            if 'Passing' in stats['home'] and 'Accurate Passes' in stats['home']['Passing'] and 'Total Passes' in stats['home']['Passing']:
+                try:
+                    home_pass_efficiency = stats['home']['Passing']['Accurate Passes'] / stats['home']['Passing']['Total Passes'] if stats['home']['Passing']['Total Passes'] > 0 else 0
+                    away_pass_efficiency = stats['away']['Passing']['Accurate Passes'] / stats['away']['Passing']['Total Passes'] if stats['away']['Passing']['Total Passes'] > 0 else 0
+                    
+                    if 'Derived' not in stats['home']:
+                        stats['home']['Derived'] = {}
+                        stats['away']['Derived'] = {}
+                        stats['categories'].append('Derived')
+                    
+                    stats['home']['Derived']['Pass Efficiency'] = home_pass_efficiency
+                    stats['away']['Derived']['Pass Efficiency'] = away_pass_efficiency
+                except:
+                    pass
+            
+            return stats
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des statistiques avancées: {e}")
+            return {}
+            
+        finally:
+            self._random_delay()
+    
+    def get_team_recent_stats(self, team_id, num_matches=5):
+        """
+        Récupère les statistiques récentes d'une équipe.
+        
+        Args:
+            team_id (str): Identifiant de l'équipe
+            num_matches (int): Nombre de matchs récents à analyser
+            
+        Returns:
+            dict: Statistiques moyennes de l'équipe
+        """
+        try:
+            logger.info(f"Récupération des statistiques récentes pour l'équipe {team_id}")
+            
+            # Récupérer les matchs récents
+            recent_matches = self.get_team_form(team_id, num_matches)
+            
+            # Statistiques à collecter
+            stats = {
+                'goals_scored': [],
+                'goals_conceded': [],
+                'shots': [],
+                'shots_on_target': [],
+                'corners': [],
+                'possession': [],
+                'fouls': [],
+                'yellow_cards': [],
+                'red_cards': [],
+                'win_rate': 0,
+                'draw_rate': 0,
+                'loss_rate': 0
+            }
+            
+            win_count = 0
+            draw_count = 0
+            loss_count = 0
+            
+            # Analyser chaque match récent
+            for match in recent_matches:
+                match_id = match.get('id')
+                if not match_id:
+                    continue
+                
+                # Récupérer les statistiques du match
+                match_stats = self.get_advanced_stats(match_id)
+                if not match_stats:
+                    continue
+                
+                # Déterminer si l'équipe était à domicile ou à l'extérieur
+                is_home = match_stats.get('home_team') == team_id
+                team_side = 'home' if is_home else 'away'
+                opponent_side = 'away' if is_home else 'home'
+                
+                # Récupérer le score et déterminer le résultat
+                score = match.get('score', '0-0').split('-')
+                if len(score) == 2:
+                    try:
+                        home_score = int(score[0].strip())
+                        away_score = int(score[1].strip())
+                        
+                        if is_home:
+                            if home_score > away_score:
+                                win_count += 1
+                            elif home_score == away_score:
+                                draw_count += 1
+                            else:
+                                loss_count += 1
+                                
+                            stats['goals_scored'].append(home_score)
+                            stats['goals_conceded'].append(away_score)
+                        else:
+                            if away_score > home_score:
+                                win_count += 1
+                            elif away_score == home_score:
+                                draw_count += 1
+                            else:
+                                loss_count += 1
+                                
+                            stats['goals_scored'].append(away_score)
+                            stats['goals_conceded'].append(home_score)
+                    except:
+                        pass
+                
+                # Collecter les statistiques de match
+                for category in match_stats.get('categories', []):
+                    category_stats = match_stats.get(team_side, {}).get(category, {})
+                    
+                    # Tirs
+                    if category == 'Attack' and 'Goal Attempts' in category_stats:
+                        stats['shots'].append(category_stats['Goal Attempts'])
+                    
+                    # Tirs cadrés
+                    if category == 'Attack' and 'Shots on Goal' in category_stats:
+                        stats['shots_on_target'].append(category_stats['Shots on Goal'])
+                    
+                    # Corners
+                    if category == 'Attack' and 'Corner Kicks' in category_stats:
+                        stats['corners'].append(category_stats['Corner Kicks'])
+                    
+                    # Possession
+                    if category == 'Ball Possession' and 'Ball Possession' in category_stats:
+                        possession_value = category_stats['Ball Possession']
+                        if isinstance(possession_value, float):
+                            stats['possession'].append(possession_value)
+                        elif isinstance(possession_value, str) and '%' in possession_value:
+                            try:
+                                stats['possession'].append(float(possession_value.replace('%', '')) / 100)
+                            except:
+                                pass
+                    
+                    # Fautes
+                    if category == 'Discipline' and 'Fouls' in category_stats:
+                        stats['fouls'].append(category_stats['Fouls'])
+                    
+                    # Cartons
+                    if category == 'Discipline' and 'Yellow Cards' in category_stats:
+                        stats['yellow_cards'].append(category_stats['Yellow Cards'])
+                    
+                    if category == 'Discipline' and 'Red Cards' in category_stats:
+                        stats['red_cards'].append(category_stats['Red Cards'])
+            
+            # Calculer les moyennes
+            total_matches = len(recent_matches)
+            if total_matches > 0:
+                stats['win_rate'] = win_count / total_matches
+                stats['draw_rate'] = draw_count / total_matches
+                stats['loss_rate'] = loss_count / total_matches
+                
+                stats['avg_goals_scored'] = sum(stats['goals_scored']) / len(stats['goals_scored']) if stats['goals_scored'] else 0
+                stats['avg_goals_conceded'] = sum(stats['goals_conceded']) / len(stats['goals_conceded']) if stats['goals_conceded'] else 0
+                stats['avg_shots'] = sum(stats['shots']) / len(stats['shots']) if stats['shots'] else 0
+                stats['avg_shots_on_target'] = sum(stats['shots_on_target']) / len(stats['shots_on_target']) if stats['shots_on_target'] else 0
+                stats['avg_corners'] = sum(stats['corners']) / len(stats['corners']) if stats['corners'] else 0
+                stats['avg_possession'] = sum(stats['possession']) / len(stats['possession']) if stats['possession'] else 0
+                stats['avg_fouls'] = sum(stats['fouls']) / len(stats['fouls']) if stats['fouls'] else 0
+                stats['avg_yellow_cards'] = sum(stats['yellow_cards']) / len(stats['yellow_cards']) if stats['yellow_cards'] else 0
+                stats['avg_red_cards'] = sum(stats['red_cards']) / len(stats['red_cards']) if stats['red_cards'] else 0
+            
+            return stats
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des statistiques récentes de l'équipe: {e}")
+            return {}
+            
+        finally:
+            self._random_delay()
