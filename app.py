@@ -1740,29 +1740,98 @@ with tab6:
             "Modèles Neuraux",
             "Alertes"
         ])
-        match_data = st.session_state.live_match_data
-        live_analysis = st.session_state.live_analysis
-        home_team = match_data.get('home_team', 'Home Team')
-        away_team = match_data.get('away_team', 'Away Team')
         
-        # Match header with score
-        home_score, away_score = st.session_state.current_match_score
-        current_minute = st.session_state.current_match_minute
-        
-        st.markdown(f"""
-        <div style='background-color: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; margin-bottom: 15px;'>
-            <div style='display: flex; justify-content: space-between; align-items: center;'>
-                <div style='flex: 2; text-align: right; font-size: 24px; font-weight: bold;'>{home_team}</div>
-                <div style='flex: 1; text-align: center; font-size: 28px; font-weight: bold;'>
-                    {home_score} - {away_score}
-                </div>
-                <div style='flex: 2; text-align: left; font-size: 24px; font-weight: bold;'>{away_team}</div>
-            </div>
-            <div style='text-align: center; font-size: 18px; margin-top: 5px;'>
-                <span style='background-color: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px;'>{current_minute}'</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # 1. Momentum Analysis Tab
+        with analysis_tabs[0]:
+            # Show current momentum and timeline
+            if live_analysis and 'momentum' in live_analysis:
+                momentum_data = live_analysis['momentum']
+                
+                momentum_cols = st.columns([1, 2])
+                with momentum_cols[0]:
+                    # Current momentum gauge
+                    if 'current_momentum' in momentum_data:
+                        current_momentum = momentum_data.get('current_momentum', 0)
+                        
+                        # Normalize between -100 and 100 for visualization
+                        normalized_momentum = min(max(current_momentum * 100, -100), 100)
+                        
+                        # Create a gauge-like visualization
+                        value_color = "green" if normalized_momentum > 20 else "red" if normalized_momentum < -20 else "orange"
+                        
+                        # Placeholder for gauge visualization (using markdown)
+                        st.markdown(f"""
+                        <div style='text-align: center;'>
+                            <h3>Momentum Actuel</h3>
+                            <div style='font-size: 48px; color: {value_color}; font-weight: bold;'>
+                                {int(normalized_momentum)}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Which team has momentum
+                        if normalized_momentum > 20:
+                            momentum_team = home_team
+                        elif normalized_momentum < -20:
+                            momentum_team = away_team
+                        else:
+                            momentum_team = "Équilibré"
+                            
+                        st.info(f"**Avantage de momentum**: {momentum_team}")
+                
+                with momentum_cols[1]:
+                    # Momentum timeline as text description
+                    st.markdown("### Évolution du Momentum")
+                    
+                    # Create a simplified visualization of timeline
+                    if 'momentum_timeline' in momentum_data:
+                        timeline = momentum_data.get('momentum_timeline', [0])
+                        current_value = timeline[-1] if timeline else 0
+                        
+                        # Display a textual description
+                        if current_value > 0.3:
+                            trend = f"🔼 {home_team} prend l'ascendant"
+                        elif current_value < -0.3:
+                            trend = f"🔽 {away_team} prend l'ascendant"
+                        else:
+                            trend = "⏸️ Momentum équilibré"
+                            
+                        st.markdown(f"""
+                        <div style='padding: 15px; background-color: rgba(0,0,0,0.05); border-radius: 5px;'>
+                            <h4>{trend}</h4>
+                            <p>Le momentum évolue en fonction des actions du match et des événements clés.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                # Momentum factors
+                if 'factors' in momentum_data:
+                    st.markdown("### Facteurs influençant le momentum")
+                    
+                    factors = momentum_data.get('factors', {})
+                    if not factors:
+                        st.info("Aucun facteur de momentum détecté pour le moment")
+                    else:
+                        for factor, value in factors.items():
+                            # Normalize to percentage for display
+                            factor_value = min(max(value * 100, -100), 100)
+                            if factor_value > 0:
+                                direction = f"👆 {abs(factor_value):.1f}% en faveur de {home_team}"
+                                color = "rgba(0, 128, 0, 0.8)"
+                            elif factor_value < 0:
+                                direction = f"👇 {abs(factor_value):.1f}% en faveur de {away_team}"
+                                color = "rgba(255, 0, 0, 0.8)"
+                            else:
+                                direction = "Neutre"
+                                color = "rgba(128, 128, 128, 0.8)"
+                                
+                            st.markdown(f"""
+                            <div style='padding: 8px; margin-bottom: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;'>
+                                <div style='font-weight: bold;'>{factor.replace('_', ' ').title()}</div>
+                                <div style='color: {color};'>{direction}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+            else:
+                st.info("Données de momentum en cours de chargement...")
         
         # Quick update controls
         update_cols = st.columns([1, 1, 1])
