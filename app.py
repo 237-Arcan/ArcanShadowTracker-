@@ -1146,6 +1146,130 @@ with tab5:
     # (In a real implementation, this would be based on actual system architecture)
     st.info("This module is part of the ArcanShadow integrated prediction system. It receives inputs from data sources and other modules, processes them according to its specialized algorithms, and outputs prediction signals that feed into the convergence layer.")
 
+# Notifications Tab
+with tab6:
+    st.markdown(f"## {t('notifications_center')}")
+    st.markdown("""
+    Recevez des alertes intelligentes sur des opportunités de paris et des changements importants 
+    dans les matchs suivis. Configurez vos préférences de notification pour rester informé en temps réel.
+    """)
+    
+    # Notifications settings
+    st.markdown("### Configuration des notifications")
+    
+    # Enable notifications toggle
+    notifications_enabled = st.toggle("Activer les notifications", value=True)
+    
+    if notifications_enabled:
+        # Notification preferences
+        st.markdown("#### Préférences de notification")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### Types d'alertes")
+            notify_value_bets = st.checkbox("Opportunités de paris à valeur", value=True)
+            notify_odds_movements = st.checkbox("Mouvements significatifs de cotes", value=True)
+            notify_momentum_shifts = st.checkbox("Changements importants de momentum", value=True)
+            notify_match_events = st.checkbox("Événements clés de match", value=True)
+            notify_prediction_updates = st.checkbox("Mises à jour de prédictions", value=True)
+        
+        with col2:
+            st.markdown("##### Seuils de notification")
+            odds_movement_threshold = st.slider("Seuil de mouvement des cotes (%)", 5, 25, 10)
+            confidence_change_threshold = st.slider("Seuil de changement de confiance (%)", 5, 30, 15)
+            value_bet_threshold = st.slider("Seuil d'opportunité de pari (%)", 5, 30, 12)
+            
+        # Notification methods
+        st.markdown("#### Méthodes de notification")
+        
+        notification_methods = st.multiselect("Comment souhaitez-vous être notifié?",
+                                           ["Application", "Email", "SMS", "Push"],
+                                           default=["Application"])
+        
+        if "Email" in notification_methods:
+            email = st.text_input("Adresse email")
+            
+        if "SMS" in notification_methods:
+            phone = st.text_input("Numéro de téléphone")
+            
+        if st.button("Sauvegarder les préférences", type="primary"):
+            st.success("Préférences de notification sauvegardées")
+            
+    # Current notifications
+    st.markdown("### Notifications récentes")
+    
+    # Sample notifications
+    notifications = [
+        {
+            "type": "value_bet",
+            "timestamp": datetime.now() - timedelta(minutes=15),
+            "message": "Opportunité de pari à valeur détectée: Manchester United vs Liverpool, cote domicile sous-évaluée de 14%",
+            "priority": "high"
+        },
+        {
+            "type": "momentum_shift",
+            "timestamp": datetime.now() - timedelta(hours=1),
+            "message": "Changement majeur de momentum détecté pour Arsenal vs Newcastle, probabilité de victoire d'Arsenal augmentée de 18%",
+            "priority": "medium"
+        },
+        {
+            "type": "odds_movement",
+            "timestamp": datetime.now() - timedelta(hours=3),
+            "message": "Mouvement significatif des cotes: Bayern Munich vs Dortmund, cote match nul passée de 3.5 à 4.2",
+            "priority": "medium"
+        },
+        {
+            "type": "prediction_update",
+            "timestamp": datetime.now() - timedelta(hours=6),
+            "message": "Mise à jour de prédiction: PSG vs Lyon, nouvelle analyse suggère Under 2.5 buts avec 76% de confiance",
+            "priority": "low"
+        }
+    ]
+    
+    if notifications_enabled and len(notifications) > 0:
+        for notification in notifications:
+            with st.container():
+                # Create a colored notification box based on priority
+                priority_colors = {
+                    "high": "red",
+                    "medium": "orange",
+                    "low": "blue"
+                }
+                color = priority_colors.get(notification["priority"], "gray")
+                
+                st.markdown(f"""
+                <div style='border-left: 4px solid {color}; padding-left: 10px; margin-bottom: 10px;'>
+                    <h5>{notification["type"].replace("_", " ").title()}</h5>
+                    <p>{notification["message"]}</p>
+                    <p style='font-size: small; color: gray;'>{notification["timestamp"].strftime('%d %b %Y %H:%M')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("Aucune notification récente à afficher")
+    
+    # Custom alerts section
+    st.markdown("### Créer une alerte personnalisée")
+    
+    with st.expander("Nouvelle alerte", expanded=False):
+        alert_type = st.selectbox("Type d'alerte", 
+                                ["Opportunité de valeur", "Mouvement de cote", "Confiance de prédiction", 
+                                 "Score/Résultat", "Événement spécifique"])
+        
+        alert_condition = st.selectbox("Condition", 
+                                     ["Supérieur à", "Inférieur à", "Égal à", "Changement de plus de"])
+        
+        alert_value = st.number_input("Valeur", min_value=0.0, max_value=100.0, value=10.0, step=0.5)
+        
+        alert_matches = st.multiselect("S'applique aux matchs", 
+                                     ["Tous les matchs", "Matchs suivis uniquement", "Match spécifique"])
+        
+        if "Match spécifique" in alert_matches:
+            specific_match = st.text_input("Entrez l'équipe ou le match")
+        
+        if st.button("Créer l'alerte"):
+            st.success("Alerte personnalisée créée avec succès")
+
 # Footer
 st.markdown("---")
 st.markdown(

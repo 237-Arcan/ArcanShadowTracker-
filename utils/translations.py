@@ -28,6 +28,8 @@ en = {
     "historical_tab": "Historical Analysis",
     "module_details_tab": "Module Details",
     "live_match_tab": "Live Match 🔴",
+    "notifications_tab": "Notifications 🔔",
+    "notifications_center": "Notifications Center",
     
     # Predictions tab
     "match_predictions": "Match Predictions",
