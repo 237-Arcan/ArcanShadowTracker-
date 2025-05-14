@@ -122,6 +122,10 @@ set_piece_threat_evaluator = SetPieceThreatEvaluator()
 karmic_flow = KarmicFlowPlus()
 momentum_tracker = MomentumTracker2()
 
+# Initialize new modules
+bet_trap_map = BetTrapMap()
+stadium_spirit = StadiumSpirit()
+
 # Initialize meta systems (coordinating all modules)
 meta_systems = MetaSystems(
     suspended_modules={
@@ -139,7 +143,9 @@ meta_systems = MetaSystems(
         'collapse_detector': collapse_detector,
         'youth_impact_analyzer': youth_impact_analyzer,
         'captain_switch': captain_switch,
-        'set_piece_threat_evaluator': set_piece_threat_evaluator
+        'set_piece_threat_evaluator': set_piece_threat_evaluator,
+        'bet_trap_map': bet_trap_map,
+        'stadium_spirit': stadium_spirit
     }
 )
 
@@ -864,9 +870,9 @@ with tab5:
     # Module selection
     module_categories = {
         "ArcanX (Esoteric Analysis)": ["NumeriCode", "GematriaPulse", "AstroImpact Lite", "TarotEcho", 
-                                      "YiFlow", "KarmicFlow+", "RadiEsthesiaMap", "CycleMirror"],
+                                      "YiFlow", "KarmicFlow+", "RadiEsthesiaMap", "CycleMirror", "StadiumSpirit"],
         "ShadowOdds (Odds Behavior)": ["LineTrap", "BetPulse", "CrowdPressureIndex", "MarketEcho", 
-                                      "CollapseDetector", "ShadowMomentum", "SetTrapIndicator"],
+                                      "CollapseDetector", "ShadowMomentum", "SetTrapIndicator", "BetTrapMap"],
         "Convergence Modules": ["Convergia Core", "MirrorPhase", "MomentumShiftTracker", "CaptainSwitch", 
                                "YouthImpactAnalyzer", "LateSurgeDetector", "SetPieceThreatEvaluator", "FanSentimentMonitor"],
         "Meta-Systems": ["GridSync Alpha", "ChronoEcho Pro", "ArcanSentinel", "D-Forge", "D-GridSync Lambda"]
