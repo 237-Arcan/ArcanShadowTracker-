@@ -292,6 +292,10 @@ fr = {
     "remove_from_combo": "Retirer",
     "clear_combo": "Vider le Combiné",
     "no_recommendations": "Aucune recommandation disponible pour les matchs actuels",
+    "use_top_modules": "Utiliser uniquement les modules performants",
+    "top_modules_help": "Lorsque cette option est activée, seules les prédictions des modules ayant un taux de réussite supérieur à 60% sont utilisées",
+    "top_modules_active": "Utilisation des {count} prédictions des modules les plus performants: {modules}...",
+    "no_top_modules_data": "Aucune prédiction des modules performants disponible actuellement",
     
     # Predictions tab
     "match_predictions": "Prédictions de Matches",

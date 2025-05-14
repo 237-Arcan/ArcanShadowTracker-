@@ -2430,9 +2430,9 @@ with tab8:
             
             # Option pour utiliser uniquement les modules performants
             use_top_modules = st.checkbox(
-                "Utiliser uniquement les modules performants", 
+                t("use_top_modules"), 
                 value=False,
-                help="Lorsque cette option est activée, seules les prédictions des modules ayant un taux de réussite supérieur à 60% sont utilisées."
+                help=t("top_modules_help")
             )
             
             if st.button("Actualiser le combiné"):
@@ -2473,9 +2473,12 @@ with tab8:
                         
                 # Information sur le filtrage si activé
                 if filtered_predictions:
-                    st.success(f"Utilisation des {len(filtered_predictions)} prédictions des modules les plus performants: {', '.join(top_modules[:3])}...")
+                    st.success(t("top_modules_active").format(
+                        count=len(filtered_predictions),
+                        modules=', '.join(top_modules[:3])
+                    ))
                 else:
-                    st.warning("Aucune prédiction des modules performants disponible actuellement.")
+                    st.warning(t("no_top_modules_data"))
         
         best_bets = combo_generator.generate_best_bets(
             matches=None,  # Let it fetch the matches
