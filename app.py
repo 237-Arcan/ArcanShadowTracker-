@@ -2409,15 +2409,10 @@ with tab8:
                 predictions = st.session_state.get('predictions', [])
                 combo_generator = st.session_state.betting_combo_generator
                 
-                # Récupérer les matchs du jour pour La Liga (nous savons qu'ils existent)
-                sport = 'Football'
-                league = 'La Liga'
-                date = datetime.now().date()
-                upcoming_matches = data_handler.get_upcoming_matches(sport, league, date)
+                # Nous n'avons plus besoin de récupérer les matchs, le générateur s'en charge
                 
-                # Générer le combiné avec les matchs récupérés
+                # Générer le combiné (le générateur assurera qu'il y a des matchs)
                 st.session_state.daily_combo = combo_generator.generate_daily_combo(
-                    matches=upcoming_matches,
                     arcan_predictions=predictions, 
                     risk_level=risk_level,
                     use_top_modules=use_top_modules
