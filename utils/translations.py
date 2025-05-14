@@ -34,6 +34,7 @@ en = {
     "module_details_tab": "Module Details",
     "live_match_tab": "Live Match 🔴",
     "live_monitoring_tab": "Live Monitoring 🔄",
+    "performance_notifications_tab": "Performance Notifications 📊",
     "notifications_center": "Notifications Center",
     "live_match_monitoring": "Live Match Monitoring",
     
@@ -238,6 +239,7 @@ fr = {
     "module_details_tab": "Détails des Modules",
     "live_match_tab": "Match en Direct 🔴",
     "live_monitoring_tab": "Surveillance en Direct 🔄",
+    "performance_notifications_tab": "Notifications de Performance 📊",
     "notifications_center": "Centre de Notifications",
     "live_match_monitoring": "Surveillance de Match en Direct",
     
@@ -400,6 +402,26 @@ fr = {
     "momentum_analysis": "Analyse de l'Élan",
     "betting_trends": "Tendances des Paris",
     "karmic_patterns": "Modèles Karmiques",
+    
+    # Performance Notifications tab
+    "performance_evaluations": "Évaluations de Performance",
+    "performance_notifications_description": "Synthèse des prédictions pré-match confrontées aux statistiques post-match pour évaluer la performance des modules.",
+    "select_completed_match": "Sélectionner un Match Terminé",
+    "prediction_vs_reality": "Prédiction vs Réalité",
+    "module_evaluations": "Évaluations des Modules",
+    "module_name": "Nom du Module",
+    "prediction_accuracy": "Précision de Prédiction",
+    "performance_score": "Score de Performance",
+    "performance_trend": "Tendance de Performance",
+    "key_success_factors": "Facteurs Clés de Succès",
+    "key_failure_factors": "Facteurs Clés d'Échec",
+    "module_improvement_suggestions": "Suggestions d'Amélioration",
+    "match_overview": "Aperçu du Match",
+    "predicted_outcome": "Résultat Prédit",
+    "actual_outcome": "Résultat Réel",
+    "prediction_error": "Erreur de Prédiction",
+    "prediction_timeline": "Chronologie de Prédiction",
+    "no_completed_matches": "Aucun match terminé disponible pour évaluation",
     
     # ArcanX factor explanations
     "prime_match_day": "Jour de Match Premier: Le match a lieu le jour {day}, un nombre premier",
