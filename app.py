@@ -2144,6 +2144,120 @@ with tab7:
                     st.info("Module evaluation data not available for this match.")
             else:
                 st.error("Error retrieving prediction details.")
+        
+        # Section for displaying live-tracked matches from the Live Surveillance tab
+        st.markdown("---")
+        st.markdown(f"## {t('live_tracked_matches')}")
+        st.markdown(f"{t('live_tracked_matches_description')}")
+        
+        # Check if there are any live-tracked matches in the session state
+        if hasattr(st.session_state, 'live_tracking_history') and st.session_state.live_tracking_history:
+            # Display each tracked match with its analysis
+            for i, tracked_match in enumerate(st.session_state.live_tracking_history):
+                match_data = tracked_match.get('match_data', {})
+                analysis = tracked_match.get('analysis', {})
+                timestamp = tracked_match.get('timestamp', datetime.now())
+                
+                with st.expander(f"{match_data.get('home_team', 'Home')} vs {match_data.get('away_team', 'Away')} - {timestamp.strftime('%d %b %Y %H:%M')}"):
+                    # Match details
+                    match_cols = st.columns([3, 1, 3])
+                    with match_cols[0]:
+                        st.markdown(f"**{match_data.get('home_team', 'Home')}**")
+                    with match_cols[1]:
+                        st.markdown("vs")
+                    with match_cols[2]:
+                        st.markdown(f"**{match_data.get('away_team', 'Away')}**")
+                    
+                    # Score if available
+                    score_cols = st.columns([3, 1, 3])
+                    with score_cols[0]:
+                        st.markdown(f"**{match_data.get('home_score', 0)}**")
+                    with score_cols[1]:
+                        st.markdown("-")
+                    with score_cols[2]:
+                        st.markdown(f"**{match_data.get('away_score', 0)}**")
+                    
+                    # Analysis summary
+                    st.markdown("### Analysis Summary")
+                    
+                    # Momentum and key events
+                    if 'momentum' in analysis:
+                        st.markdown("#### Momentum Analysis")
+                        momentum = analysis['momentum']
+                        
+                        # Create momentum chart if data is available
+                        if 'timeline' in momentum:
+                            momentum_data = pd.DataFrame({
+                                'Time': momentum['timeline'],
+                                'Home': momentum.get('home_momentum', [50] * len(momentum['timeline'])),
+                                'Away': momentum.get('away_momentum', [50] * len(momentum['timeline']))
+                            })
+                            
+                            fig = px.line(momentum_data, x='Time', y=['Home', 'Away'],
+                                         title="Match Momentum",
+                                         labels={'value': 'Momentum', 'variable': 'Team'},
+                                         color_discrete_sequence=['#3366CC', '#DC3912'])
+                            
+                            fig.update_layout(
+                                template='plotly_dark',
+                                height=300
+                            )
+                            
+                            st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Key events
+                    if 'key_events' in analysis:
+                        st.markdown("#### Key Events")
+                        events = analysis['key_events']
+                        
+                        for event in events:
+                            event_time = event.get('time', '00:00')
+                            event_type = event.get('type', 'Unknown')
+                            event_desc = event.get('description', '')
+                            event_icon = "⚽️" if event_type == "Goal" else "🔄" if event_type == "Substitution" else "🟨" if event_type == "Yellow Card" else "🟥" if event_type == "Red Card" else "📝"
+                            
+                            st.markdown(f"{event_icon} **{event_time}** - {event_desc}")
+                    
+                    # ArcanSentinel insights
+                    if 'arcan_sentinel' in analysis:
+                        sentinel = analysis['arcan_sentinel']
+                        st.markdown("#### ArcanSentinel Insights")
+                        
+                        insights = sentinel.get('insights', [])
+                        for insight in insights:
+                            st.markdown(f"- {insight}")
+                    
+                    # Module performance during live tracking
+                    st.markdown("#### Module Performance")
+                    
+                    if 'module_performance' in analysis:
+                        module_perf = analysis['module_performance']
+                        
+                        # Create a DataFrame for module performance
+                        module_data = []
+                        for module, perf in module_perf.items():
+                            module_data.append({
+                                'Module': module,
+                                'Accuracy': perf.get('accuracy', 0.0),
+                                'Contribution': perf.get('contribution', 0.0)
+                            })
+                        
+                        if module_data:
+                            module_df = pd.DataFrame(module_data)
+                            
+                            fig = px.bar(module_df, y='Module', x='Accuracy', orientation='h',
+                                       color='Accuracy', color_continuous_scale='Viridis',
+                                       title="Module Performance During Live Tracking")
+                            
+                            fig.update_layout(
+                                xaxis=dict(range=[0.3, 1.0]),
+                                template='plotly_dark',
+                                height=350
+                            )
+                            
+                            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info(t('no_live_tracked_matches'))
 
 # Footer
 st.markdown("---")
