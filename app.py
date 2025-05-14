@@ -744,7 +744,7 @@ with tab1:
                         st.markdown(f"#### {t('deep_analysis')}")
                         st.markdown(f"""
                         <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
-                            <p>{arcan_brain.generate_analysis_insight(match, prediction)}</p>
+                            <p>{meta_systems.arcan_brain.generate_analysis_insight(match, prediction)}</p>
                         </div>
                         """, unsafe_allow_html=True)
                 
