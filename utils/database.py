@@ -244,6 +244,59 @@ class Database:
             return query.limit(limit).all()
         finally:
             session.close()
+            
+    def get_completed_predictions(self, limit=20, sport=None, league=None):
+        """
+        Get completed predictions (with actual results) from the database.
+        
+        Args:
+            limit (int): Maximum number of completed predictions to return
+            sport (str, optional): Filter by sport
+            league (str, optional): Filter by league
+            
+        Returns:
+            list: List of Prediction objects that have been completed
+        """
+        session = self.Session()
+        try:
+            # Get predictions that have outcome and scores
+            query = session.query(Prediction).filter(
+                Prediction.home_score.isnot(None),
+                Prediction.away_score.isnot(None)
+            ).order_by(Prediction.date.desc())
+            
+            if sport:
+                query = query.filter(Prediction.sport == sport)
+            if league:
+                query = query.filter(Prediction.league == league)
+                
+            predictions = query.limit(limit).all()
+            return predictions
+        except Exception as e:
+            print(f"Error getting completed predictions: {e}")
+            return []
+        finally:
+            session.close()
+            
+    def get_prediction_by_id(self, prediction_id):
+        """
+        Get a specific prediction by its ID.
+        
+        Args:
+            prediction_id (int): The ID of the prediction to retrieve
+            
+        Returns:
+            Prediction: The prediction object if found, None otherwise
+        """
+        session = self.Session()
+        try:
+            prediction = session.query(Prediction).filter(Prediction.id == prediction_id).first()
+            return prediction
+        except Exception as e:
+            print(f"Error getting prediction by ID: {e}")
+            return None
+        finally:
+            session.close()
     
     def get_prediction_accuracy(self, days=30, sport=None, league=None):
         """

@@ -1968,6 +1968,183 @@ with tab6:
         if st.button("Créer l'alerte"):
             st.success("Alerte personnalisée créée avec succès")
 
+# Performance Notifications Tab - NEW
+with tab7:
+    # Initialize database connection if needed
+    if 'database' not in st.session_state:
+        from utils.database import Database
+        st.session_state.database = Database()
+    
+    # Header section with explanatory text
+    st.markdown(f"## {t('performance_evaluations')}")
+    st.markdown(f"*{t('performance_notifications_description')}*")
+    
+    # Get completed matches with predictions from database
+    db = st.session_state.database
+    completed_predictions = db.get_completed_predictions()
+    
+    if not completed_predictions or len(completed_predictions) == 0:
+        st.info(t('no_completed_matches'))
+    else:
+        # Format matches for selection
+        match_options = []
+        match_map = {}
+        
+        for pred in completed_predictions:
+            match_id = pred.id
+            match_text = f"{pred.home_team} vs {pred.away_team} ({pred.date.strftime('%Y-%m-%d')})"
+            match_options.append(match_text)
+            match_map[match_text] = match_id
+        
+        # Match selection
+        selected_match = st.selectbox(t('select_completed_match'), match_options)
+        
+        if selected_match:
+            selected_match_id = match_map[selected_match]
+            
+            # Get detailed data for the selected match
+            prediction = db.get_prediction_by_id(selected_match_id)
+            
+            if prediction:
+                # Match Overview Section
+                st.markdown(f"### {t('match_overview')}")
+                
+                match_cols = st.columns([3, 1, 3])
+                with match_cols[0]:
+                    st.markdown(f"**{prediction.home_team}**")
+                with match_cols[1]:
+                    st.markdown("vs")
+                with match_cols[2]:
+                    st.markdown(f"**{prediction.away_team}**")
+                
+                # Score if available
+                if prediction.home_score is not None and prediction.away_score is not None:
+                    score_cols = st.columns([3, 1, 3])
+                    with score_cols[0]:
+                        st.markdown(f"**{prediction.home_score}**")
+                    with score_cols[1]:
+                        st.markdown("-")
+                    with score_cols[2]:
+                        st.markdown(f"**{prediction.away_score}**")
+                
+                # Prediction vs Reality Section
+                st.markdown(f"### {t('prediction_vs_reality')}")
+                
+                comparison_cols = st.columns(2)
+                with comparison_cols[0]:
+                    st.markdown(f"**{t('predicted_outcome')}:**")
+                    st.markdown(f"{prediction.prediction}")
+                    st.markdown(f"**{t('confidence')}:** {prediction.confidence:.2f}")
+                    
+                with comparison_cols[1]:
+                    st.markdown(f"**{t('actual_outcome')}:**")
+                    if prediction.outcome:
+                        st.markdown(f"{prediction.outcome}")
+                    else:
+                        # Determine outcome from scores
+                        if prediction.home_score > prediction.away_score:
+                            outcome = "Home Win"
+                        elif prediction.home_score < prediction.away_score:
+                            outcome = "Away Win"
+                        else:
+                            outcome = "Draw"
+                        st.markdown(outcome)
+                    
+                    # Was prediction correct?
+                    if prediction.correct:
+                        st.markdown("✅ **Correct Prediction**")
+                    else:
+                        st.markdown("❌ **Incorrect Prediction**")
+                
+                # Module Evaluations section
+                st.markdown(f"### {t('module_evaluations')}")
+                
+                # Initialize meta_systems for module evaluation
+                from modules.meta_systems import MetaSystems
+                meta_systems = MetaSystems()
+                
+                # Convert prediction to expected format for evaluation
+                prediction_data = {
+                    'id': prediction.id,
+                    'home_team': prediction.home_team,
+                    'away_team': prediction.away_team,
+                    'date': prediction.date,
+                    'prediction': prediction.prediction,
+                    'confidence': prediction.confidence,
+                    'arcanx_confidence': prediction.arcanx_confidence,
+                    'shadow_odds_confidence': prediction.shadow_odds_confidence,
+                    'home_score': prediction.home_score,
+                    'away_score': prediction.away_score,
+                    'correct': prediction.correct
+                }
+                
+                # Get module performance evaluations
+                module_evaluations = meta_systems.evaluate_modules_performance(prediction_data)
+                
+                if module_evaluations:
+                    # Create a DataFrame for the evaluations
+                    eval_data = []
+                    for module, evaluation in module_evaluations.items():
+                        eval_data.append({
+                            t('module_name'): module,
+                            t('prediction_accuracy'): f"{evaluation.get('accuracy', 0):.2f}",
+                            t('performance_score'): evaluation.get('performance_score', 0),
+                            t('performance_trend'): evaluation.get('trend', 'Stable')
+                        })
+                    
+                    eval_df = pd.DataFrame(eval_data)
+                    st.dataframe(eval_df, use_container_width=True)
+                    
+                    # Display details for each module
+                    st.markdown(f"### {t('key_success_factors')}")
+                    
+                    # Get ArcanBrain analysis
+                    from modules.arcan_brain import ArcanBrain
+                    arcan_brain = ArcanBrain(meta_systems=meta_systems)
+                    
+                    # Convert prediction data to match data format
+                    match_data = {
+                        'id': prediction.id,
+                        'home_team': prediction.home_team,
+                        'away_team': prediction.away_team,
+                        'date': prediction.date,
+                        'league': prediction.league,
+                        'sport': prediction.sport,
+                        'home_score': prediction.home_score,
+                        'away_score': prediction.away_score
+                    }
+                    
+                    # Generate insight analysis
+                    insight = arcan_brain.generate_analysis_insight(match_data, prediction_data)
+                    
+                    # Display the insight
+                    st.markdown(insight)
+                    
+                    # Generate module improvement suggestions
+                    st.markdown(f"### {t('module_improvement_suggestions')}")
+                    
+                    # Get feedback from ArcanReflex
+                    from modules.arcan_reflex import ArcanReflex
+                    arcan_reflex = ArcanReflex(meta_systems=meta_systems)
+                    
+                    reflex_feedback = arcan_reflex.generate_module_feedback(prediction_data)
+                    
+                    if reflex_feedback:
+                        for module, feedback in reflex_feedback.items():
+                            with st.expander(f"{module} {t('improvement_suggestions')}"):
+                                st.markdown(feedback.get('suggestions', 'No specific suggestions available.'))
+                                
+                                # Display adaptation parameters if available
+                                adaptations = feedback.get('adaptations', {})
+                                if adaptations:
+                                    st.markdown("#### Parameter Adjustments")
+                                    for param, value in adaptations.items():
+                                        st.markdown(f"- **{param}**: {value}")
+                else:
+                    st.info("Module evaluation data not available for this match.")
+            else:
+                st.error("Error retrieving prediction details.")
+
 # Footer
 st.markdown("---")
 st.markdown(
