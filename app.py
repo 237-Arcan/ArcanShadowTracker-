@@ -429,8 +429,12 @@ with tab1:
             return False
             
         # Vérifier les facteurs de confirmation
-        confirming_factors = len([f for f in prediction['statistical_factors'] 
-                               if 'Strong' in f['value'] or 'Strongly' in f['value']])
+        confirming_factors = 0
+        if 'statistical_factors' in prediction:
+            for factor in prediction['statistical_factors']:
+                if isinstance(factor.get('value'), str) and ('Strong' in factor['value'] or 'Strongly' in factor['value']):
+                    confirming_factors += 1
+        
         if confirming_factors < min_factors:
             return False
             
@@ -742,11 +746,20 @@ with tab1:
                         
                         # Ajouter une section d'analyse approfondie
                         st.markdown(f"#### {t('deep_analysis')}")
-                        st.markdown(f"""
-                        <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
-                            <p>{meta_systems.arcan_brain.generate_analysis_insight(match, prediction)}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        
+                        try:
+                            insight = meta_systems.arcan_brain.generate_analysis_insight(match, prediction)
+                            st.markdown(f"""
+                            <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
+                                <p>{insight}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        except Exception as e:
+                            st.markdown(f"""
+                            <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
+                                <p>L'analyse neuronal est en cours d'entraînement et sera disponible prochainement.</p>
+                            </div>
+                            """, unsafe_allow_html=True)
                 
                 # Ajouter un séparateur entre les prédictions
                 st.markdown("<hr style='margin:30px 0; border-color:#333;'>", unsafe_allow_html=True)
