@@ -150,79 +150,41 @@ class DataHandler:
         Returns:
             list: List of upcoming match dictionaries
         """
-        # First try to get real match data from the API
+        # Try to get real match data from the API
         api_matches = self.sports_api.get_matches(sport, league, date)
         
         if api_matches:
             print(f"Retrieved {len(api_matches)} matches from API for {sport} - {league}")
             # If we got real data, use it
             return api_matches
+        
+        # Si pas de données API, utiliser FlashScraper pour récupérer des matchs réels
+        # plutôt que de générer des matchs aléatoires
+        from utils.flash_scraper import FlashScraper
+        from datetime import datetime
+        
+        print(f"API data unavailable, trying FlashScraper for {sport} - {league}")
+        scraper = FlashScraper()
+        date_str = date.strftime('%Y%m%d') if date else datetime.now().strftime('%Y%m%d')
+        
+        try:
+            scraped_matches = scraper.get_matches_of_day(sport.lower(), date_str)
             
-        # Fall back to generated data if API returned None or empty list
-        print(f"No API data available, generating sample matches for {sport} - {league}")
+            # Filtrer pour ne récupérer que les matchs de la ligue spécifiée
+            if scraped_matches:
+                filtered_matches = [match for match in scraped_matches 
+                                    if match.get('league', '').lower() == league.lower() or 
+                                    league.lower() in match.get('league', '').lower()]
+                
+                if filtered_matches:
+                    print(f"Retrieved {len(filtered_matches)} matches via scraping for {sport} - {league}")
+                    return filtered_matches
+        except Exception as e:
+            print(f"Error scraping matches: {e}")
         
-        # Create a seed from inputs for consistent generation
-        seed_str = f"{sport}_{league}_{date.strftime('%Y%m%d')}"
-        seed = sum(ord(c) for c in seed_str)
-        # Ensure the seed is within valid range (0 to 2^32 - 1)
-        seed_value = abs(seed) % (2**32 - 1)
-        random.seed(seed_value)
-        
-        # Number of matches to generate (varies by day and league)
-        num_matches = random.randint(3, 8)
-        
-        # Get teams for this league
-        teams = self._get_teams_for_league(league)
-        if len(teams) < 6:
-            return []  # Not enough teams for meaningful fixtures
-        
-        # Generate upcoming matches
-        matches = []
-        used_teams = set()
-        
-        for _ in range(num_matches):
-            # Select home team
-            available_home = [t for t in teams if t not in used_teams]
-            if not available_home:
-                break
-            home_team = random.choice(available_home)
-            used_teams.add(home_team)
-            
-            # Select away team
-            available_away = [t for t in teams if t not in used_teams]
-            if not available_away:
-                break
-            away_team = random.choice(available_away)
-            used_teams.add(away_team)
-            
-            # Generate match time (between 12:00 and 22:00)
-            hour = random.randint(12, 21)
-            minute = random.choice([0, 15, 30, 45])
-            match_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=hour, minutes=minute)
-            
-            # Generate match details including odds information
-            match = {
-                'sport': sport,
-                'league': league,
-                'home_team': home_team,
-                'away_team': away_team,
-                'date': match_time,
-                'stadium': self._get_stadium_for_team(home_team),
-                'city': self._get_city_for_team(home_team),
-                'country': self._get_country_for_league(league),
-                'home_odds': round(random.uniform(1.5, 4.5), 2),
-                'draw_odds': round(random.uniform(2.5, 4.0), 2) if sport == 'Football' else None,
-                'away_odds': round(random.uniform(1.5, 4.5), 2),
-                'home_form': self._generate_form(),
-                'away_form': self._generate_form(),
-                'historical_matchups': self._generate_historical_matchups(home_team, away_team, sport, league),
-                'home_formation': '4-3-3' if sport == 'Football' else None,
-                'away_formation': '4-4-2' if sport == 'Football' else None
-            }
-            
-            matches.append(match)
-        
-        return matches
+        # Si aucune donnée n'est disponible, retourner liste vide plutôt que des données aléatoires
+        print(f"No match data available for {sport} - {league}. Please try another league or date.")
+        return []
 
     def get_historical_predictions(self, sport, league, time_period):
         """
