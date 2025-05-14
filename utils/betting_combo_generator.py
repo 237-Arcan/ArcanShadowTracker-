@@ -452,7 +452,7 @@ class BettingComboGenerator:
             logger.error(f"Erreur lors de la génération des meilleurs paris: {e}")
             return []
     
-    def generate_daily_combo(self, matches=None, arcan_predictions=None, max_selections=4, risk_level='medium'):
+    def generate_daily_combo(self, matches=None, arcan_predictions=None, max_selections=4, risk_level='medium', use_top_modules=False):
         """
         Génère un combiné de paris du jour.
         
@@ -461,6 +461,7 @@ class BettingComboGenerator:
             arcan_predictions (dict, optional): Prédictions des modules ArcanShadow
             max_selections (int): Nombre maximum de sélections dans le combiné
             risk_level (str): Niveau de risque ('low', 'medium', 'high')
+            use_top_modules (bool): Utiliser uniquement les prédictions des modules les plus performants
             
         Returns:
             dict: Combiné du jour
@@ -475,10 +476,25 @@ class BettingComboGenerator:
             
             params = risk_params.get(risk_level, risk_params['medium'])
             
+            # Filtrer les prédictions par modules performants si demandé
+            filtered_predictions = arcan_predictions
+            if use_top_modules and arcan_predictions:
+                # Récupérer les performances des modules (à implémenter dans un système réel)
+                module_performance = self._get_module_performance()
+                
+                # Filtrer pour ne garder que les prédictions des modules performants
+                top_modules = [module for module, perf in module_performance.items() if perf >= 0.6]
+                
+                if top_modules:
+                    filtered_predictions = []
+                    for pred in arcan_predictions:
+                        if pred.get('source_module') in top_modules:
+                            filtered_predictions.append(pred)
+            
             # Générer les meilleurs paris
             best_bets = self.generate_best_bets(
                 matches=matches,
-                arcan_predictions=arcan_predictions,
+                arcan_predictions=filtered_predictions,
                 min_confidence=params['min_confidence'],
                 min_ev=params['min_ev']
             )
@@ -540,6 +556,30 @@ class BettingComboGenerator:
                 'risk_level': risk_level,
                 'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
+    
+    def _get_module_performance(self):
+        """
+        Récupère les performances des modules (taux de réussite des prédictions).
+        Dans un système réel, cela serait connecté à une base de données de résultats.
+        
+        Returns:
+            dict: Dictionnaire des modules avec leur performance (0-1)
+        """
+        # Simulation des performances des modules
+        # Dans un système réel, ces données viendraient d'une analyse des prédictions passées
+        return {
+            'ArcanX': 0.72,               # Module principal d'analyse de tendances
+            'ShadowOdds': 0.68,           # Module d'analyse des cotes et mouvements
+            'MatchMomentum': 0.65,        # Module d'analyse de momentum
+            'ArcanBrain': 0.78,           # Module d'intelligence neuronal
+            'GoalFlowAnalyzer': 0.67,     # Module d'analyse de buts
+            'DefenseVulnerabilityScanner': 0.62, # Module d'analyse défensive
+            'FanSentimentMonitor': 0.52,  # Module d'analyse de sentiment des fans
+            'StrengthDisparityAnalyzer': 0.64,   # Module d'analyse de disparité
+            'ArcanSentinel': 0.73,        # Module de surveillance en direct
+            'LateSurgeDetector': 0.59,    # Module de détection de tendances tardives
+            'FormCycleAnalyzer': 0.66     # Module d'analyse des cycles de forme
+        }
     
     def get_bet_insights(self, combo):
         """

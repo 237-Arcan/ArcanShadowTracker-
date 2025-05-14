@@ -2428,13 +2428,21 @@ with tab8:
                 help="Sélectionnez le niveau de risque pour le combiné du jour. Bas (faibles cotes, haute confiance), Moyen (équilibré), Élevé (fortes cotes, plus risqué)."
             )
             
+            # Option pour utiliser uniquement les modules performants
+            use_top_modules = st.checkbox(
+                "Utiliser uniquement les modules performants", 
+                value=False,
+                help="Lorsque cette option est activée, seules les prédictions des modules ayant un taux de réussite supérieur à 60% sont utilisées."
+            )
+            
             if st.button("Actualiser le combiné"):
-                # Generate new combo with selected risk level
+                # Generate new combo with selected risk level and module filtering option
                 predictions = st.session_state.get('predictions', [])
                 combo_generator = st.session_state.betting_combo_generator
                 st.session_state.daily_combo = combo_generator.generate_daily_combo(
                     arcan_predictions=predictions, 
-                    risk_level=risk_level
+                    risk_level=risk_level,
+                    use_top_modules=use_top_modules
                 )
                 st.rerun()
         
@@ -2447,9 +2455,31 @@ with tab8:
         
         # Generate best bets using the betting combo generator
         combo_generator = st.session_state.betting_combo_generator
+        
+        # Filtrer les prédictions par modules performants si demandé
+        filtered_predictions = predictions
+        if use_top_modules and predictions:
+            # Récupérer les performances des modules
+            module_performance = combo_generator._get_module_performance()
+            
+            # Filtrer pour ne garder que les prédictions des modules performants
+            top_modules = [module for module, perf in module_performance.items() if perf >= 0.6]
+            
+            if top_modules:
+                filtered_predictions = []
+                for pred in predictions:
+                    if pred.get('source_module') in top_modules:
+                        filtered_predictions.append(pred)
+                        
+                # Information sur le filtrage si activé
+                if filtered_predictions:
+                    st.success(f"Utilisation des {len(filtered_predictions)} prédictions des modules les plus performants: {', '.join(top_modules[:3])}...")
+                else:
+                    st.warning("Aucune prédiction des modules performants disponible actuellement.")
+        
         best_bets = combo_generator.generate_best_bets(
             matches=None,  # Let it fetch the matches
-            arcan_predictions=predictions,
+            arcan_predictions=filtered_predictions,
             min_confidence=0.55 if risk_level == 'high' else 0.65 if risk_level == 'medium' else 0.7
         )
         

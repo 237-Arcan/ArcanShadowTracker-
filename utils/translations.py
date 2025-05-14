@@ -60,6 +60,10 @@ en = {
     "remove_from_combo": "Remove",
     "clear_combo": "Clear Combo",
     "no_recommendations": "No recommendations available for current matches",
+    "use_top_modules": "Use top-performing modules only",
+    "top_modules_help": "When enabled, only predictions from modules with a success rate above 60% will be used",
+    "top_modules_active": "Using {count} predictions from top-performing modules: {modules}...",
+    "no_top_modules_data": "No predictions from top-performing modules currently available",
     
     # Predictions tab
     "match_predictions": "Match Predictions",
