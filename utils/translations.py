@@ -36,6 +36,7 @@ en = {
     "live_monitoring_tab": "Live Monitoring 🔄",
     "performance_notifications_tab": "Performance Notifications 📊",
     "daily_combo_tab": "Daily Combo 🎯",
+    "smart_recommendations_title": "Smart Recommendations 🎲",
     "notifications_center": "Notifications Center",
     "live_match_monitoring": "Live Match Monitoring",
     
@@ -248,7 +249,19 @@ en = {
     "full_moon_energy": "Full Moon Energy: Match near Full Moon - heightened energy",
     "match_foundation_sun": "Match Foundation: The Sun: Success, vitality, positive outcome",
     "current_energy_moon": "Current Energy: The Moon: Illusion, deception, uncertainty",
-    "outcome_tendency_fool": "Outcome Tendency: The Fool: Unpredictable outcome, new beginnings"
+    "outcome_tendency_fool": "Outcome Tendency: The Fool: Unpredictable outcome, new beginnings",
+    
+    # Smart Recommendations Tab
+    "smart_recommendations_description": "Get personalized betting market recommendations based on your betting history and preferences",
+    "recommended_markets": "Recommended Markets",
+    "preferred_markets": "Your Preferred Markets",
+    "your_betting_history": "Your Betting History",
+    "market_preference_score": "Preference Score",
+    "market_success_rate": "Success Rate",
+    "no_betting_history": "No betting history found. Add some bets to get recommendations.",
+    "add_bet_button": "Add Sample Betting History",
+    "recommendation_reason": "Reason",
+    "overall_performance": "Overall Performance"
 }
 
 # French translations
