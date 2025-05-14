@@ -372,16 +372,78 @@ with tab1:
     st.markdown(f"## {t('match_predictions')}")
     st.markdown(t('predictions_description'))
     
+    # Ajout de filtres intelligents pour les prédictions
+    with st.container():
+        st.markdown(f"### {t('prediction_filters')}")
+        
+        # Filtres en colonnes
+        filter_cols = st.columns([2, 1, 1])
+        
+        with filter_cols[0]:
+            # Type de prédiction
+            prediction_types = [
+                t('all_predictions'),
+                t('high_confidence_only'), 
+                t('value_bets_only'),
+                t('contrarian_picks')
+            ]
+            selected_prediction_type = st.selectbox(
+                t('prediction_type'),
+                prediction_types
+            )
+        
+        with filter_cols[1]:
+            # Seuil de confiance minimum
+            min_confidence = st.slider(
+                t('min_confidence'), 
+                50, 
+                95, 
+                70,
+                step=5
+            )
+        
+        with filter_cols[2]:
+            # Nombre de facteurs de confirmation minimum
+            min_factors = st.slider(
+                t('min_factors'), 
+                1, 
+                5, 
+                2
+            )
+    
     # Get upcoming matches for selected sport, league and date
     upcoming_matches = data_handler.get_upcoming_matches(st.session_state.selected_sport, st.session_state.selected_league, st.session_state.selected_date)
     
+    # Fonction pour vérifier si une prédiction correspond aux filtres
+    def matches_filters(prediction):
+        # Vérifier la confiance minimale
+        if prediction['confidence']*100 < min_confidence:
+            return False
+            
+        # Vérifier le type de prédiction
+        if selected_prediction_type == t('high_confidence_only') and prediction['confidence'] < 0.8:
+            return False
+        elif selected_prediction_type == t('value_bets_only') and not prediction.get('value_bet', False):
+            return False
+        elif selected_prediction_type == t('contrarian_picks') and not prediction.get('contrarian', False):
+            return False
+            
+        # Vérifier les facteurs de confirmation
+        confirming_factors = len([f for f in prediction['statistical_factors'] 
+                               if 'Strong' in f['value'] or 'Strongly' in f['value']])
+        if confirming_factors < min_factors:
+            return False
+            
+        return True
+    
     # Handle loading prediction state
     if st.session_state.loading_prediction:
+        st.markdown(f"### {t('analyzing_matches')}")
         prediction_progress = st.progress(0)
         
         for i in range(101):
             prediction_progress.progress(i/100)
-            time.sleep(0.02)
+            time.sleep(0.01)
         
         st.session_state.prediction_generated = True
         st.session_state.loading_prediction = False
@@ -389,6 +451,9 @@ with tab1:
     
     # Display predictions
     if st.session_state.prediction_generated and len(upcoming_matches) > 0:
+        # Générer les prédictions pour tous les matchs
+        match_predictions = []
+        
         for match in upcoming_matches:
             # Generate predictions for this match
             arcan_x_results = arcan_x.analyze_match(match) if arcan_x_active else {'confidence': 0.5, 'factors': []}
@@ -397,118 +462,299 @@ with tab1:
             # Calculate combined prediction
             prediction = convergence.generate_prediction(match, arcan_x_results, shadow_odds_results)
             
-            col1, col2 = st.columns([3, 1])
-            
-            with col1:
-                st.markdown(f"""
-                <div class='prediction-card'>
-                    <h3>{match['home_team']} {t('vs')} {match['away_team']}</h3>
-                    <p>{t('date')}: {match['date'].strftime('%d %b %Y %H:%M')}</p>
-                    <p>{t('prediction')}: <span class='gold-text'>{prediction['outcome']}</span></p>
-                    <p>{t('confidence')}: {prediction['confidence']*100:.1f}%</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                # Create the gauge chart for prediction confidence
-                fig = go.Figure(go.Indicator(
-                    mode = "gauge+number",
-                    value = prediction['confidence']*100,
-                    domain = {'x': [0, 1], 'y': [0, 1]},
-                    title = {'text': t('confidence')},
-                    gauge = {
-                        'axis': {'range': [0, 100], 'tickwidth': 1},
-                        'bar': {'color': "gold"},
-                        'steps': [
-                            {'range': [0, 50], 'color': "firebrick"},
-                            {'range': [50, 75], 'color': "darkorange"},
-                            {'range': [75, 100], 'color': "forestgreen"}
-                        ],
-                        'threshold': {
-                            'line': {'color': "white", 'width': 2},
-                            'thickness': 0.75,
-                            'value': prediction['confidence']*100
-                        }
-                    }
-                ))
-                fig.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=20))
-                st.plotly_chart(fig, use_container_width=True, key=f"gauge_{match['home_team']}_{match['away_team']}")
-            
-            # Show prediction details in an expander
-            with st.expander(t('view_details')):
-                col1, col2 = st.columns(2)
+            # Déterminer si c'est un value bet
+            prediction['value_bet'] = False
+            if all(k in match for k in ['home_odds', 'draw_odds', 'away_odds']):
+                # Déterminer le type de résultat prédit
+                outcome_key = ""
+                if prediction['outcome'] == 'home_win':
+                    outcome_key = 'home_odds'
+                elif prediction['outcome'] == 'draw':
+                    outcome_key = 'draw_odds'
+                elif prediction['outcome'] == 'away_win':
+                    outcome_key = 'away_odds'
                 
-                with col1:
-                    st.markdown(f"### {t('statistical_factors')}")
-                    for factor in prediction['statistical_factors']:
-                        factor_name = factor['name']
-                        # Try to translate the factor name
-                        if factor_name.lower() in ['form analysis', 'analyse de forme']:
-                            factor_name = t('form_analysis')
-                        elif factor_name.lower() in ['head-to-head record', 'historique des confrontations']:
-                            factor_name = t('head_to_head')
-                        elif factor_name.lower() in ['home advantage', 'avantage du terrain']:
-                            factor_name = t('home_advantage')
-                        elif factor_name.lower() in ['injury impact', 'impact des blessures']:
-                            factor_name = t('injury_impact')
-                        elif factor_name.lower() in ['recent momentum', 'dynamique récente']:
-                            factor_name = t('recent_momentum')
-                        
-                        # Translate the factor value if it matches known patterns
-                        factor_value = translate_factor_value(factor['value'])
-                        
-                        st.markdown(f"- {factor_name}: {factor_value}")
+                if outcome_key and outcome_key in match:
+                    implied_prob = 1 / match[outcome_key]
+                    prediction['value_bet'] = prediction['confidence'] > implied_prob + 0.1
+            
+            # Déterminer si c'est un pick contrarian
+            prediction['contrarian'] = False
+            if shadow_odds_active and 'public_favorite' in shadow_odds_results:
+                public_favorite = shadow_odds_results['public_favorite']
+                prediction['contrarian'] = prediction['outcome'] != public_favorite and prediction['confidence'] > 0.65
+            
+            # Ajouter la prédiction et le match à la liste
+            match_predictions.append({'match': match, 'prediction': prediction})
+        
+        # Filtrer les prédictions selon les critères
+        filtered_predictions = [mp for mp in match_predictions if matches_filters(mp['prediction'])]
+        
+        # Afficher le nombre de prédictions retenues
+        if filtered_predictions:
+            st.success(f"{t('matches_found')}: {len(filtered_predictions)}")
+            
+            # Tableau récapitulatif
+            data = []
+            for mp in filtered_predictions:
+                match = mp['match']
+                prediction = mp['prediction']
+                home_team = match.get('home_team', '')
+                away_team = match.get('away_team', '')
                 
-                with col2:
-                    st.markdown(f"### {t('esoteric_factors')}")
-                    for factor in prediction['esoteric_factors']:
-                        factor_name = factor['name']
-                        # Try to translate the factor name
-                        if factor_name.lower() in ['numerical resonance', 'résonance numérique']:
-                            factor_name = t('numerical_resonance')
-                        elif factor_name.lower() in ['gematria value', 'valeur gématrique']:
-                            factor_name = t('gematria_value')
-                        elif factor_name.lower() in ['astrological position', 'position astrologique']:
-                            factor_name = t('astrological_position')
-                        elif factor_name.lower() in ['tarot association', 'association du tarot']:
-                            factor_name = t('tarot_association')
-                        elif factor_name.lower() in ['karmic balance', 'équilibre karmique']:
-                            factor_name = t('karmic_balance')
-                        elif factor_name.lower() in ['venue energy', 'énergie du stade']:
-                            factor_name = t('venue_energy')
-                        elif factor_name.lower() in ['cycle pattern', 'motif cyclique']:
-                            factor_name = t('cycle_pattern')
-                        
-                        # Translate the factor value if it matches known patterns
-                        factor_value = translate_factor_value(factor['value'])
-                        
-                        st.markdown(f"- {factor_name}: {factor_value}")
+                # Convertir l'outcome en texte traduit
+                outcome_text = prediction['outcome'] 
+                if outcome_text == 'home_win':
+                    outcome_text = t('home_win')
+                elif outcome_text == 'away_win':
+                    outcome_text = t('away_win')
+                elif outcome_text == 'draw':
+                    outcome_text = t('draw')
                 
-                st.markdown(f"### {t('odds_analysis')}")
-                for factor in prediction['odds_factors']:
-                    factor_name = factor['name']
-                    # Try to translate the factor name
-                    if factor_name.lower() in ['line movement', 'mouvement des cotes']:
-                        factor_name = t('line_movement')
-                    elif factor_name.lower() in ['public betting %', 'paris publics %']:
-                        factor_name = t('public_betting')
-                    elif factor_name.lower() in ['sharp action', 'action des parieurs pro']:
-                        factor_name = t('sharp_action')
-                    elif factor_name.lower() in ['odds divergence', 'divergence des cotes']:
-                        factor_name = t('odds_divergence')
-                    elif factor_name.lower() in ['market overreaction', 'surréaction du marché']:
-                        factor_name = t('market_overreaction')
-                    elif factor_name.lower() in ['trap indicator', 'indicateur de piège']:
-                        factor_name = t('trap_indicator')
+                # Construire la ligne du tableau
+                data.append({
+                    t('match'): f"{home_team} vs {away_team}",
+                    t('time'): match.get('kickoff_time', '??:??'),
+                    t('prediction'): outcome_text,
+                    t('confidence'): f"{prediction['confidence']*100:.1f}%",
+                    t('value'): "✓" if prediction['value_bet'] else "",
+                    t('contrarian'): "✓" if prediction['contrarian'] else ""
+                })
+            
+            # Créer le DataFrame
+            df = pd.DataFrame(data)
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.warning(t('no_matches_criteria'))
+        
+        # Afficher les détails de chaque prédiction filtrée
+        if filtered_predictions:
+            st.markdown(f"### {t('detailed_predictions')}")
+            
+            for mp in filtered_predictions:
+                match = mp['match']
+                prediction = mp['prediction']
+                home_team = match.get('home_team', '')
+                away_team = match.get('away_team', '')
+                
+                # Créer une carte de prédiction améliorée
+                with st.container():
+                    # En-tête avec information match
+                    st.markdown(f"""
+                    <div class='prediction-card'>
+                        <div style='display:flex; justify-content:space-between; align-items:center;'>
+                            <h3>{home_team} {t('vs')} {away_team}</h3>
+                            <div style='text-align:right;'>
+                                <span style='background-color:#1a1a2e; padding:5px 10px; border-radius:5px;'>
+                                    {match.get('kickoff_time', '??:??')} | {match['date'].strftime('%d %b %Y')}
+                                </span>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
                     
-                    # Translate the factor value if it matches known patterns
-                    factor_value = translate_factor_value(factor['value'])
+                    # Afficher les badges pour value bet et contrarian
+                    badges = []
+                    if prediction['value_bet']:
+                        badges.append(f"<span style='background-color:green; color:white; padding:3px 8px; border-radius:3px; margin-right:5px;'>{t('value_bet')}</span>")
+                    if prediction['contrarian']:
+                        badges.append(f"<span style='background-color:purple; color:white; padding:3px 8px; border-radius:3px; margin-right:5px;'>{t('contrarian_pick')}</span>")
                     
-                    st.markdown(f"- {factor_name}: {factor_value}")
-    elif not st.session_state.prediction_generated:
-        st.info(t('no_predictions'))
+                    if badges:
+                        st.markdown(f"""
+                        <div style='margin-top:10px; margin-bottom:15px;'>
+                            {''.join(badges)}
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Corps de la prédiction
+                    prediction_cols = st.columns([2, 1])
+                    
+                    with prediction_cols[0]:
+                        # Afficher la prédiction
+                        outcome_text = prediction['outcome'] 
+                        if outcome_text == 'home_win':
+                            outcome_text = t('home_win')
+                        elif outcome_text == 'away_win':
+                            outcome_text = t('away_win')
+                        elif outcome_text == 'draw':
+                            outcome_text = t('draw')
+                        
+                        st.markdown(f"""
+                        <div style='margin-top:10px;'>
+                            <p style='font-size:18px;'>{t('prediction')}: <span class='gold-text' style='font-size:20px;'>{outcome_text}</span></p>
+                            <p>{t('confidence')}: <span style='color:#FFD700;'>{prediction['confidence']*100:.1f}%</span></p>
+                        """, unsafe_allow_html=True)
+                        
+                        # Afficher les cotes si disponibles
+                        if all(k in match for k in ['home_odds', 'draw_odds', 'away_odds']):
+                            st.markdown(f"""
+                            <p style='margin-top:10px;'>{t('odds')}: 
+                                <span style='margin-right:15px;'>1: {match['home_odds']}</span>
+                                <span style='margin-right:15px;'>X: {match['draw_odds']}</span>
+                                <span>2: {match['away_odds']}</span>
+                            </p>
+                            """, unsafe_allow_html=True)
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    
+                    with prediction_cols[1]:
+                        # Create the gauge chart for prediction confidence
+                        fig = go.Figure(go.Indicator(
+                            mode = "gauge+number",
+                            value = prediction['confidence']*100,
+                            domain = {'x': [0, 1], 'y': [0, 1]},
+                            title = {'text': t('confidence')},
+                            gauge = {
+                                'axis': {'range': [0, 100], 'tickwidth': 1},
+                                'bar': {'color': "gold"},
+                                'steps': [
+                                    {'range': [0, 50], 'color': "firebrick"},
+                                    {'range': [50, 75], 'color': "darkorange"},
+                                    {'range': [75, 100], 'color': "forestgreen"}
+                                ],
+                                'threshold': {
+                                    'line': {'color': "white", 'width': 2},
+                                    'thickness': 0.75,
+                                    'value': prediction['confidence']*100
+                                }
+                            }
+                        ))
+                        fig.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=20))
+                        st.plotly_chart(fig, use_container_width=True, key=f"gauge_{home_team}_{away_team}")
+                    
+                    # Fermer la div prediction-card
+                    st.markdown("</div>", unsafe_allow_html=True)
+                    
+                    # Show prediction details in an expander
+                    with st.expander(t('view_details')):
+                        analysis_cols = st.columns(3)
+                        
+                        with analysis_cols[0]:
+                            st.markdown(f"#### {t('statistical_factors')}")
+                            for factor in prediction['statistical_factors']:
+                                factor_name = factor['name']
+                                # Try to translate the factor name using t function
+                                if factor_name.lower() in ['form analysis', 'analyse de forme']:
+                                    factor_name = t('form_analysis')
+                                elif factor_name.lower() in ['head-to-head record', 'historique des confrontations']:
+                                    factor_name = t('head_to_head')
+                                elif factor_name.lower() in ['home advantage', 'avantage du terrain']:
+                                    factor_name = t('home_advantage')
+                                elif factor_name.lower() in ['injury impact', 'impact des blessures']:
+                                    factor_name = t('injury_impact')
+                                elif factor_name.lower() in ['recent momentum', 'dynamique récente']:
+                                    factor_name = t('recent_momentum')
+                                
+                                # Translate the factor value if it matches known patterns
+                                factor_value = translate_factor_value(factor['value'])
+                                
+                                # Color-code the factor value
+                                color = "forestgreen"
+                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                    color = "forestgreen"
+                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                    color = "darkorange"
+                                elif "Neutral" in factor['value']:
+                                    color = "gray"
+                                
+                                st.markdown(f"""
+                                <div class='factor-container'>
+                                    <span class='factor-name'>{factor_name}</span>: 
+                                    <span style='color:{color};'>{factor_value}</span>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        with analysis_cols[1]:
+                            st.markdown(f"#### {t('esoteric_factors')}")
+                            for factor in prediction['esoteric_factors']:
+                                factor_name = factor['name']
+                                # Try to translate the factor name using t function
+                                if factor_name.lower() in ['numerical resonance', 'résonance numérique']:
+                                    factor_name = t('numerical_resonance')
+                                elif factor_name.lower() in ['gematria value', 'valeur gématrique']:
+                                    factor_name = t('gematria_value')
+                                elif factor_name.lower() in ['astrological position', 'position astrologique']:
+                                    factor_name = t('astrological_position')
+                                elif factor_name.lower() in ['tarot association', 'association du tarot']:
+                                    factor_name = t('tarot_association')
+                                elif factor_name.lower() in ['karmic balance', 'équilibre karmique']:
+                                    factor_name = t('karmic_balance')
+                                elif factor_name.lower() in ['venue energy', 'énergie du stade']:
+                                    factor_name = t('venue_energy')
+                                elif factor_name.lower() in ['cycle pattern', 'motif cyclique']:
+                                    factor_name = t('cycle_pattern')
+                                
+                                # Translate the factor value if it matches known patterns
+                                factor_value = translate_factor_value(factor['value'])
+                                
+                                # Color-code the factor value
+                                color = "mediumpurple"
+                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                    color = "mediumpurple"
+                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                    color = "plum"
+                                elif "Neutral" in factor['value']:
+                                    color = "gray"
+                                
+                                st.markdown(f"""
+                                <div class='factor-container'>
+                                    <span class='factor-name'>{factor_name}</span>: 
+                                    <span style='color:{color};'>{factor_value}</span>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        with analysis_cols[2]:
+                            st.markdown(f"#### {t('odds_analysis')}")
+                            for factor in prediction['odds_factors']:
+                                factor_name = factor['name']
+                                # Try to translate the factor name using t function
+                                if factor_name.lower() in ['line movement', 'mouvement des cotes']:
+                                    factor_name = t('line_movement')
+                                elif factor_name.lower() in ['public betting %', 'paris publics %']:
+                                    factor_name = t('public_betting')
+                                elif factor_name.lower() in ['sharp action', 'action des parieurs pro']:
+                                    factor_name = t('sharp_action')
+                                elif factor_name.lower() in ['odds divergence', 'divergence des cotes']:
+                                    factor_name = t('odds_divergence')
+                                elif factor_name.lower() in ['market overreaction', 'surréaction du marché']:
+                                    factor_name = t('market_overreaction')
+                                elif factor_name.lower() in ['trap indicator', 'indicateur de piège']:
+                                    factor_name = t('trap_indicator')
+                                
+                                # Translate the factor value if it matches known patterns
+                                factor_value = translate_factor_value(factor['value'])
+                                
+                                # Color-code the factor value
+                                color = "gold"
+                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                    color = "gold"
+                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                    color = "goldenrod"
+                                elif "Neutral" in factor['value']:
+                                    color = "gray"
+                                
+                                st.markdown(f"""
+                                <div class='factor-container'>
+                                    <span class='factor-name'>{factor_name}</span>: 
+                                    <span style='color:{color};'>{factor_value}</span>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        # Ajouter une section d'analyse approfondie
+                        st.markdown(f"#### {t('deep_analysis')}")
+                        st.markdown(f"""
+                        <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
+                            <p>{arcan_brain.generate_analysis_insight(match, prediction)}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                # Ajouter un séparateur entre les prédictions
+                st.markdown("<hr style='margin:30px 0; border-color:#333;'>", unsafe_allow_html=True)
+                
+    elif st.session_state.prediction_generated and len(upcoming_matches) == 0:
+        st.warning(t('no_matches').format(league=st.session_state.selected_league, date=st.session_state.selected_date.strftime('%d %b %Y')))
     else:
-        st.info(t('no_matches', league=st.session_state.selected_league, date=st.session_state.selected_date.strftime('%d/%m/%Y')))
+        st.info(t('no_predictions'))
 
 with tab2:
     st.markdown(f"## {t('system_dashboard')}")

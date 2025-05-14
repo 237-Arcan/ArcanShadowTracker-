@@ -2786,6 +2786,107 @@ class ArcanBrain:
         except Exception as e:
             print(f"Error saving neural state: {str(e)}")
             return False
+    
+    def generate_analysis_insight(self, match_data, prediction):
+        """
+        Generate deep analysis insight for a match prediction based on patterns, anomalies, and context.
+        
+        Args:
+            match_data (dict): The match information
+            prediction (dict): The prediction data
+            
+        Returns:
+            str: Detailed insight text for the match
+        """
+        # Extract team names
+        home_team = match_data.get('home_team', 'Home Team')
+        away_team = match_data.get('away_team', 'Away Team')
+        
+        # Initialize insights list
+        insights = []
+        
+        # 1. Analyze team form resonance
+        form_insight = False
+        if 'statistical_factors' in prediction:
+            for factor in prediction['statistical_factors']:
+                if factor['name'].lower() in ['form analysis', 'analyse de forme'] and 'strong' in factor['value'].lower():
+                    form_insight = True
+                    break
+        
+        if form_insight:
+            insights.append(f"L'analyse de forme indique une dynamique significative pour {home_team if 'home' in prediction['outcome'] else away_team}.")
+        
+        # 2. Check for esoteric patterns
+        esoteric_insight = False
+        if 'esoteric_factors' in prediction:
+            for factor in prediction['esoteric_factors']:
+                if 'strong' in factor['value'].lower():
+                    esoteric_insight = True
+                    factor_name = factor['name'].lower()
+                    if 'numerical' in factor_name:
+                        insights.append(f"Une forte résonance numérique est présente dans ce match, suggérant un alignement favorisant {prediction['outcome']}.")
+                    elif 'karmic' in factor_name:
+                        insights.append(f"Un équilibre karmique se manifeste entre ces équipes, affectant potentiellement le résultat du match.")
+                    elif 'cycle' in factor_name:
+                        insights.append(f"Un motif cyclique émergent influence fortement ce match, créant une opportunité de prédiction fiable.")
+                    elif 'tarot' in factor_name or 'astrological' in factor_name:
+                        insights.append(f"Les influences cosmiques et symboliques favorisent particulièrement {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un résultat équilibré'}.")
+                    break
+        
+        # 3. Analyze betting patterns
+        betting_insight = False
+        public_vs_sharp = False
+        if 'odds_factors' in prediction:
+            for factor in prediction['odds_factors']:
+                factor_name = factor['name'].lower()
+                if ('public' in factor_name and 'strong' in factor['value'].lower()):
+                    betting_insight = True
+                    insights.append(f"Le public penche fortement vers {home_team if 'home' not in prediction['outcome'] else away_team}, créant une opportunité de valeur contraire.")
+                    public_vs_sharp = True
+                elif ('sharp' in factor_name and 'strong' in factor['value'].lower()):
+                    betting_insight = True
+                    insights.append(f"Les parieurs professionnels montrent un intérêt significatif pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'le match nul'}.")
+                elif ('trap' in factor_name and 'detect' in factor['value'].lower()):
+                    betting_insight = True
+                    insights.append("Un piège de cotes a été détecté dans ce match, suggérant que les bookmakers tentent de manipuler le marché.")
+        
+        # 4. Generate convergence insight
+        if form_insight and esoteric_insight and betting_insight:
+            insights.append(f"Une convergence rare de facteurs statistiques, ésotériques et de cotes soutient cette prédiction, augmentant considérablement sa fiabilité.")
+        elif form_insight and esoteric_insight:
+            insights.append(f"La convergence entre l'analyse de forme et les facteurs ésotériques suggère une prédiction fiable.")
+        elif form_insight and betting_insight:
+            insights.append(f"L'analyse de forme est confirmée par les tendances de paris, renforçant la confiance dans cette prédiction.")
+        elif esoteric_insight and betting_insight:
+            insights.append(f"Les facteurs ésotériques alignés avec les mouvements de cotes indiquent une opportunité cachée.")
+            
+        # 5. Add contrarian insight if applicable
+        if prediction.get('contrarian', False):
+            insights.append(f"Cette prédiction va à l'encontre du consensus général, offrant une opportunité de valeur significative si correcte.")
+            
+        # 6. Add value bet insight if applicable
+        if prediction.get('value_bet', False):
+            insights.append(f"Les cotes actuelles offrent une valeur considérable basée sur notre évaluation de la probabilité réelle.")
+        
+        # 7. Generate neural network insight based on pattern recognition
+        outcome_probability = prediction.get('confidence', 0.5) * 100
+        if outcome_probability > 80:
+            insights.append(f"Le réseau neuronal détecte un schéma à haute confiance ({outcome_probability:.1f}%) pour ce résultat spécifique.")
+        elif public_vs_sharp:
+            insights.append(f"Le réseau neuronal a identifié une divergence significative entre l'opinion publique et celle des parieurs professionnels.")
+        
+        # If no insights generated, add a default one
+        if not insights:
+            insights.append(f"L'analyse prédictive suggère une tendance favorable pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un match équilibré'}, mais avec des facteurs mixtes.")
+        
+        # Create a cohesive narrative from the insights
+        if len(insights) >= 3:
+            # Use only the top 3 most interesting insights
+            final_text = " ".join(insights[:3])
+        else:
+            final_text = " ".join(insights)
+            
+        return final_text
             
     def generate_reflex_feedback(self, analysis_result, match_data=None):
         """
