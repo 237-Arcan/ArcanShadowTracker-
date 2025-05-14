@@ -2256,6 +2256,134 @@ with tab7:
                             )
                             
                             st.plotly_chart(fig, use_container_width=True)
+                            
+                            # Synthèse comparative
+                            st.markdown("### Synthèse Comparative")
+                            
+                            # Extraire les données d'analyse pertinentes
+                            analysis = match_data.get('live_analysis', {})
+                            
+                            if 'momentum' in analysis or 'bet_pulse' in analysis or 'karmic_flow' in analysis:
+                                comp_cols = st.columns(2)
+                                
+                                with comp_cols[0]:
+                                    st.markdown("#### Analyse des Tendances")
+                                    
+                                    # Tendances de momentum
+                                    if 'momentum' in analysis:
+                                        momentum_data = analysis['momentum']
+                                        
+                                        # Créer un résumé du momentum
+                                        current_momentum = momentum_data.get('current_momentum', 0)
+                                        normalized_momentum = min(max(current_momentum * 100, -100), 100)
+                                        
+                                        # Déterminer la tendance à partir du momentum
+                                        if normalized_momentum > 20:
+                                            momentum_trend = f"Momentum en faveur de {match_data.get('home_team', 'Domicile')} (+{normalized_momentum:.1f}%)"
+                                            momentum_color = "green"
+                                        elif normalized_momentum < -20:
+                                            momentum_trend = f"Momentum en faveur de {match_data.get('away_team', 'Extérieur')} ({normalized_momentum:.1f}%)"
+                                            momentum_color = "red"
+                                        else:
+                                            momentum_trend = f"Momentum équilibré ({normalized_momentum:.1f}%)"
+                                            momentum_color = "orange"
+                                        
+                                        st.markdown(f"<span style='color:{momentum_color};font-weight:bold;'>{momentum_trend}</span>", unsafe_allow_html=True)
+                                    
+                                    # Tendances de marché
+                                    if 'bet_pulse' in analysis:
+                                        bet_data = analysis['bet_pulse']
+                                        st.markdown("**Tendances de marché:**")
+                                        
+                                        if all(k in bet_data for k in ['home_volume', 'home_change', 'draw_volume', 'draw_change', 'away_volume', 'away_change']):
+                                            # Créer un mini tableau
+                                            market_data = {
+                                                "Type": ["Domicile", "Nul", "Extérieur"],
+                                                "Volume": [
+                                                    f"{bet_data.get('home_volume', 0)}%", 
+                                                    f"{bet_data.get('draw_volume', 0)}%", 
+                                                    f"{bet_data.get('away_volume', 0)}%"
+                                                ],
+                                                "Évolution": [
+                                                    f"{bet_data.get('home_change', 0)}%", 
+                                                    f"{bet_data.get('draw_change', 0)}%", 
+                                                    f"{bet_data.get('away_change', 0)}%"
+                                                ]
+                                            }
+                                            
+                                            market_df = pd.DataFrame(market_data)
+                                            st.dataframe(market_df, hide_index=True)
+                                            
+                                            # Identifier la tendance principale du marché
+                                            home_change = bet_data.get('home_change', 0)
+                                            draw_change = bet_data.get('draw_change', 0)
+                                            away_change = bet_data.get('away_change', 0)
+                                            
+                                            max_change = max(home_change, draw_change, away_change)
+                                            if max_change == home_change:
+                                                st.markdown(f"👆 Tendance marché: **Domicile** en augmentation")
+                                            elif max_change == draw_change:
+                                                st.markdown(f"👉 Tendance marché: **Nul** en augmentation")
+                                            else:
+                                                st.markdown(f"👇 Tendance marché: **Extérieur** en augmentation")
+                                
+                                with comp_cols[1]:
+                                    st.markdown("#### Facteurs d'influence")
+                                    
+                                    # Facteurs de momentum
+                                    if 'momentum' in analysis and 'factors' in analysis['momentum']:
+                                        factors = analysis['momentum'].get('factors', {})
+                                        
+                                        if factors:
+                                            for factor, value in list(factors.items())[:3]:  # Afficher les 3 premiers facteurs
+                                                factor_value = min(max(value * 100, -100), 100)
+                                                
+                                                if factor_value > 0:
+                                                    direction = f"👆 {abs(factor_value):.1f}% en faveur de {match_data.get('home_team', 'Domicile')}"
+                                                    color = "rgba(0, 128, 0, 0.8)"
+                                                elif factor_value < 0:
+                                                    direction = f"👇 {abs(factor_value):.1f}% en faveur de {match_data.get('away_team', 'Extérieur')}"
+                                                    color = "rgba(255, 0, 0, 0.8)"
+                                                else:
+                                                    direction = "Neutre"
+                                                    color = "rgba(128, 128, 128, 0.8)"
+                                                    
+                                                st.markdown(f"""
+                                                <div style='padding: 8px; margin-bottom: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;'>
+                                                    <div style='font-weight: bold;'>{factor.replace('_', ' ').title()}</div>
+                                                    <div style='color: {color};'>{direction}</div>
+                                                </div>
+                                                """, unsafe_allow_html=True)
+                                    
+                                    # Flux karmique
+                                    if 'karmic_flow' in analysis:
+                                        karmic_data = analysis['karmic_flow']
+                                        
+                                        if 'balance' in karmic_data:
+                                            balance = karmic_data['balance']
+                                            
+                                            # Interpréter la balance karmique
+                                            if float(balance) < -0.3:
+                                                st.markdown(f"⚡ **Flux karmique** fortement en faveur de **{match_data.get('away_team', 'Extérieur')}**")
+                                            elif float(balance) > 0.3:
+                                                st.markdown(f"⚡ **Flux karmique** fortement en faveur de **{match_data.get('home_team', 'Domicile')}**")
+                                            else:
+                                                st.markdown(f"⚡ **Flux karmique** relativement équilibré")
+                            
+                            # Rapport de synthèse avec recommandations
+                            st.markdown("#### Synthèse et Recommandations")
+                            
+                            if 'arcan_sentinel' in analysis:
+                                sentinel = analysis['arcan_sentinel']
+                                
+                                if 'insights' in sentinel:
+                                    insights = sentinel.get('insights', [])
+                                    for insight in insights:
+                                        st.markdown(f"- {insight}")
+                                
+                                if 'recommendation' in sentinel:
+                                    st.markdown("**Recommandation:**")
+                                    st.markdown(f"{sentinel['recommendation']}")
         else:
             st.info(t('no_live_tracked_matches'))
 
