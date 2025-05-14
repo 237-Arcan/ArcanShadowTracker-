@@ -45,10 +45,10 @@ st.set_page_config(
 if 'selected_sport' not in st.session_state:
     st.session_state.selected_sport = 'Football'
 if 'selected_league' not in st.session_state:
-    st.session_state.selected_league = 'Campeonato Brasileiro Série A'  # We have real matches for this league
+    st.session_state.selected_league = 'La Liga'  # Changé pour La Liga qui a des données
 if 'selected_date' not in st.session_state:
-    # Set the date to May 12, 2025 for which we have real match data
-    st.session_state.selected_date = datetime(2025, 5, 12).date()
+    # Set the date to today since we should have data for today
+    st.session_state.selected_date = datetime.now().date()
 if 'prediction_generated' not in st.session_state:
     st.session_state.prediction_generated = False
 if 'loading_prediction' not in st.session_state:
@@ -2363,10 +2363,22 @@ with tab8:
         # Generate daily combo on first load
         predictions = st.session_state.get('predictions', [])
         combo_generator = st.session_state.betting_combo_generator
+        
+        # Récupérer les matchs du jour pour La Liga (nous savons qu'ils existent)
+        sport = 'Football'
+        league = 'La Liga'
+        date = datetime.now().date()
+        upcoming_matches = data_handler.get_upcoming_matches(sport, league, date)
+        
+        # Générer le combiné avec les matchs récupérés
         st.session_state.daily_combo = combo_generator.generate_daily_combo(
+            matches=upcoming_matches,
             arcan_predictions=predictions, 
             risk_level='medium'
         )
+        
+        # Log pour debug
+        st.write(f"Généré combiné avec {len(upcoming_matches)} matchs et {len(predictions) if predictions else 0} prédictions")
     
     # Create layout with two columns
     daily_combo_cols = st.columns([3, 2])
@@ -2396,11 +2408,21 @@ with tab8:
                 # Generate new combo with selected risk level and module filtering option
                 predictions = st.session_state.get('predictions', [])
                 combo_generator = st.session_state.betting_combo_generator
+                
+                # Récupérer les matchs du jour pour La Liga (nous savons qu'ils existent)
+                sport = 'Football'
+                league = 'La Liga'
+                date = datetime.now().date()
+                upcoming_matches = data_handler.get_upcoming_matches(sport, league, date)
+                
+                # Générer le combiné avec les matchs récupérés
                 st.session_state.daily_combo = combo_generator.generate_daily_combo(
+                    matches=upcoming_matches,
                     arcan_predictions=predictions, 
                     risk_level=risk_level,
                     use_top_modules=use_top_modules
                 )
+                
                 st.rerun()
         
         st.markdown(f"### {t('recommended_bets')}")

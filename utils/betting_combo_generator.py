@@ -6,7 +6,9 @@ pour générer des combinés de paris à forte valeur espérée.
 
 import logging
 import random
+import uuid
 from datetime import datetime
+from functools import reduce
 import pandas as pd
 import numpy as np
 from .data_enrichment import DataEnrichment
