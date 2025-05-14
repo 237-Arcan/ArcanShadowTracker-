@@ -203,6 +203,8 @@ fr = {
     "historical_tab": "Analyse Historique",
     "module_details_tab": "Détails des Modules",
     "live_match_tab": "Match en Direct 🔴",
+    "notifications_tab": "Notifications 🔔",
+    "notifications_center": "Centre de Notifications",
     
     # Predictions tab
     "match_predictions": "Prédictions de Matches",
