@@ -21,6 +21,10 @@ en = {
     "cycles_depth": "Historical Cycles Depth",
     "esoteric_influence": "Esoteric Influence Weight",
     "generate_predictions": "Generate Predictions",
+    "todays_matches": "Today's Matches",
+    "upcoming_matches": "Upcoming Matches",
+    "no_matches_today": "No matches today for selected sport and league",
+    "no_upcoming_matches": "No upcoming matches in the next 7 days",
     
     # Tab titles
     "predictions_tab": "Predictions",
@@ -196,6 +200,10 @@ fr = {
     "cycles_depth": "Profondeur des Cycles Historiques",
     "esoteric_influence": "Poids de l'Influence Ésotérique",
     "generate_predictions": "Générer les Prédictions",
+    "todays_matches": "Matchs du Jour",
+    "upcoming_matches": "Matchs à Venir",
+    "no_matches_today": "Aucun match aujourd'hui pour le sport et la ligue sélectionnés",
+    "no_upcoming_matches": "Aucun match à venir dans les 7 prochains jours",
     
     # Tab titles
     "predictions_tab": "Prédictions",

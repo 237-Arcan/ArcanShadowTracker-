@@ -191,6 +191,44 @@ def local_css():
         align-items: center;
         justify-content: space-between;
     }
+    
+    /* Sidebar match styles */
+    .sidebar-match {
+        background-color: rgba(60, 60, 100, 0.2);
+        border-radius: 5px;
+        padding: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #9966CC;
+    }
+    
+    .match-time {
+        font-size: 12px;
+        color: #AAA;
+        margin-bottom: 3px;
+    }
+    
+    .match-teams {
+        font-weight: bold;
+        font-size: 14px;
+        color: white;
+    }
+    
+    /* Style for the match buttons in sidebar */
+    div[data-testid="stHorizontalBlock"] .stButton button {
+        background-color: #1E1E3F;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 4px;
+        width: 100%;
+        font-size: 12px;
+        padding: 3px 0;
+        transition: background-color 0.3s;
+    }
+    
+    div[data-testid="stHorizontalBlock"] .stButton button:hover {
+        background-color: #333366;
+        border-color: #9966CC;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -243,8 +281,80 @@ with st.sidebar:
         cycles_depth = st.slider(t('cycles_depth'), 1, 10, 5)
         esoteric_weight = st.slider(t('esoteric_influence'), 0.0, 1.0, 0.4)
     
+    # Matchs du jour
+    st.markdown("---")
+    st.markdown(f"### 🗓️ {t('todays_matches')}")
+    
+    # Récupérer les matchs d'aujourd'hui
+    today_matches = data_handler.get_upcoming_matches(selected_sport, selected_league, datetime.now().date())
+    
+    if today_matches:
+        for match in today_matches:
+            with st.container():
+                st.markdown(f"""
+                <div class="sidebar-match">
+                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
+                    <div class="match-teams">{match['home_team']} vs {match['away_team']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                cols = st.columns(3)
+                with cols[0]:
+                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "home_win"
+                with cols[1]:
+                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "draw"
+                with cols[2]:
+                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_{match['home_team']}_{match['away_team']}"):
+                        st.session_state.selected_match = match
+                        st.session_state.selected_prediction = "away_win"
+    else:
+        st.info(t('no_matches_today'))
+    
+    # Matchs à venir cette semaine
+    st.markdown(f"### 📆 {t('upcoming_matches')}")
+    
+    # Calculer les dates de la semaine à venir
+    today = datetime.now().date()
+    week_dates = [today + timedelta(days=i) for i in range(1, 8)]
+    
+    # Récupérer les matchs de la semaine
+    upcoming_week_matches = []
+    for date in week_dates:
+        day_matches = data_handler.get_upcoming_matches(selected_sport, selected_league, date)
+        if day_matches:
+            for match in day_matches:
+                match['date'] = date
+                upcoming_week_matches.append(match)
+    
+    if upcoming_week_matches:
+        # Grouper par date
+        dates_with_matches = {}
+        for match in upcoming_week_matches:
+            date_str = match['date'].strftime('%d %b')
+            if date_str not in dates_with_matches:
+                dates_with_matches[date_str] = []
+            dates_with_matches[date_str].append(match)
+        
+        # Créer un sélecteur de dates
+        if dates_with_matches:
+            date_tabs = st.tabs(list(dates_with_matches.keys()))
+            
+            for i, date_str in enumerate(dates_with_matches.keys()):
+                with date_tabs[i]:
+                    for match in dates_with_matches[date_str]:
+                        st.markdown(f"{match['home_team']} vs {match['away_team']}")
+                        if 'kickoff_time' in match:
+                            st.caption(f"⏰ {match['kickoff_time']}")
+    else:
+        st.info(t('no_upcoming_matches'))
+    
     # Generate prediction button
-    if st.button(t('generate_predictions')):
+    st.markdown("---")
+    if st.button(t('generate_predictions'), use_container_width=True, type="primary"):
         st.session_state.loading_prediction = True
 
 # Main content area with tabs
