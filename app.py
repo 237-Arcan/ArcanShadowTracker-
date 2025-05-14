@@ -26,6 +26,9 @@ from modules.set_piece_threat_evaluator import SetPieceThreatEvaluator
 # Import des modules avancés
 from modules.karmic_flow_plus import KarmicFlowPlus
 from modules.momentum_tracker_2 import MomentumTracker2
+# Import des nouveaux modules
+from modules.bet_trap_map import BetTrapMap
+from modules.stadium_spirit import StadiumSpirit
 from utils.data_handler import DataHandler
 from utils.translations import get_text
 from assets.symbols import get_symbol
