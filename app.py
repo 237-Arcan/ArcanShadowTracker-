@@ -1622,7 +1622,7 @@ with tab6:
     st.markdown(f"## {t('live_match_monitoring')}")
     
     # Check if we have an active live tracking session
-    if not st.session_state.live_tracking_active:
+    if not hasattr(st.session_state, 'live_tracking_active') or not st.session_state.live_tracking_active:
         # No active session - show placeholder and guide user to Live Match tab
         st.info("""
         👋 **Bienvenue dans le Centre de Surveillance en Direct**
@@ -1638,10 +1638,108 @@ with tab6:
             # Set active tab to Live Match (index 4)
             st.session_state.active_tab = 4
             st.rerun()
-    
     else:
         # Active tracking session - show live monitoring interface
         # Get the match data and analysis
+        match_data = st.session_state.live_match_data
+        live_analysis = st.session_state.live_analysis
+        home_team = match_data.get('home_team', 'Home Team')
+        away_team = match_data.get('away_team', 'Away Team')
+        
+        # Match header with score
+        home_score, away_score = st.session_state.current_match_score
+        current_minute = st.session_state.current_match_minute
+        
+        st.markdown(f"""
+        <div style='background-color: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; margin-bottom: 15px;'>
+            <div style='display: flex; justify-content: space-between; align-items: center;'>
+                <div style='flex: 2; text-align: right; font-size: 24px; font-weight: bold;'>{home_team}</div>
+                <div style='flex: 1; text-align: center; font-size: 28px; font-weight: bold;'>
+                    {home_score} - {away_score}
+                </div>
+                <div style='flex: 2; text-align: left; font-size: 24px; font-weight: bold;'>{away_team}</div>
+            </div>
+            <div style='text-align: center; font-size: 18px; margin-top: 5px;'>
+                <span style='background-color: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px;'>{current_minute}'</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Quick update controls
+        update_cols = st.columns([1, 1, 1])
+        with update_cols[0]:
+            if st.button("⏱️ +1 Minute", help="Avance le match d'une minute"):
+                st.session_state.current_match_minute += 1
+                st.session_state.live_analysis = arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score
+                )
+                st.rerun()
+        
+        with update_cols[1]:
+            if st.button("⚽ But Domicile", help="Ajoute un but pour l'équipe à domicile"):
+                st.session_state.current_match_score[0] += 1
+                
+                # Create goal event
+                event = {
+                    'type': "Goal",
+                    'team': home_team,
+                    'minute': st.session_state.current_match_minute,
+                    'details': f"But marqué par {home_team}"
+                }
+                
+                # Make sure match_events exists in session state
+                if not hasattr(st.session_state, 'match_events'):
+                    st.session_state.match_events = []
+                
+                # Add to events list
+                st.session_state.match_events.append(event)
+                
+                # Update match state with new score and event
+                arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score,
+                    event
+                )
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+                st.rerun()
+        
+        with update_cols[2]:
+            if st.button("⚽ But Extérieur", help="Ajoute un but pour l'équipe à l'extérieur"):
+                st.session_state.current_match_score[1] += 1
+                
+                # Create goal event
+                event = {
+                    'type': "Goal",
+                    'team': away_team,
+                    'minute': st.session_state.current_match_minute,
+                    'details': f"But marqué par {away_team}"
+                }
+                
+                # Make sure match_events exists in session state
+                if not hasattr(st.session_state, 'match_events'):
+                    st.session_state.match_events = []
+                
+                # Add to events list
+                st.session_state.match_events.append(event)
+                
+                # Update match state with new score and event
+                arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score,
+                    event
+                )
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+                st.rerun()
+                
+        # Analysis tabs
+        analysis_tabs = st.tabs([
+            "Momentum", 
+            "Facteurs", 
+            "Cotes & Marchés", 
+            "Modèles Neuraux",
+            "Alertes"
+        ])
         match_data = st.session_state.live_match_data
         live_analysis = st.session_state.live_analysis
         home_team = match_data.get('home_team', 'Home Team')
@@ -1756,7 +1854,8 @@ with tab6:
         }
     ]
     
-    if notifications_enabled and len(notifications) > 0:
+    # Display notifications
+    if len(notifications) > 0:
         for notification in notifications:
             with st.container():
                 # Create a colored notification box based on priority
