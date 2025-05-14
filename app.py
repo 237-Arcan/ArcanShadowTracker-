@@ -1617,55 +1617,113 @@ with tab5:
     # (In a real implementation, this would be based on actual system architecture)
     st.info("This module is part of the ArcanShadow integrated prediction system. It receives inputs from data sources and other modules, processes them according to its specialized algorithms, and outputs prediction signals that feed into the convergence layer.")
 
-# Notifications Tab
+# Live Monitoring Tab (formerly Notifications Tab)
 with tab6:
-    st.markdown(f"## {t('notifications_center')}")
-    st.markdown("""
-    Recevez des alertes intelligentes sur des opportunités de paris et des changements importants 
-    dans les matchs suivis. Configurez vos préférences de notification pour rester informé en temps réel.
-    """)
+    st.markdown(f"## {t('live_match_monitoring')}")
     
-    # Notifications settings
-    st.markdown("### Configuration des notifications")
+    # Check if we have an active live tracking session
+    if not st.session_state.live_tracking_active:
+        # No active session - show placeholder and guide user to Live Match tab
+        st.info("""
+        👋 **Bienvenue dans le Centre de Surveillance en Direct**
+        
+        Cette interface affiche les analyses et alertes en temps réel d'ArcanSentinel lorsqu'un match est suivi.
+        
+        Pour commencer à suivre un match, allez dans l'onglet **"Match en Direct"** et sélectionnez un match dans 
+        votre championnat. Une fois le suivi activé, vous verrez ici toutes les analyses, alertes et prédictions en temps réel.
+        """)
+        
+        # Quick action button to jump to live tab
+        if st.button("Aller à l'onglet Match en Direct", type="primary"):
+            # Set active tab to Live Match (index 4)
+            st.session_state.active_tab = 4
+            st.rerun()
     
-    # Enable notifications toggle
-    notifications_enabled = st.toggle("Activer les notifications", value=True)
-    
-    if notifications_enabled:
-        # Notification preferences
-        st.markdown("#### Préférences de notification")
+    else:
+        # Active tracking session - show live monitoring interface
+        # Get the match data and analysis
+        match_data = st.session_state.live_match_data
+        live_analysis = st.session_state.live_analysis
+        home_team = match_data.get('home_team', 'Home Team')
+        away_team = match_data.get('away_team', 'Away Team')
         
-        col1, col2 = st.columns(2)
+        # Match header with score
+        home_score, away_score = st.session_state.current_match_score
+        current_minute = st.session_state.current_match_minute
         
-        with col1:
-            st.markdown("##### Types d'alertes")
-            notify_value_bets = st.checkbox("Opportunités de paris à valeur", value=True)
-            notify_odds_movements = st.checkbox("Mouvements significatifs de cotes", value=True)
-            notify_momentum_shifts = st.checkbox("Changements importants de momentum", value=True)
-            notify_match_events = st.checkbox("Événements clés de match", value=True)
-            notify_prediction_updates = st.checkbox("Mises à jour de prédictions", value=True)
+        st.markdown(f"""
+        <div style='background-color: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; margin-bottom: 15px;'>
+            <div style='display: flex; justify-content: space-between; align-items: center;'>
+                <div style='flex: 2; text-align: right; font-size: 24px; font-weight: bold;'>{home_team}</div>
+                <div style='flex: 1; text-align: center; font-size: 28px; font-weight: bold;'>
+                    {home_score} - {away_score}
+                </div>
+                <div style='flex: 2; text-align: left; font-size: 24px; font-weight: bold;'>{away_team}</div>
+            </div>
+            <div style='text-align: center; font-size: 18px; margin-top: 5px;'>
+                <span style='background-color: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px;'>{current_minute}'</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        with col2:
-            st.markdown("##### Seuils de notification")
-            odds_movement_threshold = st.slider("Seuil de mouvement des cotes (%)", 5, 25, 10)
-            confidence_change_threshold = st.slider("Seuil de changement de confiance (%)", 5, 30, 15)
-            value_bet_threshold = st.slider("Seuil d'opportunité de pari (%)", 5, 30, 12)
-            
-        # Notification methods
-        st.markdown("#### Méthodes de notification")
+        # Quick update controls
+        update_cols = st.columns([1, 1, 1])
+        with update_cols[0]:
+            if st.button("⏱️ +1 Minute", help="Avance le match d'une minute"):
+                st.session_state.current_match_minute += 1
+                st.session_state.live_analysis = arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score
+                )
+                st.rerun()
         
-        notification_methods = st.multiselect("Comment souhaitez-vous être notifié?",
-                                           ["Application", "Email", "SMS", "Push"],
-                                           default=["Application"])
+        with update_cols[1]:
+            if st.button("⚽ But Domicile", help="Ajoute un but pour l'équipe à domicile"):
+                st.session_state.current_match_score[0] += 1
+                
+                # Create goal event
+                event = {
+                    'type': "Goal",
+                    'team': home_team,
+                    'minute': st.session_state.current_match_minute,
+                    'details': f"But marqué par {home_team}"
+                }
+                
+                # Add to events list
+                st.session_state.match_events.append(event)
+                
+                # Update match state with new score and event
+                arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score,
+                    event
+                )
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+                st.rerun()
         
-        if "Email" in notification_methods:
-            email = st.text_input("Adresse email")
-            
-        if "SMS" in notification_methods:
-            phone = st.text_input("Numéro de téléphone")
-            
-        if st.button("Sauvegarder les préférences", type="primary"):
-            st.success("Préférences de notification sauvegardées")
+        with update_cols[2]:
+            if st.button("⚽ But Extérieur", help="Ajoute un but pour l'équipe à l'extérieur"):
+                st.session_state.current_match_score[1] += 1
+                
+                # Create goal event
+                event = {
+                    'type': "Goal",
+                    'team': away_team,
+                    'minute': st.session_state.current_match_minute,
+                    'details': f"But marqué par {away_team}"
+                }
+                
+                # Add to events list
+                st.session_state.match_events.append(event)
+                
+                # Update match state with new score and event
+                arcan_sentinel.update_match_state(
+                    st.session_state.current_match_minute, 
+                    st.session_state.current_match_score,
+                    event
+                )
+                st.session_state.live_analysis = arcan_sentinel.update_live_analysis()
+                st.rerun()
             
     # Current notifications
     st.markdown("### Notifications récentes")
