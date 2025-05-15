@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+from streamlit.components.v1 import html
 import time
 from modules.arcanx import ArcanX
 from modules.shadow_odds import ShadowOdds
@@ -416,21 +417,88 @@ with st.sidebar:
 # Main content area with tabs
 # We'll use the session state active_tab to control which tab is shown
 tabs = [
-    t('predictions_tab'), 
-    t('dashboard_tab'), 
-    t('historical_tab'), 
-    t('module_details_tab'),
-    t('live_match_tab'),
-    t('live_monitoring_tab'),
-    t('performance_notifications_tab'),  # Tab for performance notifications
-    t('daily_combo_tab'),  # Tab for daily betting combo
-    t('smart_recommendations_title'),  # New tab for smart market recommendations
-    "Système d'Apprentissage"  # Nouvel onglet pour le système d'apprentissage
+    {"name": t('predictions_tab'), "icon": "🔮"},
+    {"name": t('dashboard_tab'), "icon": "📊"},
+    {"name": t('historical_tab'), "icon": "📜"},
+    {"name": t('module_details_tab'), "icon": "🧩"},
+    {"name": t('live_match_tab'), "icon": "⚽"},
+    {"name": t('live_monitoring_tab'), "icon": "🔍"},
+    {"name": t('performance_notifications_tab'), "icon": "🔔"},
+    {"name": t('daily_combo_tab'), "icon": "🎯"},
+    {"name": t('smart_recommendations_title'), "icon": "💡"},
+    {"name": "Système d'Apprentissage", "icon": "🧠"}
 ]
+
+# Custom tab navigation
+st.markdown("""
+<style>
+    .nav-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+    .nav-item {
+        background-color: rgba(49, 51, 63, 0.8);
+        border-radius: 5px;
+        padding: 8px 16px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    .nav-item:hover {
+        background-color: rgba(49, 51, 63, 1);
+    }
+    .nav-item.active {
+        background-color: #9c27b0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .nav-icon {
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+    @media (max-width: 768px) {
+        .nav-container {
+            flex-direction: column;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Build tabs dynamically
+nav_html = '<div class="nav-container">'
+for i, tab in enumerate(tabs):
+    active_class = "active" if i == st.session_state.active_tab else ""
+    nav_html += f"""
+    <div class="nav-item {active_class}" onclick="handleTabClick('{i}')">
+        <span class="nav-icon">{tab['icon']}</span>{tab['name']}
+    </div>
+    """
+nav_html += '</div>'
+
+# Add JavaScript to handle tab clicks
+nav_html += """
+<script>
+function handleTabClick(tabIndex) {
+    // Send a message to Streamlit
+    window.parent.postMessage({
+        type: 'streamlit:setComponentValue',
+        value: tabIndex
+    }, '*');
+    
+    // Reload the page
+    window.location.reload();
+}
+</script>
+"""
+
+# Display the custom navigation
+st.markdown(nav_html, unsafe_allow_html=True)
 
 # Get the selected tab index from session_state
 selected_tab_idx = st.session_state.active_tab
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs(tabs)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([tab["name"] for tab in tabs])
 
 with tab1:
     # Header section with explanatory text
