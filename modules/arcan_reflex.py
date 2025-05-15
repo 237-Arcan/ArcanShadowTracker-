@@ -59,6 +59,10 @@ class ArcanReflex:
             'anomaly_threshold': (0.7, 0.95),
             'insight_temperature': (0.4, 0.9)
         }
+            
+        # Tracking variables for recalibration
+        self.last_pattern_recalibration = None
+        self.match_results_since_recalibration = []
         
         # Current state
         self.active_modules = {}  # Currently active modules
@@ -98,6 +102,20 @@ class ArcanReflex:
             self._handle_odds_change_event,
             'ArcanReflex'
         )
+        
+        # Pattern recalibration events disabled for now
+        # self.meta_systems.register_event_handler(
+        #     'patterns_recalibrated',
+        #     self._handle_pattern_recalibration_event,
+        #     'ArcanReflex'
+        # )
+        
+        # Transfer learning events disabled for now
+        # self.meta_systems.register_event_handler(
+        #     'transfer_learning_applied',
+        #     self._handle_transfer_learning_event,
+        #     'ArcanReflex'
+        # )
         
         # Register for match result events
         self.meta_systems.register_event_handler(

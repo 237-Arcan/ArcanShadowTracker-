@@ -2756,6 +2756,392 @@ class ArcanBrain:
         
         return predicted == actual
     
+    def recalibrate_patterns(self, specific_patterns=None):
+        """
+        Recalibrate pattern weights based on historical performance.
+        This method is typically called by ArcanReflex when pattern-based anomalies are detected.
+        
+        Args:
+            specific_patterns (list, optional): List of specific pattern IDs to recalibrate. 
+                                                If None, all patterns are recalibrated.
+                                                
+        Returns:
+            dict: Recalibration report
+        """
+        patterns_to_recalibrate = specific_patterns or list(self.long_term_memory.keys())
+        
+        recalibration_report = {
+            'patterns_recalibrated': 0,
+            'patterns_strengthened': 0,
+            'patterns_weakened': 0,
+            'average_confidence_delta': 0.0,
+            'details': []
+        }
+        
+        total_confidence_delta = 0.0
+        
+        for pattern_id in patterns_to_recalibrate:
+            if pattern_id not in self.long_term_memory:
+                continue
+                
+            pattern = self.long_term_memory[pattern_id]
+            
+            # Skip patterns with insufficient data
+            correct_count = pattern.get('correct_count', 0)
+            incorrect_count = pattern.get('incorrect_count', 0)
+            
+            if correct_count + incorrect_count < 3:
+                continue
+                
+            # Calculate success ratio
+            success_ratio = correct_count / (correct_count + incorrect_count)
+            
+            # Current confidence
+            current_confidence = pattern.get('confidence', 0.5)
+            
+            # Calculate ideal confidence based on performance
+            ideal_confidence = 0.5 + (success_ratio - 0.5) * 0.8
+            
+            # Apply smoothing to avoid extreme values
+            ideal_confidence = max(0.2, min(0.95, ideal_confidence))
+            
+            # Calculate confidence adjustment factor 
+            # (higher for patterns with more data, lower for newer patterns)
+            adjustment_factor = min(0.7, (correct_count + incorrect_count) / 20)
+            
+            # Calculate new confidence
+            new_confidence = current_confidence * (1 - adjustment_factor) + ideal_confidence * adjustment_factor
+            
+            # Apply the new confidence
+            confidence_delta = new_confidence - current_confidence
+            pattern['confidence'] = new_confidence
+            pattern['last_recalibrated'] = datetime.now().isoformat()
+            
+            recalibration_report['patterns_recalibrated'] += 1
+            total_confidence_delta += abs(confidence_delta)
+            
+            if confidence_delta > 0.01:
+                recalibration_report['patterns_strengthened'] += 1
+            elif confidence_delta < -0.01:
+                recalibration_report['patterns_weakened'] += 1
+                
+            # Store details for the report
+            recalibration_report['details'].append({
+                'pattern_id': pattern_id,
+                'pattern_type': pattern.get('type', 'unknown'),
+                'old_confidence': current_confidence,
+                'new_confidence': new_confidence,
+                'delta': confidence_delta,
+                'success_ratio': success_ratio,
+                'data_points': correct_count + incorrect_count
+            })
+        
+        # Calculate average confidence delta
+        if recalibration_report['patterns_recalibrated'] > 0:
+            recalibration_report['average_confidence_delta'] = total_confidence_delta / recalibration_report['patterns_recalibrated']
+            
+        # Notify MetaSystems of recalibration
+        if self.meta_systems and recalibration_report['patterns_recalibrated'] > 0:
+            self.meta_systems.trigger_event('patterns_recalibrated', {
+                'source': 'ArcanBrain',
+                'timestamp': datetime.now().isoformat(),
+                'patterns_recalibrated': recalibration_report['patterns_recalibrated'],
+                'patterns_strengthened': recalibration_report['patterns_strengthened'],
+                'patterns_weakened': recalibration_report['patterns_weakened'],
+                'average_confidence_delta': recalibration_report['average_confidence_delta']
+            })
+            
+        return recalibration_report
+    
+    def apply_transfer_learning(self, source_context, target_context, similarity_threshold=0.6):
+        """
+        Apply transfer learning from a source context to a target context.
+        This allows patterns learned in one type of match or league to be applied
+        to a new context with appropriate adjustments.
+        
+        Args:
+            source_context (dict): The source context with patterns to transfer from
+                                  (e.g., {'sport': 'football', 'league': 'Premier League'})
+            target_context (dict): The target context to transfer patterns to
+                                  (e.g., {'sport': 'football', 'league': 'La Liga'})
+            similarity_threshold (float): Minimum similarity score required for transfer
+            
+        Returns:
+            dict: Transfer learning report
+        """
+        report = {
+            'patterns_analyzed': 0,
+            'patterns_transferred': 0,
+            'patterns_strengthened': 0,
+            'patterns_created': 0,
+            'average_similarity': 0.0,
+            'details': []
+        }
+        
+        # Extract context keys for comparison
+        source_keys = sorted(source_context.keys())
+        target_keys = sorted(target_context.keys())
+        
+        # Calculate base context similarity
+        context_similarity = self._calculate_context_similarity(source_context, target_context)
+        
+        # Only proceed if contexts are similar enough for transfer
+        if context_similarity < similarity_threshold * 0.7:
+            report['error'] = f"Contexts too dissimilar for transfer learning ({context_similarity:.2f})"
+            return report
+            
+        # Find patterns in long-term memory that match the source context
+        source_patterns = []
+        for pattern_id, pattern in self.long_term_memory.items():
+            pattern_context = pattern.get('context', {})
+            matches_source = True
+            
+            for key, value in source_context.items():
+                if pattern_context.get(key) != value:
+                    matches_source = False
+                    break
+                    
+            if matches_source:
+                source_patterns.append(pattern)
+                report['patterns_analyzed'] += 1
+                
+        # Transfer applicable patterns to target context
+        total_similarity = 0.0
+        
+        for source_pattern in source_patterns:
+            # Skip patterns with low confidence or insufficient data
+            if source_pattern.get('confidence', 0) < 0.4:
+                continue
+                
+            pattern_type = source_pattern.get('type', '')
+            pattern_features = source_pattern.get('features', {})
+            
+            # Calculate pattern transferability
+            transferability = self._calculate_pattern_transferability(
+                pattern_type, 
+                pattern_features,
+                source_context, 
+                target_context
+            )
+            
+            if transferability < similarity_threshold:
+                continue
+                
+            # Check if a similar pattern already exists in target context
+            target_pattern_id = None
+            target_pattern = None
+            
+            for p_id, p in self.long_term_memory.items():
+                if (p.get('type') == pattern_type and 
+                    self._match_context(p.get('context', {}), target_context) and
+                    self._calculate_feature_similarity(p.get('features', {}), pattern_features) > 0.8):
+                    target_pattern_id = p_id
+                    target_pattern = p
+                    break
+                    
+            # Transfer learning logic
+            if target_pattern:
+                # Update existing pattern in target context
+                old_confidence = target_pattern.get('confidence', 0.5)
+                
+                # Calculate influence based on source pattern strength and transferability
+                source_influence = source_pattern.get('confidence', 0.5) * transferability * 0.4
+                
+                # Apply transfer learning with dampening (less influence than direct learning)
+                new_confidence = old_confidence * 0.7 + source_influence * 0.3
+                
+                # Apply updated confidence
+                target_pattern['confidence'] = new_confidence
+                target_pattern['last_transfer_update'] = datetime.now().isoformat()
+                target_pattern['transfer_source'] = source_pattern.get('id', '')
+                
+                report['patterns_transferred'] += 1
+                
+                if new_confidence > old_confidence + 0.02:
+                    report['patterns_strengthened'] += 1
+                    
+                report['details'].append({
+                    'pattern_id': target_pattern_id,
+                    'pattern_type': pattern_type,
+                    'action': 'updated',
+                    'old_confidence': old_confidence,
+                    'new_confidence': new_confidence,
+                    'transferability': transferability,
+                    'source_pattern': source_pattern.get('id', '')
+                })
+            else:
+                # Create new pattern in target context based on source pattern
+                new_pattern_id = f"{pattern_type}_{uuid.uuid4().hex[:8]}"
+                
+                # Create a copy of the source pattern with adjusted confidence
+                new_pattern = copy.deepcopy(source_pattern)
+                new_pattern['id'] = new_pattern_id
+                new_pattern['context'] = target_context
+                new_pattern['confidence'] = source_pattern.get('confidence', 0.5) * transferability * 0.6
+                new_pattern['correct_count'] = max(1, int(source_pattern.get('correct_count', 0) * transferability * 0.3))
+                new_pattern['incorrect_count'] = max(0, int(source_pattern.get('incorrect_count', 0) * transferability * 0.3))
+                new_pattern['created_by'] = 'transfer_learning'
+                new_pattern['source_pattern'] = source_pattern.get('id', '')
+                new_pattern['transfer_date'] = datetime.now().isoformat()
+                
+                # Store the new pattern
+                self.long_term_memory[new_pattern_id] = new_pattern
+                
+                report['patterns_transferred'] += 1
+                report['patterns_created'] += 1
+                
+                report['details'].append({
+                    'pattern_id': new_pattern_id,
+                    'pattern_type': pattern_type,
+                    'action': 'created',
+                    'confidence': new_pattern['confidence'],
+                    'transferability': transferability,
+                    'source_pattern': source_pattern.get('id', '')
+                })
+                
+            total_similarity += transferability
+                
+        # Calculate average similarity of transferred patterns
+        if report['patterns_transferred'] > 0:
+            report['average_similarity'] = total_similarity / report['patterns_transferred']
+            
+        # Notify MetaSystems of transfer learning
+        if self.meta_systems and report['patterns_transferred'] > 0:
+            self.meta_systems.trigger_event('transfer_learning_applied', {
+                'source': 'ArcanBrain',
+                'source_context': source_context,
+                'target_context': target_context,
+                'patterns_transferred': report['patterns_transferred'],
+                'patterns_created': report['patterns_created'],
+                'average_similarity': report['average_similarity'],
+                'timestamp': datetime.now().isoformat()
+            })
+            
+        return report
+            
+    def _calculate_context_similarity(self, context1, context2):
+        """Calculate similarity between two contexts."""
+        # Extract keys that exist in both contexts
+        common_keys = set(context1.keys()) & set(context2.keys())
+        all_keys = set(context1.keys()) | set(context2.keys())
+        
+        if not all_keys:
+            return 0.0
+            
+        # Calculate similarity
+        similarity = 0.0
+        
+        for key in all_keys:
+            if key in common_keys and context1[key] == context2[key]:
+                similarity += 1.0
+            elif key in common_keys:
+                # Partial similarity for different values of the same key
+                if isinstance(context1[key], str) and isinstance(context2[key], str):
+                    # Text similarity for string values
+                    similarity += self._calculate_text_similarity(context1[key], context2[key]) * 0.7
+                else:
+                    # Small similarity for different values
+                    similarity += 0.2
+        
+        return similarity / len(all_keys) if all_keys else 0.0
+        
+    def _calculate_pattern_transferability(self, pattern_type, pattern_features, source_context, target_context):
+        """Calculate how transferable a pattern is between contexts."""
+        # Base transferability on context similarity
+        transferability = self._calculate_context_similarity(source_context, target_context)
+        
+        # Different pattern types have different transferability
+        type_modifiers = {
+            'temporal': 0.9,  # Temporal patterns are usually highly transferable
+            'form': 0.8,      # Form patterns transfer well
+            'result': 0.6,    # Result patterns are moderately transferable
+            'score': 0.5,     # Score patterns transfer less well
+            'odds': 0.7,      # Odds patterns are fairly transferable
+            'team': 0.3       # Team-specific patterns don't transfer well
+        }
+        
+        # Apply pattern type modifier
+        pattern_category = next((key for key in type_modifiers if key in pattern_type), 'default')
+        type_modifier = type_modifiers.get(pattern_category, 0.7)
+        transferability *= type_modifier
+        
+        # Consider feature similarity
+        source_sport = source_context.get('sport', '')
+        target_sport = target_context.get('sport', '')
+        
+        # Cross-sport transfers are more limited
+        if source_sport != target_sport and source_sport and target_sport:
+            transferability *= 0.3
+            
+        return min(1.0, max(0.0, transferability))
+        
+    def _calculate_text_similarity(self, text1, text2):
+        """Calculate similarity between two text strings."""
+        if not text1 or not text2:
+            return 0.0
+            
+        # Convert to lowercase
+        text1 = text1.lower()
+        text2 = text2.lower()
+        
+        # Simple case: exact match
+        if text1 == text2:
+            return 1.0
+            
+        # Partial matching based on character overlap
+        chars1 = set(text1)
+        chars2 = set(text2)
+        common_chars = len(chars1.intersection(chars2))
+        all_chars = len(chars1.union(chars2))
+        
+        char_similarity = common_chars / all_chars if all_chars else 0.0
+        
+        # Partial matching based on word overlap
+        words1 = set(text1.split())
+        words2 = set(text2.split())
+        common_words = len(words1.intersection(words2))
+        all_words = len(words1.union(words2))
+        
+        word_similarity = common_words / all_words if all_words else 0.0
+        
+        # Combine character and word similarities (word similarity is weighted more)
+        return word_similarity * 0.7 + char_similarity * 0.3
+        
+    def _calculate_feature_similarity(self, features1, features2):
+        """Calculate similarity between pattern features."""
+        if not features1 or not features2:
+            return 0.0
+            
+        # Get all feature keys
+        all_keys = set(features1.keys()) | set(features2.keys())
+        if not all_keys:
+            return 0.0
+            
+        # Calculate similarity across features
+        similarity = 0.0
+        
+        for key in all_keys:
+            if key in features1 and key in features2:
+                if features1[key] == features2[key]:
+                    similarity += 1.0
+                elif isinstance(features1[key], (int, float)) and isinstance(features2[key], (int, float)):
+                    # For numeric features, calculate relative similarity
+                    max_val = max(abs(features1[key]), abs(features2[key]))
+                    if max_val > 0:
+                        similarity += 1.0 - min(1.0, abs(features1[key] - features2[key]) / max_val)
+                elif isinstance(features1[key], str) and isinstance(features2[key], str):
+                    # Text similarity for string features
+                    similarity += self._calculate_text_similarity(features1[key], features2[key])
+            
+        return similarity / len(all_keys)
+        
+    def _match_context(self, pattern_context, match_context):
+        """Check if a pattern context matches a match context."""
+        for key, value in match_context.items():
+            if key in pattern_context and pattern_context[key] != value:
+                return False
+        return True
+            
     def _load_neural_weights(self):
         """Load trained neural weights from storage."""
         try:
