@@ -48,6 +48,10 @@ class ArcanReflex:
         self.learning_rate = 0.05  # Rate at which module weights are adjusted
         self.memory_retention = 90  # Days to retain performance memory
         
+        # Register for events if MetaSystems is available
+        if self.meta_systems:
+            self._register_event_handlers()
+        
         # ArcanBrain parameter control ranges (meta-cognition)
         self.brain_param_ranges = {
             'learning_rate': (0.01, 0.1),
@@ -65,6 +69,249 @@ class ArcanReflex:
         # Performance metrics
         self.system_accuracy = 0.0
         self.module_contribution = {}
+        
+    def _register_event_handlers(self):
+        """
+        Register event handlers with the MetaSystems event system.
+        This enables ArcanReflex to respond to events from other modules.
+        """
+        if not self.meta_systems:
+            return
+            
+        # Register for neural learning events from ArcanBrain
+        self.meta_systems.register_event_handler(
+            'neural_learning_complete', 
+            self._handle_neural_learning_event,
+            'ArcanReflex'
+        )
+        
+        # Register for anomaly detection events
+        self.meta_systems.register_event_handler(
+            'anomaly_detected',
+            self._handle_anomaly_event,
+            'ArcanReflex'
+        )
+        
+        # Register for odds change events
+        self.meta_systems.register_event_handler(
+            'significant_odds_change',
+            self._handle_odds_change_event,
+            'ArcanReflex'
+        )
+        
+        # Register for match result events
+        self.meta_systems.register_event_handler(
+            'match_result_available',
+            self._handle_match_result_event,
+            'ArcanReflex'
+        )
+        
+        # Register for odds change events
+        self.meta_systems.register_event_handler(
+            'significant_odds_change',
+            self._handle_odds_change_event,
+            'ArcanReflex'
+        )
+        
+        # Register for match result events
+        self.meta_systems.register_event_handler(
+            'match_result_available',
+            self._handle_match_result_event,
+            'ArcanReflex'
+        )
+        
+    def _handle_neural_learning_event(self, event_data):
+        """
+        Handle events when ArcanBrain completes a learning cycle.
+        This allows ArcanReflex to adjust ArcanBrain parameters based on learning outcomes.
+        
+        Args:
+            event_data (dict): Data about the learning event
+            
+        Returns:
+            dict: Action taken in response to the event
+        """
+        response = {
+            'action_taken': None,
+            'parameter_adjustments': {}
+        }
+        
+        # Only take action if significant learning occurred
+        if event_data.get('learning_details', {}).get('adjustment_magnitude', 0) > 0.05:
+            # Adjust ArcanBrain parameters if needed based on learning outcomes
+            if self.arcan_brain:
+                adjustments = {}
+                
+                # Example: If learning was based on correct prediction, slightly reduce the pattern threshold
+                # to make the system more sensitive to this type of pattern in the future
+                if event_data.get('was_correct', False):
+                    current_threshold = self.arcan_brain.pattern_threshold
+                    new_threshold = max(
+                        self.brain_param_ranges['pattern_threshold'][0],
+                        current_threshold - 0.01
+                    )
+                    
+                    if new_threshold != current_threshold:
+                        adjustments['pattern_threshold'] = new_threshold
+                
+                # Apply the adjustments
+                if adjustments:
+                    for param, value in adjustments.items():
+                        setattr(self.arcan_brain, param, value)
+                    
+                    response['action_taken'] = 'adjusted_brain_parameters'
+                    response['parameter_adjustments'] = adjustments
+                else:
+                    response['action_taken'] = 'no_adjustment_needed'
+            else:
+                response['action_taken'] = 'no_brain_reference'
+        else:
+            response['action_taken'] = 'learning_insignificant'
+            
+        return response
+            
+    def _handle_anomaly_event(self, event_data):
+        """
+        Handle anomaly detection events from any module.
+        
+        Args:
+            event_data (dict): Information about the anomaly
+            
+        Returns:
+            dict: Action taken in response to the anomaly
+        """
+        evaluation = self.evaluate_anomaly(event_data)
+        
+        if evaluation['mitigation_required']:
+            # Apply the recommended adaptive action
+            action = evaluation['adaptive_action']
+            
+            if action == 'activate_market_protection':
+                # Activate market protection modules
+                self.reflex_switch.activate_module('MarketVolatilityGuard')
+                self.reflex_switch.activate_module('SuddenShiftDetector')
+                
+            elif action == 'recalibrate_pattern_weights':
+                # Recalibrate pattern weights in ArcanBrain
+                if self.arcan_brain:
+                    self.arcan_brain.recalibrate_patterns()
+                    
+            elif action == 'boost_momentum_sensitivity':
+                # Boost momentum sensitivity
+                if self.arcan_x:
+                    self.arcan_x.boost_momentum_sensitivity()
+                    
+            return {
+                'action_taken': action,
+                'evaluation': evaluation
+            }
+        
+        return {
+            'action_taken': 'monitoring_only',
+            'evaluation': evaluation
+        }
+        
+    def _handle_odds_change_event(self, event_data):
+        """
+        Handle significant odds change events.
+        
+        Args:
+            event_data (dict): Information about the odds change
+            
+        Returns:
+            dict: Action taken in response to the odds change
+        """
+        # Extract relevant data
+        match_id = event_data.get('match_id', '')
+        market = event_data.get('market', 'match_winner')
+        change_magnitude = event_data.get('magnitude', 0.0)
+        
+        # Determine if action is needed
+        if change_magnitude > 0.15:  # Significant change
+            # Activate odds-specific modules
+            if self.shadow_odds:
+                self.shadow_odds.activate_volatility_tracking(match_id)
+                
+            return {
+                'action_taken': 'activated_volatility_tracking',
+                'match_id': match_id,
+                'market': market
+            }
+        
+        return {
+            'action_taken': 'monitoring_only',
+            'match_id': match_id
+        }
+        
+    def _handle_match_result_event(self, event_data):
+        """
+        Handle match result events to facilitate learning.
+        
+        Args:
+            event_data (dict): Information about the match result
+            
+        Returns:
+            dict: Action taken in response to the result
+        """
+        # Extract match data
+        match_id = event_data.get('match_id', '')
+        result = event_data.get('result', {})
+        
+        # Find any predictions we made for this match
+        predictions = self._get_match_predictions(match_id)
+        
+        if predictions:
+            # Evaluate prediction accuracy
+            for prediction in predictions:
+                prediction_type = prediction.get('type', '')
+                predicted_outcome = prediction.get('outcome', '')
+                actual_outcome = self._extract_actual_outcome(result, prediction_type)
+                
+                # Determine if prediction was correct
+                was_correct = (predicted_outcome == actual_outcome)
+                
+                # Store pattern effectiveness
+                if 'pattern' in prediction:
+                    self.reflex_memory.update_pattern_effectiveness(
+                        prediction['pattern'],
+                        was_correct
+                    )
+                
+                # Update module performance
+                module_contributed = prediction.get('contributing_modules', [])
+                for module in module_contributed:
+                    current_score = self.module_performance.get(module, 0.5)
+                    adjustment = 0.05 if was_correct else -0.05
+                    new_score = max(0.1, min(0.9, current_score + adjustment))
+                    self.module_performance[module] = new_score
+            
+            self._save_performance_data()
+            
+            return {
+                'action_taken': 'updated_performance_metrics',
+                'match_id': match_id,
+                'predictions_evaluated': len(predictions)
+            }
+        
+        return {
+            'action_taken': 'no_predictions_found',
+            'match_id': match_id
+        }
+        
+    def _get_match_predictions(self, match_id):
+        """Get predictions for a specific match (placeholder implementation)."""
+        # This would fetch from database in real implementation
+        return []
+        
+    def _extract_actual_outcome(self, result, prediction_type):
+        """Extract the actual outcome from match result based on prediction type."""
+        if prediction_type == 'match_winner':
+            return result.get('winner', '')
+        elif prediction_type == 'total_goals':
+            return result.get('total_goals', 0)
+        elif prediction_type == 'both_teams_to_score':
+            return result.get('both_scored', False)
+        return None
     
     def evaluate_system_performance(self, prediction_results=None):
         """
@@ -1067,6 +1314,235 @@ class ReflexSwitch:
             return ['BreakPointAnalyzer', 'MentalFortitudeScanner']
         else:
             return ['MomentumShiftTracker']
+    
+    def evaluate_anomaly(self, anomaly_data):
+        """
+        Evaluate an anomaly detected by another module.
+        
+        Args:
+            anomaly_data (dict): Information about the detected anomaly
+            
+        Returns:
+            dict: Evaluation results and recommendations
+        """
+        # Simple anomaly evaluation for demonstration
+        evaluation = {
+            'origin': anomaly_data.get('origin', 'unknown'),
+            'severity': anomaly_data.get('magnitude', 0.5),
+            'mitigation_required': False,
+            'adaptive_action': None
+        }
+        
+        # Determine if mitigation is needed
+        if evaluation['severity'] > 0.7:
+            evaluation['mitigation_required'] = True
+            
+            # Suggest adaptive action based on anomaly type
+            anomaly_type = anomaly_data.get('type', 'unknown')
+            
+            if anomaly_type == 'odds_shift':
+                evaluation['adaptive_action'] = 'activate_market_protection'
+            elif anomaly_type == 'pattern_break':
+                evaluation['adaptive_action'] = 'recalibrate_pattern_weights'
+            elif anomaly_type == 'momentum_reversal':
+                evaluation['adaptive_action'] = 'boost_momentum_sensitivity'
+            else:
+                evaluation['adaptive_action'] = 'general_parameter_adjustment'
+        
+        return evaluation
+        
+    def _handle_neural_learning_event(self, event_data):
+        """
+        Handle events when ArcanBrain completes a learning cycle.
+        This allows ArcanReflex to adjust ArcanBrain parameters based on learning outcomes.
+        
+        Args:
+            event_data (dict): Data about the learning event
+            
+        Returns:
+            dict: Action taken in response to the event
+        """
+        response = {
+            'action_taken': None,
+            'parameter_adjustments': {}
+        }
+        
+        # Only take action if significant learning occurred
+        if event_data.get('learning_details', {}).get('adjustment_magnitude', 0) > 0.05:
+            # Adjust ArcanBrain parameters if needed based on learning outcomes
+            if self.arcan_brain:
+                adjustments = {}
+                
+                # Example: If learning was based on correct prediction, slightly reduce the pattern threshold
+                # to make the system more sensitive to this type of pattern in the future
+                if event_data.get('was_correct', False):
+                    current_threshold = self.arcan_brain.pattern_threshold
+                    new_threshold = max(
+                        self.brain_param_ranges['pattern_threshold'][0],
+                        current_threshold - 0.01
+                    )
+                    
+                    if new_threshold != current_threshold:
+                        adjustments['pattern_threshold'] = new_threshold
+                
+                # Apply the adjustments
+                if adjustments:
+                    for param, value in adjustments.items():
+                        setattr(self.arcan_brain, param, value)
+                    
+                    response['action_taken'] = 'adjusted_brain_parameters'
+                    response['parameter_adjustments'] = adjustments
+                else:
+                    response['action_taken'] = 'no_adjustment_needed'
+            else:
+                response['action_taken'] = 'no_brain_reference'
+        else:
+            response['action_taken'] = 'learning_insignificant'
+            
+        return response
+            
+    def _handle_anomaly_event(self, event_data):
+        """
+        Handle anomaly detection events from any module.
+        
+        Args:
+            event_data (dict): Information about the anomaly
+            
+        Returns:
+            dict: Action taken in response to the anomaly
+        """
+        evaluation = self.evaluate_anomaly(event_data)
+        
+        if evaluation['mitigation_required']:
+            # Apply the recommended adaptive action
+            action = evaluation['adaptive_action']
+            
+            if action == 'activate_market_protection':
+                # Activate market protection modules
+                self.reflex_switch.activate_module('MarketVolatilityGuard')
+                self.reflex_switch.activate_module('SuddenShiftDetector')
+                
+            elif action == 'recalibrate_pattern_weights':
+                # Recalibrate pattern weights in ArcanBrain
+                if self.arcan_brain:
+                    self.arcan_brain.recalibrate_patterns()
+                    
+            elif action == 'boost_momentum_sensitivity':
+                # Boost momentum sensitivity
+                if self.arcan_x:
+                    self.arcan_x.boost_momentum_sensitivity()
+                    
+            return {
+                'action_taken': action,
+                'evaluation': evaluation
+            }
+        
+        return {
+            'action_taken': 'monitoring_only',
+            'evaluation': evaluation
+        }
+        
+    def _handle_odds_change_event(self, event_data):
+        """
+        Handle significant odds change events.
+        
+        Args:
+            event_data (dict): Information about the odds change
+            
+        Returns:
+            dict: Action taken in response to the odds change
+        """
+        # Extract relevant data
+        match_id = event_data.get('match_id', '')
+        market = event_data.get('market', 'match_winner')
+        change_magnitude = event_data.get('magnitude', 0.0)
+        
+        # Determine if action is needed
+        if change_magnitude > 0.15:  # Significant change
+            # Activate odds-specific modules
+            if self.shadow_odds:
+                self.shadow_odds.activate_volatility_tracking(match_id)
+                
+            return {
+                'action_taken': 'activated_volatility_tracking',
+                'match_id': match_id,
+                'market': market
+            }
+        
+        return {
+            'action_taken': 'monitoring_only',
+            'match_id': match_id
+        }
+        
+    def _handle_match_result_event(self, event_data):
+        """
+        Handle match result events to facilitate learning.
+        
+        Args:
+            event_data (dict): Information about the match result
+            
+        Returns:
+            dict: Action taken in response to the result
+        """
+        # Extract match data
+        match_id = event_data.get('match_id', '')
+        result = event_data.get('result', {})
+        
+        # Find any predictions we made for this match
+        predictions = self._get_match_predictions(match_id)
+        
+        if predictions:
+            # Evaluate prediction accuracy
+            for prediction in predictions:
+                prediction_type = prediction.get('type', '')
+                predicted_outcome = prediction.get('outcome', '')
+                actual_outcome = self._extract_actual_outcome(result, prediction_type)
+                
+                # Determine if prediction was correct
+                was_correct = (predicted_outcome == actual_outcome)
+                
+                # Store pattern effectiveness
+                if 'pattern' in prediction:
+                    self.reflex_memory.update_pattern_effectiveness(
+                        prediction['pattern'],
+                        was_correct
+                    )
+                
+                # Update module performance
+                module_contributed = prediction.get('contributing_modules', [])
+                for module in module_contributed:
+                    current_score = self.module_performance.get(module, 0.5)
+                    adjustment = 0.05 if was_correct else -0.05
+                    new_score = max(0.1, min(0.9, current_score + adjustment))
+                    self.module_performance[module] = new_score
+            
+            self._save_performance_data()
+            
+            return {
+                'action_taken': 'updated_performance_metrics',
+                'match_id': match_id,
+                'predictions_evaluated': len(predictions)
+            }
+        
+        return {
+            'action_taken': 'no_predictions_found',
+            'match_id': match_id
+        }
+        
+    def _get_match_predictions(self, match_id):
+        """Get predictions for a specific match (placeholder implementation)."""
+        # This would fetch from database in real implementation
+        return []
+        
+    def _extract_actual_outcome(self, result, prediction_type):
+        """Extract the actual outcome from match result based on prediction type."""
+        if prediction_type == 'match_winner':
+            return result.get('winner', '')
+        elif prediction_type == 'total_goals':
+            return result.get('total_goals', 0)
+        elif prediction_type == 'both_teams_to_score':
+            return result.get('both_scored', False)
+        return None
 
 
 class ReflexMemory:
@@ -1080,6 +1556,97 @@ class ReflexMemory:
         self.max_patterns = 1000  # Maximum number of patterns to store
         self.similarity_threshold = 0.6  # Threshold for pattern similarity
         self.confidence_boost = 0.1  # Confidence boost for matched patterns
+        
+    def update_pattern_effectiveness(self, pattern, was_correct):
+        """
+        Update the effectiveness score for a pattern based on prediction outcome.
+        
+        Args:
+            pattern (dict): The pattern to update
+            was_correct (bool): Whether the prediction using this pattern was correct
+            
+        Returns:
+            dict: Updated pattern
+        """
+        if not pattern:
+            return None
+            
+        # Find the pattern in our library if it exists
+        for stored_pattern in self.pattern_library:
+            if self._are_patterns_equivalent(pattern, stored_pattern):
+                # Update the effectiveness metrics
+                stored_pattern['total_uses'] = stored_pattern.get('total_uses', 0) + 1
+                
+                if was_correct:
+                    stored_pattern['correct_uses'] = stored_pattern.get('correct_uses', 0) + 1
+                
+                # Calculate effectiveness ratio
+                total = stored_pattern.get('total_uses', 0)
+                correct = stored_pattern.get('correct_uses', 0)
+                
+                if total > 0:
+                    stored_pattern['effectiveness'] = correct / total
+                
+                return stored_pattern
+                
+        # If pattern not found, add it with initial metrics
+        pattern['total_uses'] = 1
+        pattern['correct_uses'] = 1 if was_correct else 0
+        pattern['effectiveness'] = 1.0 if was_correct else 0.0
+        
+        self.pattern_library.append(pattern)
+        return pattern
+        
+    def _are_patterns_equivalent(self, pattern1, pattern2):
+        """
+        Check if two patterns are functionally equivalent.
+        This is a simplified implementation that would be more sophisticated in production.
+        
+        Args:
+            pattern1 (dict): First pattern
+            pattern2 (dict): Second pattern
+            
+        Returns:
+            bool: True if patterns are considered equivalent
+        """
+        # In a real implementation, this would use more sophisticated pattern matching
+        # For now, just check key attributes
+        
+        # First check pattern structure
+        if 'id' in pattern1 and 'id' in pattern2:
+            return pattern1['id'] == pattern2['id']
+            
+        # Check core components
+        core_attributes = ['type', 'key_factors', 'context']
+        
+        if not all(attr in pattern1 and attr in pattern2 for attr in core_attributes):
+            return False
+            
+        # Compare key attributes
+        if pattern1['type'] != pattern2['type']:
+            return False
+            
+        # Compare factors (simplified)
+        factors1 = set(str(f) for f in pattern1.get('key_factors', []))
+        factors2 = set(str(f) for f in pattern2.get('key_factors', []))
+        
+        if len(factors1) != len(factors2) or len(factors1.intersection(factors2)) < len(factors1) * 0.8:
+            return False
+            
+        # Check context similarity (simplified)
+        ctx1 = pattern1.get('context', {})
+        ctx2 = pattern2.get('context', {})
+        
+        context_keys = set(ctx1.keys()).union(set(ctx2.keys()))
+        matching_keys = 0
+        
+        for key in context_keys:
+            if key in ctx1 and key in ctx2 and ctx1[key] == ctx2[key]:
+                matching_keys += 1
+                
+        context_similarity = matching_keys / len(context_keys) if context_keys else 0
+        
+        return context_similarity > 0.7
     
     def store_patterns(self, patterns):
         """
