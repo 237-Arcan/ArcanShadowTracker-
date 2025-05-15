@@ -143,6 +143,30 @@ class ArcanBrain:
             arcan_delta = result['neural_confidence'] - arcan_x_results['confidence']
             result['prediction_delta'] = arcan_delta * 0.15  # Scale factor for adjustment
         
+        # Trigger events based on analysis results if MetaSystems is available
+        if self.meta_systems:
+            # Trigger pattern event if significant patterns were recognized
+            significant_patterns = [p for p in result['pattern_recognition'] 
+                                   if p.get('confidence', 0) > self.pattern_threshold]
+            if significant_patterns:
+                self.meta_systems.trigger_event('significant_pattern_detected', {
+                    'source': 'ArcanBrain',
+                    'match_id': match_data.get('id', analysis_id),
+                    'patterns': significant_patterns,
+                    'neural_confidence': result['neural_confidence']
+                })
+            
+            # Trigger anomaly event if significant anomalies were detected
+            significant_anomalies = [a for a in result['anomalies'] 
+                                    if a.get('score', 0) > self.anomaly_threshold]
+            if significant_anomalies:
+                self.meta_systems.trigger_event('significant_anomaly_detected', {
+                    'source': 'ArcanBrain',
+                    'match_id': match_data.get('id', analysis_id),
+                    'anomalies': significant_anomalies,
+                    'neural_confidence': result['neural_confidence']
+                })
+        
         return result
     
     def train_on_result(self, match_data, prediction, actual_result):
@@ -242,6 +266,25 @@ class ArcanBrain:
         # Save neural state periodically (after every 10 training iterations)
         if self.state['total_patterns_recognized'] % 10 == 0:
             self._save_neural_state()
+        
+        # Notify MetaSystems of learning results if available
+        if self.meta_systems and report['adjustment_magnitude'] > 0.01:
+            self.meta_systems.trigger_event('neural_learning_complete', {
+                'source': 'ArcanBrain',
+                'match_id': match_data.get('id', ''),
+                'was_correct': was_correct,
+                'learning_details': {
+                    'new_patterns': report['new_patterns'],
+                    'strengthened_patterns': report['strengthened_patterns'],
+                    'new_connections': report['new_connections'],
+                    'adjustment_magnitude': report['adjustment_magnitude']
+                },
+                'current_state': {
+                    'learning_rate': self.learning_rate,
+                    'pattern_threshold': self.pattern_threshold,
+                    'confidence_calibration': self.state['confidence_calibration']
+                }
+            })
         
         return report
     
