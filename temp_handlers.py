@@ -1,3 +1,6 @@
+from datetime import datetime
+import json
+
 def _handle_pattern_recalibration_event(self, event_data):
     """
     Handle pattern recalibration events from ArcanBrain.

@@ -12,6 +12,8 @@ import os
 import sqlite3
 import math
 import hashlib
+import uuid
+import copy
 from collections import deque
 
 class ArcanBrain:
