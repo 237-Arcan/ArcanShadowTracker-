@@ -2603,27 +2603,42 @@ with tab8:
     if 'betting_combo_generator' not in st.session_state:
         st.session_state.betting_combo_generator = BettingComboGenerator()
     
-    # Initialize session state for daily combo if not exist
-    if 'daily_combo' not in st.session_state:
-        # Generate daily combo on first load
-        predictions = st.session_state.get('predictions', [])
-        combo_generator = st.session_state.betting_combo_generator
-        
-        # Récupérer les matchs du jour pour La Liga (nous savons qu'ils existent)
-        sport = 'Football'
-        league = 'La Liga'
-        date = datetime.now().date()
-        upcoming_matches = data_handler.get_upcoming_matches(sport, league, date)
-        
-        # Générer le combiné avec les matchs récupérés
+    # Create a placeholder for the daily combo generation
+    combo_generator = st.session_state.betting_combo_generator
+    
+    # Récupérer les matchs du jour pour La Liga
+    sport = 'Football'
+    league = 'La Liga'
+    date_today = datetime.now().date()
+    date_weekend = date_today + timedelta(days=(5 - date_today.weekday()) % 7)  # Prochain samedi
+    upcoming_matches = data_handler.get_upcoming_matches(sport, league, date_weekend)
+    
+    # Fallback matches for demonstration if no matches found
+    if not upcoming_matches:
+        st.warning("Aucun match disponible pour la date du jour. Utilisation des matchs du weekend.")
+        upcoming_matches = [
+            {"home_team": "FC Barcelona", "away_team": "Real Madrid", "home_odds": 2.10, "draw_odds": 3.40, "away_odds": 3.20, "kickoff_time": "20:00"},
+            {"home_team": "Atletico Madrid", "away_team": "Sevilla", "home_odds": 1.85, "draw_odds": 3.50, "away_odds": 4.30, "kickoff_time": "18:30"},
+            {"home_team": "Valencia", "away_team": "Villarreal", "home_odds": 2.40, "draw_odds": 3.30, "away_odds": 2.90, "kickoff_time": "16:15"},
+            {"home_team": "Real Betis", "away_team": "Athletic Bilbao", "home_odds": 2.25, "draw_odds": 3.25, "away_odds": 3.10, "kickoff_time": "14:00"}
+        ]
+    
+    # Initialiser ou réinitialiser le combiné du jour
+    if st.button("Générer un nouveau combiné", type="primary"):
+        # Generate daily combo 
         st.session_state.daily_combo = combo_generator.generate_daily_combo(
             matches=upcoming_matches,
-            arcan_predictions=predictions, 
             risk_level='medium'
         )
-        
-        # Log pour debug
-        st.write(f"Généré combiné avec {len(upcoming_matches)} matchs et {len(predictions) if predictions else 0} prédictions")
+        st.success("Nouveau combiné généré avec succès!")
+    
+    # Créer un combiné par défaut si aucun n'existe
+    if 'daily_combo' not in st.session_state or not st.session_state.daily_combo.get('selections', []):
+        # Générer le combiné avec les matchs récupérés
+        st.session_state.daily_combo = combo_generator.generate_daily_combo(
+            matches=upcoming_matches, 
+            risk_level='medium'
+        )
     
     # Create layout with two columns
     daily_combo_cols = st.columns([3, 2])
