@@ -43,6 +43,63 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Thème global
+st.markdown("""
+<style>
+    /* Thème général */
+    :root {
+        --primary-color: #9c27b0;
+        --secondary-color: #6a0080;
+        --text-color: #f1f1f1;
+        --background-color: #121212;
+        --card-bg-color: rgba(49, 51, 63, 0.7);
+    }
+    
+    /* Fond global */
+    .stApp {
+        background: linear-gradient(135deg, #000000, #1a0033);
+    }
+    
+    /* Typographie */
+    h1, h2, h3 {
+        color: var(--text-color);
+        font-weight: 600;
+    }
+    
+    /* Cartes et conteneurs */
+    div[data-testid="stVerticalBlock"] > div {
+        background-color: var(--card-bg-color);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Style global */
+    .main .block-container {
+        max-width: 1200px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# En-tête de l'application
+st.markdown("""
+<div style="display: flex; align-items: center; margin-bottom: 2rem; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div style="margin-right: 20px;">
+        <h1 style="margin: 0; color: #f1f1f1; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+            <span style="color: #9c27b0;">Arcan</span><span style="color: #e2e2e2;">Shadow</span>
+        </h1>
+        <p style="margin: 0; opacity: 0.9; color: #ddd; font-style: italic;">Révélation des motifs cachés</p>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center;">
+        <div style="font-size: 2.5rem; margin-right: 10px;">🔮</div>
+        <div style="opacity: 0.8; color: #ddd; text-align: right; font-size: 0.85rem;">
+            <div>Système Prédictif Avancé</div>
+            <div>Version 3.7.5</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # Initialize session state variables if they don't exist
 if 'selected_sport' not in st.session_state:
     st.session_state.selected_sport = 'Football'
@@ -416,89 +473,150 @@ with st.sidebar:
 
 # Main content area with tabs
 # We'll use the session state active_tab to control which tab is shown
-tabs = [
-    {"name": t('predictions_tab'), "icon": "🔮"},
-    {"name": t('dashboard_tab'), "icon": "📊"},
-    {"name": t('historical_tab'), "icon": "📜"},
-    {"name": t('module_details_tab'), "icon": "🧩"},
-    {"name": t('live_match_tab'), "icon": "⚽"},
-    {"name": t('live_monitoring_tab'), "icon": "🔍"},
-    {"name": t('performance_notifications_tab'), "icon": "🔔"},
-    {"name": t('daily_combo_tab'), "icon": "🎯"},
-    {"name": t('smart_recommendations_title'), "icon": "💡"},
-    {"name": "Système d'Apprentissage", "icon": "🧠"}
+tab_icons = ["🔮", "📊", "📜", "🧩", "⚽", "🔍", "🔔", "🎯", "💡", "🧠"]
+tab_names = [
+    t('predictions_tab'), 
+    t('dashboard_tab'), 
+    t('historical_tab'), 
+    t('module_details_tab'),
+    t('live_match_tab'),
+    t('live_monitoring_tab'),
+    t('performance_notifications_tab'),
+    t('daily_combo_tab'),
+    t('smart_recommendations_title'),
+    "Système d'Apprentissage"
 ]
 
-# Custom tab navigation
+# Add custom CSS for tabs
 st.markdown("""
 <style>
-    .nav-container {
-        display: flex;
-        flex-wrap: wrap;
+    /* Style pour les onglets */
+    .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        margin-bottom: 20px;
-        justify-content: center;
+        border-radius: 8px;
+        display: none;  /* Cacher les onglets standards puisqu'on utilise le radio */
     }
-    .nav-item {
-        background-color: rgba(49, 51, 63, 0.8);
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: rgba(70, 75, 99, 0.2);
         border-radius: 5px;
         padding: 8px 16px;
-        cursor: pointer;
-        text-align: center;
         transition: all 0.3s;
     }
-    .nav-item:hover {
-        background-color: rgba(49, 51, 63, 1);
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background-color: rgba(100, 105, 130, 0.3);
     }
-    .nav-item.active {
-        background-color: #9c27b0;
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #9c27b0 !important;
+        color: white !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    .nav-icon {
-        font-size: 1.2rem;
-        margin-right: 8px;
+    
+    /* Stylise le contenu de l'onglet actif */
+    .stTabs [data-baseweb="tab-panel"] {
+        background-color: rgba(49, 51, 63, 0.1);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 8px;
     }
-    @media (max-width: 768px) {
-        .nav-container {
-            flex-direction: column;
-        }
+    
+    /* Style général pour meilleur contraste */
+    .main .block-container {
+        padding-top: 1rem;
+    }
+    
+    /* Styliser tous les boutons de l'application */
+    .stButton>button {
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+    }
+    
+    .stButton>button:hover {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transform: translateY(-1px);
+    }
+    
+    /* Améliorations du style des radio buttons pour la navigation */
+    div.row-widget.stRadio > div {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    div.row-widget.stRadio > div[role="radiogroup"] > label {
+        background-color: rgba(70, 75, 99, 0.2);
+        border-radius: 5px;
+        padding: 5px 10px;
+        min-width: 100px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    div.row-widget.stRadio > div[role="radiogroup"] > label:hover {
+        background-color: rgba(100, 105, 130, 0.3);
+        transform: translateY(-1px);
+    }
+    
+    div.row-widget.stRadio > div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
+        display: none;
+    }
+    
+    div.row-widget.stRadio > div[role="radiogroup"] > label[aria-checked="true"] {
+        background-color: #9c27b0;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    /* Style pour la barre latérale */
+    .css-1d391kg {
+        background-color: rgba(49, 51, 63, 0.5);
+    }
+    
+    /* Style pour les success/error messages */
+    .stSuccess, .stError, .stWarning, .stInfo {
+        border-radius: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Build tabs dynamically
-nav_html = '<div class="nav-container">'
-for i, tab in enumerate(tabs):
-    active_class = "active" if i == st.session_state.active_tab else ""
-    nav_html += f"""
-    <div class="nav-item {active_class}" onclick="handleTabClick('{i}')">
-        <span class="nav-icon">{tab['icon']}</span>{tab['name']}
-    </div>
-    """
-nav_html += '</div>'
+# Créer la barre de navigation avec les onglets
+# Créer la liste des noms d'onglets avec icônes
+tab_labels = [f"{icon} {name}" for icon, name in zip(tab_icons, tab_names)]
 
-# Add JavaScript to handle tab clicks
-nav_html += """
-<script>
-function handleTabClick(tabIndex) {
-    // Send a message to Streamlit
-    window.parent.postMessage({
-        type: 'streamlit:setComponentValue',
-        value: tabIndex
-    }, '*');
-    
-    // Reload the page
-    window.location.reload();
-}
-</script>
-"""
+# Fonction de callback pour changer d'onglet
+def change_tab():
+    st.session_state.active_tab = st.session_state.tab_radio_idx
 
-# Display the custom navigation
-st.markdown(nav_html, unsafe_allow_html=True)
+# Interface de navigation via boutons radio
+col1, col2 = st.columns([6, 1])
+with col1:
+    # Utiliser un widget de boutons radio horizontal pour la navigation
+    tab_radio_idx = st.radio(
+        "Navigation",
+        options=range(len(tab_labels)),
+        format_func=lambda x: tab_labels[x],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="tab_radio_idx",
+        on_change=change_tab,
+        index=st.session_state.active_tab
+    )
 
-# Get the selected tab index from session_state
+# Récupérer l'index de l'onglet sélectionné depuis session_state
 selected_tab_idx = st.session_state.active_tab
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([tab["name"] for tab in tabs])
+
+# Créer les onglets avec les étiquettes (maintenant invisibles)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs(tab_labels)
 
 with tab1:
     # Header section with explanatory text
