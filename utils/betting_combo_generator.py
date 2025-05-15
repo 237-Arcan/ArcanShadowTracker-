@@ -570,6 +570,9 @@ class BettingComboGenerator:
             # Journaliser l'appel à la fonction
             logger.info(f"Génération du combiné du jour: {max_selections} max, risque={risk_level}, top_modules={use_top_modules}")
             
+            # Ajouter une date/heure de génération
+            generated_at = datetime.now().strftime('%d/%m/%Y %H:%M')
+            
             # S'assurer que nous avons des matchs valides
             matches = self._ensure_valid_matches(matches)
             logger.info(f"Utilisation de {len(matches)} matchs pour le combiné du jour")
@@ -753,7 +756,7 @@ class BettingComboGenerator:
                 'avg_confidence': avg_confidence,
                 'expected_value': expected_value,
                 'risk_level': risk_level,
-                'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'generated_at': generated_at
             }
             
         except Exception as e:
@@ -764,7 +767,7 @@ class BettingComboGenerator:
                 'avg_confidence': 0,
                 'expected_value': 0,
                 'risk_level': risk_level,
-                'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'generated_at': generated_at
             }
     
     def _get_module_performance(self):

@@ -2886,7 +2886,7 @@ with tab8:
                 <div class="coupon-container">
                     <div class="coupon-header">
                         <h3>ArcanShadow Combo</h3>
-                        <p>Généré le {daily_combo.get('generated_at', datetime.now().strftime('%d/%m/%Y %H:%M'))}</p>
+                        <p>Généré le """ + daily_combo.get('generated_at', datetime.now().strftime('%d/%m/%Y %H:%M')) + """</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
