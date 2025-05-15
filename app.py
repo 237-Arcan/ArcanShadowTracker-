@@ -664,11 +664,21 @@ with tab1:
                                 
                                 # Color-code the factor value
                                 color = "forestgreen"
-                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                # Ensure value is a string before checking
+                                factor_value_str = str(factor['value'])
+                                if isinstance(factor['value'], (int, float)):
+                                    # For numeric values, use a different coloring logic
+                                    if factor['value'] > 0.7:
+                                        color = "forestgreen"
+                                    elif factor['value'] > 0.5:
+                                        color = "darkorange"
+                                    else:
+                                        color = "gray"
+                                elif "Strong" in factor_value_str or "Strongly" in factor_value_str:
                                     color = "forestgreen"
-                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                elif "Slight" in factor_value_str or "Slightly" in factor_value_str:
                                     color = "darkorange"
-                                elif "Neutral" in factor['value']:
+                                elif "Neutral" in factor_value_str:
                                     color = "gray"
                                 
                                 st.markdown(f"""
@@ -703,11 +713,21 @@ with tab1:
                                 
                                 # Color-code the factor value
                                 color = "mediumpurple"
-                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                # Ensure value is a string before checking
+                                factor_value_str = str(factor['value'])
+                                if isinstance(factor['value'], (int, float)):
+                                    # For numeric values, use a different coloring logic
+                                    if factor['value'] > 0.7:
+                                        color = "mediumpurple"
+                                    elif factor['value'] > 0.5:
+                                        color = "plum"
+                                    else:
+                                        color = "gray"
+                                elif "Strong" in factor_value_str or "Strongly" in factor_value_str:
                                     color = "mediumpurple"
-                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                elif "Slight" in factor_value_str or "Slightly" in factor_value_str:
                                     color = "plum"
-                                elif "Neutral" in factor['value']:
+                                elif "Neutral" in factor_value_str:
                                     color = "gray"
                                 
                                 st.markdown(f"""
@@ -740,11 +760,21 @@ with tab1:
                                 
                                 # Color-code the factor value
                                 color = "gold"
-                                if "Strong" in factor['value'] or "Strongly" in factor['value']:
+                                # Ensure value is a string before checking
+                                factor_value_str = str(factor['value'])
+                                if isinstance(factor['value'], (int, float)):
+                                    # For numeric values, use a different coloring logic
+                                    if factor['value'] > 0.7:
+                                        color = "gold"
+                                    elif factor['value'] > 0.5:
+                                        color = "goldenrod"
+                                    else:
+                                        color = "gray"
+                                elif "Strong" in factor_value_str or "Strongly" in factor_value_str:
                                     color = "gold"
-                                elif "Slight" in factor['value'] or "Slightly" in factor['value']:
+                                elif "Slight" in factor_value_str or "Slightly" in factor_value_str:
                                     color = "goldenrod"
-                                elif "Neutral" in factor['value']:
+                                elif "Neutral" in factor_value_str:
                                     color = "gray"
                                 
                                 st.markdown(f"""
