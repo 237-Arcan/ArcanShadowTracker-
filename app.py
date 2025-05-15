@@ -2606,22 +2606,68 @@ with tab8:
     # Create a placeholder for the daily combo generation
     combo_generator = st.session_state.betting_combo_generator
     
-    # Récupérer les matchs du jour pour La Liga
-    sport = 'Football'
-    league = 'La Liga'
+    # Récupérer les matchs disponibles dans plusieurs ligues et dates
     date_today = datetime.now().date()
     date_weekend = date_today + timedelta(days=(5 - date_today.weekday()) % 7)  # Prochain samedi
-    upcoming_matches = data_handler.get_upcoming_matches(sport, league, date_weekend)
     
-    # Fallback matches for demonstration if no matches found
+    # Essayer plusieurs sources de données
+    leagues_to_try = [
+        ('Football', 'La Liga', date_today),
+        ('Football', 'Premier League', date_today),
+        ('Football', 'Bundesliga', date_today),
+        ('Football', 'Serie A', date_today),
+        ('Football', 'Ligue 1', date_today),
+        ('Football', 'La Liga', date_weekend)
+    ]
+    
+    upcoming_matches = []
+    selected_league = ""
+    
+    # Essayer chaque ligue jusqu'à ce qu'on trouve des matchs
+    for sport, league, date in leagues_to_try:
+        matches = data_handler.get_upcoming_matches(sport, league, date)
+        if matches and len(matches) > 0:
+            upcoming_matches = matches
+            selected_league = f"{sport} - {league} ({date.strftime('%d/%m/%Y')})"
+            break
+    
+    # Si aucun match n'est trouvé, utiliser des exemples
     if not upcoming_matches:
-        st.warning("Aucun match disponible pour la date du jour. Utilisation des matchs du weekend.")
+        st.warning("Aucun match disponible dans les ligues principales. Utilisation de données de démonstration.")
+        selected_league = "Matchs de démonstration"
         upcoming_matches = [
-            {"home_team": "FC Barcelona", "away_team": "Real Madrid", "home_odds": 2.10, "draw_odds": 3.40, "away_odds": 3.20, "kickoff_time": "20:00"},
-            {"home_team": "Atletico Madrid", "away_team": "Sevilla", "home_odds": 1.85, "draw_odds": 3.50, "away_odds": 4.30, "kickoff_time": "18:30"},
-            {"home_team": "Valencia", "away_team": "Villarreal", "home_odds": 2.40, "draw_odds": 3.30, "away_odds": 2.90, "kickoff_time": "16:15"},
-            {"home_team": "Real Betis", "away_team": "Athletic Bilbao", "home_odds": 2.25, "draw_odds": 3.25, "away_odds": 3.10, "kickoff_time": "14:00"}
+            {
+                "id": "demo1",
+                "sport": "Football", 
+                "league": "Demo League",
+                "home_team": "FC Barcelona", 
+                "away_team": "Real Madrid", 
+                "date": date_today,
+                "kickoff_time": "20:00",
+                "stadium": "Camp Nou",
+                "city": "Barcelona",
+                "country": "Spain",
+                "odds": {"1": 2.10, "X": 3.40, "2": 3.20}
+            },
+            {
+                "id": "demo2",
+                "sport": "Football", 
+                "league": "Demo League",
+                "home_team": "Arsenal", 
+                "away_team": "Manchester City", 
+                "date": date_today,
+                "kickoff_time": "18:30",
+                "stadium": "Emirates Stadium",
+                "city": "London",
+                "country": "England",
+                "odds": {"1": 3.25, "X": 3.30, "2": 2.20}
+            }
         ]
+    else:
+        st.success(f"Matchs récupérés pour {selected_league}")
+    
+    # Ajouter la source des matchs dans une variable de session
+    st.session_state.combo_matches_source = selected_league
     
     # Initialiser ou réinitialiser le combiné du jour
     if st.button("Générer un nouveau combiné", type="primary"):

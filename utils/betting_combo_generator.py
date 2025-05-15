@@ -761,6 +761,10 @@ class BettingComboGenerator:
             
         except Exception as e:
             logger.error(f"Erreur lors de la génération du combiné du jour: {e}")
+            # Éviter l'erreur de variable non liée
+            if 'generated_at' not in locals():
+                generated_at = datetime.now().strftime('%d/%m/%Y %H:%M')
+                
             return {
                 'selections': [],
                 'total_odds': 0,
