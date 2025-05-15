@@ -10,6 +10,7 @@ from modules.shadow_odds import ShadowOdds
 from modules.convergence import Convergence
 from modules.meta_systems import MetaSystems
 from modules.arcan_sentinel import ArcanSentinel
+from modules.learning_system import LearningSystem
 # Import des modules "suspendus"
 from modules.numeri_code import NumeriCode
 from modules.tarot_echo import TarotEcho
@@ -2089,6 +2090,9 @@ with tab7:
                     # Get ArcanBrain analysis
                     from modules.arcan_brain import ArcanBrain
                     arcan_brain = ArcanBrain(meta_systems=meta_systems)
+                    
+                    # Initialize LearningSystem to manage pattern recalibration and transfer learning
+                    learning_system = LearningSystem(meta_systems=meta_systems, arcan_brain=arcan_brain)
                     
                     # Convert prediction data to match data format
                     match_data = {
