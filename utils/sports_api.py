@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 import os
 import random  # As fallback
 import time
+import logging
+from .cache_manager import CacheManager
 
 class SportsAPI:
     """
@@ -18,6 +20,9 @@ class SportsAPI:
     
     def __init__(self):
         """Initialize the API connections"""
+        # Configuration du logger
+        self.logger = logging.getLogger('sports_api')
+        
         # Check if API key is available in environment variables
         self.football_api_key = os.environ.get('FOOTBALL_API_KEY', '')
         self.api_ready = bool(self.football_api_key)
@@ -25,10 +30,9 @@ class SportsAPI:
         # Base URLs for APIs
         self.football_base_url = "https://api.football-data.org/v4"
         
-        # Cache to reduce API calls
-        self.cache = {}
-        self.cache_expiry = {}
-        self.cache_duration = 60 * 30  # 30 minutes
+        # Initialize cache manager
+        self.cache_manager = CacheManager()
+        self.cache_duration = 60 * 30  # 30 minutes default
         
         # League mapping
         self.league_mapping = {
@@ -64,14 +68,16 @@ class SportsAPI:
             list: List of match dictionaries
         """
         if not self.api_ready:
-            print("API key not available, using fallback data")
+            self.logger.warning("API key not available, using fallback data")
             return None  # Return None to indicate fallback should be used
         
-        cache_key = f"{sport}_{league}_{date.strftime('%Y-%m-%d')}"
+        cache_key = f"matches_{sport}_{league}_{date.strftime('%Y-%m-%d')}"
         
-        # Return cached data if available and not expired
-        if cache_key in self.cache and time.time() < self.cache_expiry.get(cache_key, 0):
-            return self.cache[cache_key]
+        # Try to get cached data first
+        cached_data = self.cache_manager.get(cache_key, 'sports_api')
+        if cached_data:
+            self.logger.info(f"Using cached match data for {sport} - {league} on {date}")
+            return cached_data
         
         # Handle football data
         if sport == 'Football':
@@ -79,8 +85,8 @@ class SportsAPI:
             
             # Cache the results
             if matches:
-                self.cache[cache_key] = matches
-                self.cache_expiry[cache_key] = time.time() + self.cache_duration
+                self.cache_manager.set(cache_key, matches, 'sports_api', self.cache_duration)
+                self.logger.info(f"Cached match data for {sport} - {league} on {date}")
                 
             return matches
             
