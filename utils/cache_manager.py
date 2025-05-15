@@ -49,6 +49,7 @@ class CacheManager:
         """
         Initialise la table de cache dans la base de données.
         """
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -71,13 +72,14 @@ class CacheManager:
             if conn:
                 conn.close()
     
-    def get(self, key, source='default'):
+    def get(self, key, source='default', force=False):
         """
         Récupère une donnée du cache.
         
         Args:
             key (str): Clé de cache
             source (str): Source de la donnée (pour le logging)
+            force (bool): Si True, récupère les données même si expirées
             
         Returns:
             any: Donnée en cache ou None si non trouvée ou expirée
@@ -88,27 +90,38 @@ class CacheManager:
             
             # Récupérer les données et la date d'expiration
             cursor.execute(
-                "SELECT data, expiry FROM cache WHERE cache_key = ?",
+                "SELECT data, expiry, created_at FROM cache WHERE cache_key = ?",
                 (key,)
             )
             result = cursor.fetchone()
             
             if result:
-                data_blob, expiry = result
+                data_blob, expiry, created_at = result
+                current_time = int(time.time())
                 
                 # Vérifier si les données sont expirées
-                if expiry > int(time.time()):
+                if expiry > current_time or force:
                     try:
                         # Désérialiser les données
                         data = pickle.loads(data_blob)
-                        logger.info(f"Données récupérées du cache pour {key} (source: {source})")
+                        
+                        if expiry > current_time:
+                            logger.info(f"Données récupérées du cache pour {key} (source: {source})")
+                        else:
+                            age_seconds = current_time - created_at
+                            age_minutes = age_seconds // 60
+                            age_hours = age_minutes // 60
+                            if age_hours > 0:
+                                logger.warning(f"Données expirées récupérées du cache pour {key} (source: {source}, âge: {age_hours}h {age_minutes % 60}m)")
+                            else:
+                                logger.warning(f"Données expirées récupérées du cache pour {key} (source: {source}, âge: {age_minutes}m)")
+                                
                         return data
                     except Exception as e:
                         logger.error(f"Erreur lors de la désérialisation des données: {e}")
                 else:
                     logger.info(f"Données expirées dans le cache pour {key} (source: {source})")
-                    # Supprimer les données expirées
-                    self.invalidate(key)
+                    # Ne pas supprimer les données expirées, elles peuvent être utiles en cas d'urgence
             
             return None
             
@@ -117,7 +130,7 @@ class CacheManager:
             return None
             
         finally:
-            if conn:
+            if 'conn' in locals() and conn:
                 conn.close()
     
     def set(self, key, data, source='default', duration=None):
@@ -141,8 +154,9 @@ class CacheManager:
             data_blob = pickle.dumps(data)
             
             # Calculer la date d'expiration
-            expiry = int(time.time()) + duration
-            created_at = int(time.time())
+            current_time = int(time.time())
+            expiry = current_time + duration
+            created_at = current_time
             
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -162,7 +176,7 @@ class CacheManager:
             return False
             
         finally:
-            if conn:
+            if 'conn' in locals() and conn:
                 conn.close()
     
     def invalidate(self, key):
@@ -175,6 +189,7 @@ class CacheManager:
         Returns:
             bool: True si réussi, False sinon
         """
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -202,6 +217,7 @@ class CacheManager:
         Returns:
             int: Nombre d'entrées supprimées
         """
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -231,6 +247,7 @@ class CacheManager:
         Returns:
             bool: True si réussi, False sinon
         """
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
@@ -256,6 +273,7 @@ class CacheManager:
         Returns:
             dict: Statistiques du cache
         """
+        conn = None
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
