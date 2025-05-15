@@ -201,8 +201,6 @@ if 'loading_prediction' not in st.session_state:
     st.session_state.loading_prediction = False
 if 'language' not in st.session_state:
     st.session_state.language = 'en'  # Default language is English
-if 'active_tab' not in st.session_state:
-    st.session_state.active_tab = 0  # Default to first tab (Predictions)
 if 'match_events' not in st.session_state:
     st.session_state.match_events = []  # List to store match events in live mode
 if 'daily_combo' not in st.session_state:
@@ -581,7 +579,6 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         border-radius: 8px;
-        display: none;  /* Cacher les onglets standards puisqu'on utilise le radio */
     }
     
     .stTabs [data-baseweb="tab"] {
@@ -589,6 +586,7 @@ st.markdown("""
         border-radius: 5px;
         padding: 8px 16px;
         transition: all 0.3s;
+        font-weight: 500;
     }
     
     .stTabs [data-baseweb="tab"]:hover {
@@ -626,44 +624,6 @@ st.markdown("""
         transform: translateY(-1px);
     }
     
-    /* Améliorations du style des radio buttons pour la navigation */
-    div.row-widget.stRadio > div {
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-    
-    div.row-widget.stRadio > div[role="radiogroup"] > label {
-        background-color: rgba(70, 75, 99, 0.2);
-        border-radius: 5px;
-        padding: 5px 10px;
-        min-width: 100px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    div.row-widget.stRadio > div[role="radiogroup"] > label:hover {
-        background-color: rgba(100, 105, 130, 0.3);
-        transform: translateY(-1px);
-    }
-    
-    div.row-widget.stRadio > div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
-        display: none;
-    }
-    
-    div.row-widget.stRadio > div[role="radiogroup"] > label[aria-checked="true"] {
-        background-color: #9c27b0;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
     /* Style pour la barre latérale */
     .css-1d391kg {
         background-color: rgba(49, 51, 63, 0.5);
@@ -676,33 +636,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Créer la barre de navigation avec les onglets
 # Créer la liste des noms d'onglets avec icônes
 tab_labels = [f"{icon} {name}" for icon, name in zip(tab_icons, tab_names)]
 
-# Fonction de callback pour changer d'onglet
-def change_tab():
-    st.session_state.active_tab = st.session_state.tab_radio_idx
-
-# Interface de navigation via boutons radio
-col1, col2 = st.columns([6, 1])
-with col1:
-    # Utiliser un widget de boutons radio horizontal pour la navigation
-    tab_radio_idx = st.radio(
-        "Navigation",
-        options=range(len(tab_labels)),
-        format_func=lambda x: tab_labels[x],
-        horizontal=True,
-        label_visibility="collapsed",
-        key="tab_radio_idx",
-        on_change=change_tab,
-        index=st.session_state.active_tab
-    )
-
-# Récupérer l'index de l'onglet sélectionné depuis session_state
-selected_tab_idx = st.session_state.active_tab
-
-# Créer les onglets avec les étiquettes (maintenant invisibles)
+# Créer les onglets avec les étiquettes
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs(tab_labels)
 
 with tab1:
