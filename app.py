@@ -78,6 +78,93 @@ st.markdown("""
     .main .block-container {
         max-width: 1200px;
     }
+    
+    /* Styles supplémentaires */
+    .title-box {
+        font-size: 12px;
+        inline-size: max-content;
+        max-width: 100%;
+    }
+    
+    .description-box {
+        font-size: 10px;
+        inline-size: max-content;
+        max-width: 100%;
+    }
+    
+    .err-box {
+        padding: 1em;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    .message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .ascii {
+        font-size: 6px;
+        text-align: center;
+        opacity: .8;
+    }
+    
+    .eval-bot {
+        margin: 4em;
+    }
+    
+    @media (max-width: 500px) {
+        .title-box {
+            font-size: 10px;
+        }
+        
+        .description-box {
+            font-size: 8px;
+        }
+        
+        .eval-bot {
+            margin: 1em;
+        }
+        
+        .eval-bot svg {
+            width: 200px;
+        }
+        
+        .message {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .repl-links {
+            font-size: 14px;
+        }
+    }
+    
+    .console {
+        background-color: #0e1628;
+        color: #fff;
+        font-family: "IBM Plex Sans", "sans";
+        padding: 1em;
+        margin: 1em;
+    }
+    
+    .footer-item {
+        margin: 1em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .link-icon {
+        margin-right: 8px;
+        margin-top: 4px;
+    }
+    
+    a {
+        color: #c2c8cc;
+    }
 </style>
 """, unsafe_allow_html=True)
 
