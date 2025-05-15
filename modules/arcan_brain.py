@@ -66,6 +66,10 @@ class ArcanBrain:
             'insight_level': 0.0,
             'activation_level': 0.0
         }
+        
+        # Register event handlers if MetaSystems is available
+        if self.meta_systems:
+            self._register_event_handlers()
     
     def analyze_match(self, match_data, arcan_x_results=None, shadow_odds_results=None):
         """
@@ -2786,6 +2790,180 @@ class ArcanBrain:
         except Exception as e:
             print(f"Error saving neural state: {str(e)}")
             return False
+            
+    def _register_event_handlers(self):
+        """Register event handlers with MetaSystems event system."""
+        # Register for odds change events
+        self.meta_systems.register_event_handler(
+            'odds_change_detected', 
+            self._handle_odds_change_event,
+            'ArcanBrain'
+        )
+        
+        # Register for anomaly events
+        self.meta_systems.register_event_handler(
+            'anomaly_detected', 
+            self._handle_anomaly_event,
+            'ArcanBrain'
+        )
+        
+        # Register for module activation events
+        self.meta_systems.register_event_handler(
+            'module_activated', 
+            self._handle_module_activation_event,
+            'ArcanBrain'
+        )
+        
+        # Register for prediction results
+        self.meta_systems.register_event_handler(
+            'prediction_evaluated', 
+            self._handle_prediction_evaluation_event,
+            'ArcanBrain'
+        )
+
+    def _handle_odds_change_event(self, event_data):
+        """
+        Handle odds change events from ShadowOdds or other odds monitoring modules.
+        
+        Args:
+            event_data (dict): Data about the odds change event
+        """
+        if not event_data:
+            return
+            
+        match_id = event_data.get('match_id')
+        if not match_id:
+            return
+            
+        # Store in associative memory
+        if 'odds_changes' not in self.associative_memory:
+            self.associative_memory['odds_changes'] = {}
+            
+        if match_id not in self.associative_memory['odds_changes']:
+            self.associative_memory['odds_changes'][match_id] = []
+            
+        self.associative_memory['odds_changes'][match_id].append({
+            'timestamp': datetime.now().isoformat(),
+            'change_data': event_data,
+            'neural_response': self._generate_odds_change_response(event_data)
+        })
+        
+    def _handle_anomaly_event(self, event_data):
+        """
+        Handle anomaly events from various system modules.
+        
+        Args:
+            event_data (dict): Data about the detected anomaly
+        """
+        if not event_data:
+            return
+            
+        # Add to short-term memory for pattern recognition
+        self.short_term_memory.append({
+            'type': 'anomaly',
+            'timestamp': datetime.now().isoformat(),
+            'data': event_data,
+            'neural_signature': self._generate_neural_signature(event_data)
+        })
+        
+        # Analyze for patterns with past anomalies
+        pattern = self._detect_anomaly_pattern(event_data)
+        
+        # If significant pattern found, emit an event
+        if pattern and pattern.get('significance', 0) > self.pattern_threshold:
+            if self.meta_systems:
+                self.meta_systems.trigger_event('pattern_recognized', {
+                    'source': 'ArcanBrain',
+                    'pattern_type': 'anomaly_sequence',
+                    'pattern_data': pattern,
+                    'related_matches': pattern.get('related_matches', [])
+                })
+                
+    def _handle_module_activation_event(self, event_data):
+        """
+        Handle module activation events to adjust neural pathways.
+        
+        Args:
+            event_data (dict): Data about module activation
+        """
+        module_name = event_data.get('module_name')
+        if not module_name:
+            return
+            
+        # Strengthen synaptic connections related to this module
+        if module_name not in self.synapse_strength:
+            self.synapse_strength[module_name] = 0.5  # Default strength
+            
+        # Increase connection strength (with ceiling)
+        self.synapse_strength[module_name] = min(
+            1.0, 
+            self.synapse_strength[module_name] + 0.05
+        )
+        
+        # Record activation in history
+        self.activation_history.append({
+            'module': module_name,
+            'timestamp': datetime.now().isoformat(),
+            'strength': self.synapse_strength[module_name]
+        })
+        
+    def _handle_prediction_evaluation_event(self, event_data):
+        """
+        Handle prediction evaluation events to adapt neural learning.
+        
+        Args:
+            event_data (dict): Data about prediction evaluation
+        """
+        if not event_data:
+            return
+            
+        prediction_accuracy = event_data.get('accuracy', 0)
+        match_data = event_data.get('match_data', {})
+        
+        # Adjust learning parameters based on prediction accuracy
+        if prediction_accuracy < 0.4:  # Poor performance
+            # Increase learning rate to adapt faster
+            self.learning_rate = min(0.1, self.learning_rate * 1.2)
+            # Reduce pattern threshold to consider more patterns
+            self.pattern_threshold = max(0.5, self.pattern_threshold * 0.9)
+        elif prediction_accuracy > 0.7:  # Good performance
+            # Slightly decrease learning rate to stabilize
+            self.learning_rate = max(0.01, self.learning_rate * 0.95)
+            # Increase pattern threshold to focus on stronger patterns
+            self.pattern_threshold = min(0.8, self.pattern_threshold * 1.05)
+        
+        # Notify MetaSystems of parameter adaptation
+        if self.meta_systems:
+            self.meta_systems.trigger_event('parameters_adapted', {
+                'source': 'ArcanBrain',
+                'learning_rate': self.learning_rate,
+                'pattern_threshold': self.pattern_threshold,
+                'based_on_accuracy': prediction_accuracy
+            })
+            
+    def _generate_odds_change_response(self, change_data):
+        """Generate a neural response to odds change data."""
+        # This would contain complex logic in a full implementation
+        return {
+            'sensitivity': random.uniform(0.3, 0.9),
+            'reaction_intensity': random.uniform(0.1, 1.0)
+        }
+        
+    def _generate_neural_signature(self, event_data):
+        """Generate a unique neural signature for an event."""
+        # This would be a complex fingerprint in a full implementation
+        event_str = json.dumps(event_data, sort_keys=True)
+        signature = hashlib.md5(event_str.encode()).hexdigest()
+        return signature
+        
+    def _detect_anomaly_pattern(self, new_anomaly):
+        """Detect patterns in anomaly occurrences."""
+        # This would use sophisticated pattern recognition in a full implementation
+        return {
+            'significance': random.uniform(0.4, 0.9),
+            'type': random.choice(['sequential', 'cyclic', 'divergent']),
+            'related_matches': []
+        }
     
     def generate_analysis_insight(self, match_data, prediction):
         """

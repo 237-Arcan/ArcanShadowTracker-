@@ -89,10 +89,10 @@ class MetaSystems:
             'ArcanBrain': self.arcan_brain_wrapper
         }
         
-        # Advanced module initialization - disabled for now
-        # self.arcan_reflex = ArcanReflex(arcan_x, shadow_odds, convergence, self)
-        # self.eastern_gate = EasternGate()
-        # self.d_forge = DForge(self.arcan_reflex, self)
+        # Advanced module initialization
+        self.arcan_reflex = ArcanReflex(arcan_x, shadow_odds, convergence, self)
+        self.eastern_gate = EasternGate()
+        self.d_forge = DForge(self.arcan_reflex, self)
         
         # Cache for results to avoid redundant calculations
         self.cache = {}
