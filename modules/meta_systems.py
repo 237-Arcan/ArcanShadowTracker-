@@ -4,6 +4,7 @@ import random
 import os
 import sqlite3
 import json
+from collections import defaultdict
 from modules.arcan_reflex import ArcanReflex
 from modules.eastern_gate import EasternGate
 from modules.d_forge import DForge
@@ -36,6 +37,11 @@ class MetaSystems:
         
         # Store advanced modules
         self.adv_modules = advanced_modules or {}
+        
+        # Initialize event system for inter-module communication
+        self.event_subscribers = defaultdict(list)
+        self.event_history = []
+        self.max_event_history = 100
         
         # Initialize system state tracking
         self.system_state = {
@@ -970,3 +976,83 @@ class MetaSystems:
             }
             
         return evaluations
+
+    def register_event_handler(self, event_type, handler_function, module_name):
+        """
+        Register a function to handle specific events.
+        
+        Args:
+            event_type (str): Type of event to listen for (e.g., 'prediction_complete', 'anomaly_detected')
+            handler_function (callable): Function to call when the event occurs
+            module_name (str): Name of the module registering the handler
+        """
+        self.event_subscribers[event_type].append({
+            'handler': handler_function,
+            'module': module_name
+        })
+        
+    def unregister_event_handler(self, event_type, module_name):
+        """
+        Unregister all event handlers for a specific module and event type.
+        
+        Args:
+            event_type (str): Type of event
+            module_name (str): Name of the module that registered the handler
+        """
+        if event_type in self.event_subscribers:
+            self.event_subscribers[event_type] = [
+                handler for handler in self.event_subscribers[event_type] 
+                if handler['module'] != module_name
+            ]
+            
+    def trigger_event(self, event_type, event_data):
+        """
+        Trigger an event to all registered handlers.
+        
+        Args:
+            event_type (str): Type of event being triggered
+            event_data (dict): Data related to the event
+            
+        Returns:
+            int: Number of handlers that processed the event
+        """
+        # Add event to history
+        timestamp = datetime.now()
+        self.event_history.append({
+            'type': event_type,
+            'timestamp': timestamp,
+            'data': event_data
+        })
+        
+        # Trim history if needed
+        if len(self.event_history) > self.max_event_history:
+            self.event_history = self.event_history[-self.max_event_history:]
+        
+        # Notify subscribers
+        processed_count = 0
+        if event_type in self.event_subscribers:
+            for handler_info in self.event_subscribers[event_type]:
+                try:
+                    handler_info['handler'](event_data)
+                    processed_count += 1
+                except Exception as e:
+                    print(f"Error in event handler from {handler_info['module']}: {e}")
+        
+        return processed_count
+        
+    def get_recent_events(self, event_type=None, limit=10):
+        """
+        Get recent events from the event history.
+        
+        Args:
+            event_type (str, optional): Filter by event type
+            limit (int): Maximum number of events to return
+            
+        Returns:
+            list: Recent events
+        """
+        if event_type:
+            filtered_events = [e for e in self.event_history if e['type'] == event_type]
+            return filtered_events[-limit:] if filtered_events else []
+        else:
+            return self.event_history[-limit:] if self.event_history else []
