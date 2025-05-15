@@ -2946,12 +2946,7 @@ with tab10:
             </div>
             """, unsafe_allow_html=True)
     
-    with smart_rec_cols[0]:
-        # Main recommendations area
-        st.markdown(f"### {t('recommended_markets')}")
-        
-        # Get market recommendations for the user
-        recommendations = get_market_recommendations(user_id, sport=st.session_state.selected_sport)
+# Fin du contenu de l'onglet d'apprentissage
         
         if not recommendations:
             # If no recommendations exist, we need to generate sample historical data
