@@ -15,6 +15,7 @@ import requests
 from trafilatura import fetch_url, extract
 from bs4 import BeautifulSoup
 import logging
+from .cache_manager import CacheManager
 
 # Configuration du logger
 logging.basicConfig(
@@ -43,6 +44,19 @@ class FlashScraper:
         }
         self.delay_range = delay_range
         
+        # Initialiser le gestionnaire de cache
+        self.cache_manager = CacheManager()
+        
+        # Durées de cache par défaut (en secondes)
+        self.cache_durations = {
+            'matches_of_day': 3 * 60 * 60,      # 3 heures pour les matchs du jour
+            'match_details': 12 * 60 * 60,      # 12 heures pour les détails d'un match
+            'team_form': 6 * 60 * 60,           # 6 heures pour la forme d'une équipe
+            'odds_movement': 30 * 60,           # 30 minutes pour les mouvements de cotes
+            'match_stats': 24 * 60 * 60,        # 24 heures pour les statistiques d'un match
+            'match_lineups': 12 * 60 * 60       # 12 heures pour les compositions d'équipes
+        }
+        
     def _random_delay(self):
         """Introduit un délai aléatoire pour éviter la détection"""
         time.sleep(random.uniform(*self.delay_range))
@@ -60,6 +74,17 @@ class FlashScraper:
         """
         if date is None:
             date = datetime.now().strftime('%Y%m%d')
+        elif isinstance(date, datetime) or hasattr(date, 'strftime'):
+            date = date.strftime('%Y%m%d')
+            
+        # Clé de cache
+        cache_key = f"flash_matches_{sport}_{date}"
+        
+        # Essaie de récupérer les données du cache
+        cached_data = self.cache_manager.get(cache_key, 'flash_scraper')
+        if cached_data:
+            logger.info(f"Utilisation des données en cache pour les matchs de {sport} du {date}")
+            return cached_data
             
         url = f"{self.base_url}/{sport}/{date}/"
         
@@ -115,6 +140,16 @@ class FlashScraper:
                     logger.error(f"Erreur lors de l'extraction du match: {e}")
                     continue
             
+            # Mettre en cache les résultats si des matchs sont trouvés
+            if matches:
+                self.cache_manager.set(
+                    cache_key, 
+                    matches, 
+                    'flash_scraper', 
+                    self.cache_durations.get('matches_of_day')
+                )
+                logger.info(f"Mise en cache des données pour les matchs de {sport} du {date}")
+            
             return matches
             
         except Exception as e:
@@ -134,6 +169,15 @@ class FlashScraper:
         Returns:
             dict: Détails complets du match
         """
+        # Clé de cache
+        cache_key = f"match_details_{match_id}"
+        
+        # Essaie de récupérer les données du cache
+        cached_data = self.cache_manager.get(cache_key, 'flash_scraper')
+        if cached_data:
+            logger.info(f"Utilisation des données en cache pour les détails du match {match_id}")
+            return cached_data
+        
         url = f"{self.base_url}/match/{match_id}/"
         
         try:
@@ -193,6 +237,16 @@ class FlashScraper:
             
             # Ajouter l'ID du match
             match_details['id'] = match_id
+            
+            # Mettre en cache les résultats si des détails sont trouvés
+            if match_details:
+                self.cache_manager.set(
+                    cache_key, 
+                    match_details, 
+                    'flash_scraper', 
+                    self.cache_durations.get('match_details')
+                )
+                logger.info(f"Mise en cache des détails du match {match_id}")
             
             return match_details
             
