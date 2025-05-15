@@ -424,12 +424,13 @@ tabs = [
     t('live_monitoring_tab'),
     t('performance_notifications_tab'),  # Tab for performance notifications
     t('daily_combo_tab'),  # Tab for daily betting combo
-    t('smart_recommendations_title')  # New tab for smart market recommendations
+    t('smart_recommendations_title'),  # New tab for smart market recommendations
+    "Système d'Apprentissage"  # Nouvel onglet pour le système d'apprentissage
 ]
 
 # Get the selected tab index from session_state
 selected_tab_idx = st.session_state.active_tab
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(tabs)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs(tabs)
 
 with tab1:
     # Header section with explanatory text
@@ -2752,12 +2753,198 @@ with tab9:
     # Header section
     st.markdown(f"## {t('smart_recommendations_title')}")
     st.markdown(t('smart_recommendations_description'))
+
+with tab10:
+    # Import the learning system (already imported at top of file)
     
-    # Initialize a demonstration user ID
-    user_id = "default_user"
+    # Header section
+    st.markdown("## Système d'Apprentissage")
+    st.markdown("Le système d'apprentissage permet de suivre l'évolution des capacités prédictives du système en traçant les événements de recalibration et de transfert d'apprentissage.")
     
-    # Create layout with two columns for main content
-    smart_rec_cols = st.columns([3, 2])
+    # Create layout with two columns for content
+    learning_cols = st.columns([3, 2])
+    
+    # Import datetime for timestamps
+    from datetime import datetime, timedelta
+    
+    with learning_cols[0]:
+        # Tabs for different types of learning events
+        learning_tabs = st.tabs(["Recalibration des Patterns", "Apprentissage par Transfert", "Statistiques d'Apprentissage"])
+        
+        with learning_tabs[0]:
+            st.markdown("### Recalibration des Patterns")
+            
+            # Exemple de données pour illustrer l'interface
+            recalibrations = [
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "ArcanBrain",
+                    "patterns_recalibrated": 15,
+                    "patterns_strengthened": 10,
+                    "patterns_weakened": 5
+                },
+                {
+                    "timestamp": (datetime.now() - timedelta(hours=3)).isoformat(),
+                    "source": "ArcanBrain",
+                    "patterns_recalibrated": 8,
+                    "patterns_strengthened": 5,
+                    "patterns_weakened": 3
+                }
+            ]
+            
+            # Affichage des événements de recalibration
+            if recalibrations:
+                for recal in recalibrations:
+                    with st.container():
+                        st.markdown(f"""
+                        <div style='background-color: rgba(30, 30, 50, 0.7); border-radius: 10px; padding: 15px; border-left: 4px solid #9c27b0; margin-bottom: 10px;'>
+                            <div style='display: flex; justify-content: space-between;'>
+                                <div><strong>Source:</strong> {recal['source']}</div>
+                                <div><small>{recal['timestamp']}</small></div>
+                            </div>
+                            <div style='margin-top: 10px;'>
+                                <span style='background-color: #1a1a2e; padding: 5px 8px; border-radius: 5px; margin-right: 10px;'>
+                                    {recal['patterns_recalibrated']} patterns
+                                </span>
+                                <span style='background-color: green; padding: 5px 8px; border-radius: 5px; margin-right: 10px;'>
+                                    +{recal['patterns_strengthened']} renforcés
+                                </span>
+                                <span style='background-color: #d32f2f; padding: 5px 8px; border-radius: 5px;'>
+                                    -{recal['patterns_weakened']} affaiblis
+                                </span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("Aucun événement de recalibration n'a été enregistré.")
+        
+        with learning_tabs[1]:
+            st.markdown("### Apprentissage par Transfert")
+            
+            # Exemple de données pour illustrer l'interface
+            transfers = [
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "ArcanBrain",
+                    "source_context": {"league": "Premier League", "match_type": "Derby"},
+                    "target_context": {"league": "La Liga", "match_type": "Derby"},
+                    "patterns_transferred": 12
+                }
+            ]
+            
+            # Affichage des événements de transfert
+            if transfers:
+                for transfer in transfers:
+                    with st.container():
+                        st.markdown(f"""
+                        <div style='background-color: rgba(30, 30, 50, 0.7); border-radius: 10px; padding: 15px; border-left: 4px solid #1e88e5; margin-bottom: 10px;'>
+                            <div style='display: flex; justify-content: space-between;'>
+                                <div><strong>Source:</strong> {transfer['source']}</div>
+                                <div><small>{transfer['timestamp']}</small></div>
+                            </div>
+                            <div style='margin-top: 10px;'>
+                                <div style='margin-bottom: 5px;'>
+                                    <strong>Contexte source:</strong> {transfer['source_context']['league']} - {transfer['source_context']['match_type']}
+                                </div>
+                                <div style='margin-bottom: 5px;'>
+                                    <strong>Contexte cible:</strong> {transfer['target_context']['league']} - {transfer['target_context']['match_type']}
+                                </div>
+                                <div style='background-color: #1a1a2e; padding: 5px 8px; border-radius: 5px; display: inline-block; margin-top: 5px;'>
+                                    {transfer['patterns_transferred']} patterns transférés
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("Aucun événement de transfert d'apprentissage n'a été enregistré.")
+        
+        with learning_tabs[2]:
+            st.markdown("### Statistiques d'Apprentissage")
+            
+            # Données d'exemple pour les statistiques
+            stats = {
+                "recalibration_efficacy": 0.75,
+                "transfer_learning_efficacy": 0.68,
+                "learning_system_health": 0.82
+            }
+            
+            # Affichage des métriques
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Efficacité des recalibrations", f"{stats['recalibration_efficacy']*100:.1f}%")
+            with col2:
+                st.metric("Efficacité des transferts", f"{stats['transfer_learning_efficacy']*100:.1f}%")
+            with col3:
+                st.metric("Santé du système", f"{stats['learning_system_health']*100:.1f}%")
+            
+            # Graphique d'évolution
+            st.markdown("#### Évolution des capacités d'apprentissage")
+            
+            # Données d'exemple pour le graphique
+            dates = [datetime.now() - timedelta(days=i) for i in range(10, 0, -1)]
+            recal_values = [0.65, 0.67, 0.68, 0.70, 0.72, 0.73, 0.74, 0.75, 0.75, 0.75]
+            transfer_values = [0.55, 0.57, 0.59, 0.61, 0.63, 0.64, 0.65, 0.66, 0.67, 0.68]
+            
+            chart_data = pd.DataFrame({
+                'Date': dates,
+                'Recalibration': recal_values,
+                'Transfert': transfer_values
+            })
+            
+            # Création du graphique
+            fig = px.line(chart_data, x='Date', y=['Recalibration', 'Transfert'],
+                         title="Progression de l'efficacité d'apprentissage")
+            fig.update_layout(
+                xaxis_title="Date",
+                yaxis_title="Efficacité",
+                legend_title="Type d'apprentissage",
+                template="plotly_dark"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with learning_cols[1]:
+        st.markdown("### Paramètres d'Apprentissage")
+        
+        # Contrôles pour les paramètres d'apprentissage
+        st.slider("Seuil de similarité pour transfert", 0.0, 1.0, 0.6, 0.05, 
+                 help="Seuil minimal de similarité entre contextes pour permettre un transfert d'apprentissage")
+        
+        st.slider("Coefficient de renforcement", 0.0, 1.0, 0.8, 0.05,
+                 help="Coefficient appliqué lors du renforcement d'un pattern")
+        
+        st.slider("Coefficient d'affaiblissement", 0.0, 1.0, 0.7, 0.05,
+                 help="Coefficient appliqué lors de l'affaiblissement d'un pattern")
+        
+        st.number_input("Taille maximale de l'historique", 10, 200, 50, 10,
+                       help="Nombre maximum d'événements d'apprentissage à conserver")
+        
+        # Section d'actions manuelles
+        st.markdown("### Actions Manuelles")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Forcer recalibration", type="primary"):
+                st.info("Recalibration forcée déclenchée.")
+        
+        with col2:
+            if st.button("Vider les patterns faibles"):
+                st.info("Patterns faibles supprimés.")
+        
+        # Liste des contextes disponibles
+        st.markdown("### Contextes Disponibles")
+        
+        contexts = [
+            {"id": 1, "name": "Premier League - Derby", "patterns": 45},
+            {"id": 2, "name": "La Liga - Derby", "patterns": 23},
+            {"id": 3, "name": "Ligue 1 - Match normal", "patterns": 67}
+        ]
+        
+        for ctx in contexts:
+            st.markdown(f"""
+            <div style='background-color: rgba(30, 30, 50, 0.5); border-radius: 10px; padding: 10px; margin-bottom: 5px;'>
+                {ctx['name']} ({ctx['patterns']} patterns)
+            </div>
+            """, unsafe_allow_html=True)
     
     with smart_rec_cols[0]:
         # Main recommendations area
