@@ -752,9 +752,49 @@ with st.sidebar:
     selected_league = st.selectbox(t('select_league'), leagues, index=0 if st.session_state.selected_league not in leagues else leagues.index(st.session_state.selected_league))
     st.session_state.selected_league = selected_league
     
-    # Date selection
-    selected_date = st.date_input(t('select_date'), st.session_state.selected_date)
-    st.session_state.selected_date = selected_date
+    # Navigation par date (style mobile)
+    today = datetime.now().date()
+    date_range = [today + timedelta(days=i-3) for i in range(7)]  # 3 jours avant, aujourd'hui et 3 jours après
+    
+    # Déterminer le jour actif (par défaut: aujourd'hui)
+    if 'selected_date' not in st.session_state or st.session_state.selected_date not in date_range:
+        st.session_state.selected_date = today
+        
+    # Créer la barre de navigation par date
+    date_nav_html = '<div class="date-nav">'
+    
+    for date in date_range:
+        # Déterminer le nom du jour en abrégé
+        day_name = date.strftime("%a").upper()[:3]  # LUN, MAR, MER, etc.
+        day_number = date.strftime("%d")  # Le numéro du jour
+        
+        # Vérifier si c'est le jour sélectionné
+        active_class = "active" if date == st.session_state.selected_date else ""
+        
+        # Créer l'élément de navigation pour ce jour
+        date_nav_html += f'''
+        <div class="date-nav-item {active_class}" onclick="window.location.href='?date={date.isoformat()}'">
+            <div class="date-nav-day">{day_name}</div>
+            <div class="date-nav-date">{day_number}</div>
+        </div>
+        '''
+    
+    date_nav_html += '</div>'
+    
+    # Afficher la barre de navigation par date
+    st.markdown(date_nav_html, unsafe_allow_html=True)
+    
+    # Récupérer la date de l'URL si présente
+    query_params = st.experimental_get_query_params()
+    if 'date' in query_params:
+        try:
+            date_str = query_params['date'][0]
+            selected_date = datetime.fromisoformat(date_str).date()
+            st.session_state.selected_date = selected_date
+        except:
+            selected_date = st.session_state.selected_date
+    else:
+        selected_date = st.session_state.selected_date
     
     # Module activation checkboxes
     st.markdown(f"### {t('active_modules')}")
@@ -776,28 +816,96 @@ with st.sidebar:
     
     if featured_matches:
         for match in featured_matches:
+            # Générer les probabilités de victoire (pour la démonstration)
+            home_prob = match.get('home_prob', round(0.7 / float(match.get('home_odds', 2.0)), 2) if match.get('home_odds') else 0.45)
+            draw_prob = match.get('draw_prob', round(0.7 / float(match.get('draw_odds', 3.0)), 2) if match.get('draw_odds') else 0.25)
+            away_prob = match.get('away_prob', round(0.7 / float(match.get('away_odds', 3.5)), 2) if match.get('away_odds') else 0.30)
+            
+            # Déterminer les classes de probabilité pour les couleurs
+            home_prob_class = "prob-high" if home_prob >= 0.6 else ("prob-medium" if home_prob >= 0.3 else "prob-low")
+            draw_prob_class = "prob-high" if draw_prob >= 0.6 else ("prob-medium" if draw_prob >= 0.3 else "prob-low")
+            away_prob_class = "prob-high" if away_prob >= 0.6 else ("prob-medium" if away_prob >= 0.3 else "prob-low")
+            
+            # Scores (s'ils existent)
+            home_score = match.get('home_score', "")
+            away_score = match.get('away_score', "")
+            has_scores = home_score != "" and away_score != ""
+            
+            # Création du HTML pour l'affichage style mobile
             with st.container():
                 st.markdown(f"""
-                <div class="sidebar-match featured-match">
-                    <div class="match-league">{match.get('league', '')}</div>
-                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
-                    <div class="match-teams"><strong>{match['home_team']} vs {match['away_team']}</strong></div>
+                <div class="mobile-match-card">
+                    <div class="mobile-match-header">
+                        <div class="mobile-match-league">
+                            <img src="https://www.countryflags.io/{match.get('country_code', 'xx')}/flat/24.png" onerror="this.src='https://via.placeholder.com/24x14';" class="country-flag" alt="">
+                            {match.get('league', '')} • ⏰ {match.get('kickoff_time', '??:??')}
+                        </div>
+                    </div>
+                    <div class="mobile-match-content">
+                        <div class="mobile-match-teams">
+                            <div class="team-row">
+                                <div class="team-logo"></div>
+                                <div class="team-name">{match['home_team']}</div>
+                                {f'<div class="team-score">{home_score}</div>' if has_scores else ''}
+                            </div>
+                            <div class="team-row">
+                                <div class="team-logo"></div>
+                                <div class="team-name">{match['away_team']}</div>
+                                {f'<div class="team-score">{away_score}</div>' if has_scores else ''}
+                            </div>
+                        </div>
+                        <div class="mobile-match-odds">
+                            <div class="odds-btn" onclick="selectBet('home', '{match['home_team']}', '{match['away_team']}')">
+                                <div class="odds-value">1️⃣ {match.get('home_odds', '?.??')}</div>
+                                <div class="odds-prob {home_prob_class}">{int(home_prob * 100)}%</div>
+                            </div>
+                            <div class="odds-btn" onclick="selectBet('draw', '{match['home_team']}', '{match['away_team']}')">
+                                <div class="odds-value">❌ {match.get('draw_odds', '?.??')}</div>
+                                <div class="odds-prob {draw_prob_class}">{int(draw_prob * 100)}%</div>
+                            </div>
+                            <div class="odds-btn" onclick="selectBet('away', '{match['home_team']}', '{match['away_team']}')">
+                                <div class="odds-value">2️⃣ {match.get('away_odds', '?.??')}</div>
+                                <div class="odds-prob {away_prob_class}">{int(away_prob * 100)}%</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # Boutons invisibles pour gérer les clics via JavaScript
                 cols = st.columns(3)
                 with cols[0]:
-                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_featured_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"1", key=f"home_featured_{match['home_team']}_{match['away_team']}", help="Pari sur la victoire de l'équipe à domicile"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "home_win"
                 with cols[1]:
-                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_featured_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"X", key=f"draw_featured_{match['home_team']}_{match['away_team']}", help="Pari sur un match nul"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "draw"
                 with cols[2]:
-                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_featured_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"2", key=f"away_featured_{match['home_team']}_{match['away_team']}", help="Pari sur la victoire de l'équipe à l'extérieur"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "away_win"
+                
+                # Script JavaScript pour gérer les clics
+                st.markdown("""
+                <script>
+                function selectBet(type, homeTeam, awayTeam) {
+                    // Trouver le bouton correspondant et cliquer dessus
+                    let buttonId;
+                    if (type === 'home') {
+                        buttonId = `home_featured_${homeTeam}_${awayTeam}`;
+                    } else if (type === 'draw') {
+                        buttonId = `draw_featured_${homeTeam}_${awayTeam}`;
+                    } else {
+                        buttonId = `away_featured_${homeTeam}_${awayTeam}`;
+                    }
+                    
+                    // Simuler un clic sur le bouton Streamlit
+                    document.querySelector(`button[kind="primaryFormSubmit"][aria-label="${buttonId}"]`).click();
+                }
+                </script>
+                """, unsafe_allow_html=True)
     
     # Matchs réguliers du jour (de la ligue sélectionnée)
     st.markdown(f"### 🗓️ {t('todays_matches')}")
@@ -818,25 +926,74 @@ with st.sidebar:
             if is_duplicate:
                 continue
                 
+            # Générer les probabilités de victoire (pour la démonstration)
+            home_prob = match.get('home_prob', round(0.7 / float(match.get('home_odds', 2.0)), 2) if match.get('home_odds') else 0.45)
+            draw_prob = match.get('draw_prob', round(0.7 / float(match.get('draw_odds', 3.0)), 2) if match.get('draw_odds') else 0.25)
+            away_prob = match.get('away_prob', round(0.7 / float(match.get('away_odds', 3.5)), 2) if match.get('away_odds') else 0.30)
+            
+            # Déterminer les classes de probabilité pour les couleurs
+            home_prob_class = "prob-high" if home_prob >= 0.6 else ("prob-medium" if home_prob >= 0.3 else "prob-low")
+            draw_prob_class = "prob-high" if draw_prob >= 0.6 else ("prob-medium" if draw_prob >= 0.3 else "prob-low")
+            away_prob_class = "prob-high" if away_prob >= 0.6 else ("prob-medium" if away_prob >= 0.3 else "prob-low")
+            
+            # Scores (s'ils existent)
+            home_score = match.get('home_score', "")
+            away_score = match.get('away_score', "")
+            has_scores = home_score != "" and away_score != ""
+            
+            # Création du HTML pour l'affichage style mobile
             with st.container():
                 st.markdown(f"""
-                <div class="sidebar-match">
-                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
-                    <div class="match-teams">{match['home_team']} vs {match['away_team']}</div>
+                <div class="mobile-match-card">
+                    <div class="mobile-match-header">
+                        <div class="mobile-match-league">
+                            <img src="https://www.countryflags.io/{match.get('country_code', 'xx')}/flat/24.png" onerror="this.src='https://via.placeholder.com/24x14';" class="country-flag" alt="">
+                            {match.get('league', selected_league)} • ⏰ {match.get('kickoff_time', '??:??')}
+                        </div>
+                    </div>
+                    <div class="mobile-match-content">
+                        <div class="mobile-match-teams">
+                            <div class="team-row">
+                                <div class="team-logo"></div>
+                                <div class="team-name">{match['home_team']}</div>
+                                {f'<div class="team-score">{home_score}</div>' if has_scores else ''}
+                            </div>
+                            <div class="team-row">
+                                <div class="team-logo"></div>
+                                <div class="team-name">{match['away_team']}</div>
+                                {f'<div class="team-score">{away_score}</div>' if has_scores else ''}
+                            </div>
+                        </div>
+                        <div class="mobile-match-odds">
+                            <div class="odds-btn" onclick="selectBet('home', '{match['home_team']}', '{match['away_team']}', false)">
+                                <div class="odds-value">1️⃣ {match.get('home_odds', '?.??')}</div>
+                                <div class="odds-prob {home_prob_class}">{int(home_prob * 100)}%</div>
+                            </div>
+                            <div class="odds-btn" onclick="selectBet('draw', '{match['home_team']}', '{match['away_team']}', false)">
+                                <div class="odds-value">❌ {match.get('draw_odds', '?.??')}</div>
+                                <div class="odds-prob {draw_prob_class}">{int(draw_prob * 100)}%</div>
+                            </div>
+                            <div class="odds-btn" onclick="selectBet('away', '{match['home_team']}', '{match['away_team']}', false)">
+                                <div class="odds-value">2️⃣ {match.get('away_odds', '?.??')}</div>
+                                <div class="odds-prob {away_prob_class}">{int(away_prob * 100)}%</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # Boutons invisibles pour gérer les clics via JavaScript
                 cols = st.columns(3)
                 with cols[0]:
-                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"1", key=f"home_{match['home_team']}_{match['away_team']}", help="Pari sur la victoire de l'équipe à domicile"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "home_win"
                 with cols[1]:
-                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"X", key=f"draw_{match['home_team']}_{match['away_team']}", help="Pari sur un match nul"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "draw"
                 with cols[2]:
-                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_{match['home_team']}_{match['away_team']}"):
+                    if st.button(f"2", key=f"away_{match['home_team']}_{match['away_team']}", help="Pari sur la victoire de l'équipe à l'extérieur"):
                         st.session_state.selected_match = match
                         st.session_state.selected_prediction = "away_win"
     else:
