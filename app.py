@@ -117,6 +117,46 @@ st.markdown("""
         transform: translateY(-2px);
     }
     
+    /* Barre de navigation par date */
+    .date-nav {
+        display: flex;
+        overflow-x: auto;
+        background-color: rgba(10, 10, 30, 0.8);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .date-nav-item {
+        padding: 0.5rem 1rem;
+        min-width: 70px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 3px solid transparent;
+        font-weight: 500;
+        color: #f1f1f1;
+    }
+    
+    .date-nav-item.active {
+        background-color: rgba(156, 39, 176, 0.3);
+        border-bottom: 3px solid var(--esoteric-color);
+        font-weight: 600;
+    }
+    
+    .date-nav-item:hover {
+        background-color: rgba(156, 39, 176, 0.2);
+    }
+    
+    .date-nav-day {
+        font-weight: bold;
+        color: var(--esoteric-color);
+    }
+    
+    .date-nav-date {
+        font-size: 0.9rem;
+    }
+    
     /* Style des matchs sous forme de cartes */
     .match-card {
         background: linear-gradient(135deg, rgba(30, 30, 60, 0.8), rgba(20, 20, 40, 0.9));
@@ -160,6 +200,122 @@ st.markdown("""
         margin: 1rem 0;
     }
     
+    /* Style pour l'affichage des matchs inspiré des app mobiles de paris */
+    .mobile-match-card {
+        background-color: rgba(30, 30, 60, 0.8);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-match-header {
+        display: flex;
+        align-items: center;
+        background-color: rgba(20, 20, 40, 0.9);
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .mobile-match-league {
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #e0e0e0;
+    }
+    
+    .country-flag {
+        width: 20px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 2px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-match-content {
+        padding: 0.8rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .mobile-match-teams {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .team-row {
+        display: flex;
+        align-items: center;
+        margin: 4px 0;
+    }
+    
+    .team-logo {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .team-name {
+        font-weight: 500;
+        color: #ffffff;
+    }
+    
+    .team-score {
+        font-weight: bold;
+        margin-left: 8px;
+    }
+    
+    .mobile-match-odds {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .odds-btn {
+        padding: 0.5rem 0.7rem;
+        min-width: 55px;
+        text-align: center;
+        border-radius: 6px;
+        background-color: rgba(40, 40, 70, 0.8);
+        border: 1px solid rgba(156, 39, 176, 0.2);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .odds-btn:hover {
+        background-color: rgba(156, 39, 176, 0.2);
+        border-color: rgba(212, 175, 55, 0.4);
+    }
+    
+    .odds-value {
+        font-weight: bold;
+        color: #ffffff;
+    }
+    
+    .odds-prob {
+        font-size: 0.7rem;
+        margin-top: 2px;
+    }
+    
+    /* Couleurs des probabilités */
+    .prob-high {
+        color: #4cd137; /* Vert */
+    }
+    
+    .prob-medium {
+        color: #fbc531; /* Orange */
+    }
+    
+    .prob-low {
+        color: #e84118; /* Rouge */
+    }
+    
+    /* Pour les predictions */
     .match-card .prediction {
         background-color: rgba(0, 184, 148, 0.15);
         border-radius: 6px;
