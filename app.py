@@ -43,40 +43,213 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Thème global
+# Thème global - Style ésotérique et moderne
 st.markdown("""
 <style>
-    /* Thème général */
+    /* Thème général inspiré du design ésotérique-analytique */
     :root {
+        /* Couleurs principales */
         --primary-color: #9c27b0;
         --secondary-color: #6a0080;
         --text-color: #f1f1f1;
-        --background-color: #121212;
+        --background-color: #0a0a14; /* Bleu nuit profond */
+        
+        /* Couleurs secondaires (modules) */
+        --esoteric-color: #d4af37; /* Or pour l'ésotérisme */
+        --data-color: #00b894; /* Cyan/Émeraude pour les données */
+        --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
         --card-bg-color: rgba(49, 51, 63, 0.7);
     }
     
     /* Fond global */
     .stApp {
-        background: linear-gradient(135deg, #000000, #1a0033);
+        background: linear-gradient(135deg, #050510, #0d0d2a);
+        background-image: 
+            radial-gradient(circle at top right, rgba(156, 39, 176, 0.15), transparent 50%),
+            radial-gradient(circle at bottom left, rgba(0, 184, 148, 0.1), transparent 50%);
     }
+    
+    /* Importation des polices */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
     
     /* Typographie */
     h1, h2, h3 {
-        color: var(--text-color);
+        font-family: 'Cinzel', serif !important;
+        letter-spacing: 0.05em;
         font-weight: 600;
+    }
+    
+    h1 {
+        color: var(--primary-color);
+        text-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+    }
+    
+    h2 {
+        color: var(--text-color);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        padding-bottom: 0.3em;
+    }
+    
+    h3 {
+        color: var(--esoteric-color);
+    }
+    
+    p, div, span, li, .stMarkdown {
+        font-family: 'Inter', sans-serif !important;
     }
     
     /* Cartes et conteneurs */
     div[data-testid="stVerticalBlock"] > div {
-        background-color: var(--card-bg-color);
+        background-color: rgba(10, 10, 30, 0.7);
         border-radius: 10px;
+        border: 1px solid rgba(156, 39, 176, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(156, 39, 176, 0.2) inset;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Effet de survol sur les cartes */
+    div[data-testid="stVerticalBlock"] > div:hover {
+        border-color: rgba(212, 175, 55, 0.4);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.2) inset;
+        transform: translateY(-2px);
+    }
+    
+    /* Style des matchs sous forme de cartes */
+    .match-card {
+        background: linear-gradient(135deg, rgba(30, 30, 60, 0.8), rgba(20, 20, 40, 0.9));
+        border-radius: 12px;
+        border-left: 4px solid var(--esoteric-color);
         padding: 1rem;
         margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .match-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent 70%),
+            radial-gradient(circle at bottom left, rgba(156, 39, 176, 0.05), transparent 70%);
+        z-index: -1;
+    }
+    
+    .match-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    .match-card h3 {
+        margin-top: 0;
+        font-size: 1.2rem;
+        color: var(--esoteric-color);
+    }
+    
+    .match-card .teams {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1rem 0;
+    }
+    
+    .match-card .prediction {
+        background-color: rgba(0, 184, 148, 0.15);
+        border-radius: 6px;
+        padding: 0.5rem;
+        font-weight: bold;
     }
     
     /* Style global */
     .main .block-container {
         max-width: 1200px;
+    }
+    
+    /* Style des onglets */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(10, 10, 30, 0.6);
+        border-radius: 10px;
+        padding: 5px;
+        border: 1px solid rgba(156, 39, 176, 0.2);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px;
+        padding: 10px 16px;
+        background-color: transparent;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background-color: rgba(156, 39, 176, 0.1);
+        border-color: rgba(212, 175, 55, 0.3);
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(156, 39, 176, 0.2) !important;
+        border-color: var(--esoteric-color) !important;
+    }
+    
+    /* Style des boutons */
+    button[kind="primary"] {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        border: none !important;
+        box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3) !important;
+    }
+    
+    button[kind="primary"]:hover {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color) 70%) !important;
+        box-shadow: 0 6px 15px rgba(156, 39, 176, 0.4) !important;
+        transform: translateY(-1px);
+    }
+    
+    /* Style des tableaux */
+    div[data-testid="stTable"] table {
+        background-color: rgba(10, 10, 30, 0.7);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(156, 39, 176, 0.2);
+    }
+    
+    div[data-testid="stTable"] thead th {
+        background-color: rgba(156, 39, 176, 0.2);
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif !important;
+        letter-spacing: 0.05em;
+        padding: 12px 8px;
+    }
+    
+    div[data-testid="stTable"] tbody tr:nth-child(odd) {
+        background-color: rgba(30, 30, 60, 0.4);
+    }
+    
+    div[data-testid="stTable"] tbody tr:hover {
+        background-color: rgba(156, 39, 176, 0.1);
+    }
+    
+    /* Style de la sidebar */
+    [data-testid="stSidebar"] {
+        background-color: rgba(10, 10, 30, 0.8);
+        border-right: 1px solid rgba(156, 39, 176, 0.2);
+    }
+    
+    /* Style des messages d'info, d'erreur et de succès */
+    .stAlert {
+        border-radius: 8px;
+        border-left-width: 4px !important;
+    }
+    
+    [data-baseweb="notification"] {
+        border-radius: 8px;
     }
     
     /* Styles supplémentaires */
