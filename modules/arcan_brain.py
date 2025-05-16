@@ -15,6 +15,7 @@ import hashlib
 import uuid
 import copy
 from collections import deque
+from utils.translations import get_text
 
 class ArcanBrain:
     """
@@ -3396,23 +3397,28 @@ class ArcanBrain:
             'related_matches': []
         }
     
-    def generate_analysis_insight(self, match_data, prediction):
+    def generate_analysis_insight(self, match_data, prediction, language="fr"):
         """
         Generate deep analysis insight for a match prediction based on patterns, anomalies, and context.
+        Supports both English and French languages.
         
         Args:
             match_data (dict): The match information
             prediction (dict): The prediction data
+            language (str): The language to use ('en' or 'fr')
             
         Returns:
-            str: Detailed insight text for the match
+            str: Detailed insight text for the match in the specified language
         """
         # Extract team names
         home_team = match_data.get('home_team', 'Home Team')
         away_team = match_data.get('away_team', 'Away Team')
         
-        # Initialize insights list
-        insights = []
+        # Initialize insights dictionaries for both languages
+        insights = {
+            "en": [],
+            "fr": []
+        }
         
         # 1. Analyze team form resonance
         form_insight = False
@@ -3423,7 +3429,8 @@ class ArcanBrain:
                     break
         
         if form_insight:
-            insights.append(f"L'analyse de forme indique une dynamique significative pour {home_team if 'home' in prediction['outcome'] else away_team}.")
+            insights["en"].append(f"Form analysis indicates significant momentum for {home_team if 'home' in prediction['outcome'] else away_team}.")
+            insights["fr"].append(f"L'analyse de forme indique une dynamique significative pour {home_team if 'home' in prediction['outcome'] else away_team}.")
         
         # 2. Check for esoteric patterns
         esoteric_insight = False
@@ -3433,13 +3440,17 @@ class ArcanBrain:
                     esoteric_insight = True
                     factor_name = factor['name'].lower()
                     if 'numerical' in factor_name:
-                        insights.append(f"Une forte résonance numérique est présente dans ce match, suggérant un alignement favorisant {prediction['outcome']}.")
+                        insights["en"].append(f"Strong numerical resonance is present in this match, suggesting an alignment favoring {prediction['outcome']}.")
+                        insights["fr"].append(f"Une forte résonance numérique est présente dans ce match, suggérant un alignement favorisant {prediction['outcome']}.")
                     elif 'karmic' in factor_name:
-                        insights.append(f"Un équilibre karmique se manifeste entre ces équipes, affectant potentiellement le résultat du match.")
+                        insights["en"].append(f"A karmic balance is manifesting between these teams, potentially affecting the match outcome.")
+                        insights["fr"].append(f"Un équilibre karmique se manifeste entre ces équipes, affectant potentiellement le résultat du match.")
                     elif 'cycle' in factor_name:
-                        insights.append(f"Un motif cyclique émergent influence fortement ce match, créant une opportunité de prédiction fiable.")
+                        insights["en"].append(f"An emerging cyclical pattern strongly influences this match, creating an opportunity for reliable prediction.")
+                        insights["fr"].append(f"Un motif cyclique émergent influence fortement ce match, créant une opportunité de prédiction fiable.")
                     elif 'tarot' in factor_name or 'astrological' in factor_name:
-                        insights.append(f"Les influences cosmiques et symboliques favorisent particulièrement {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un résultat équilibré'}.")
+                        insights["en"].append(f"Cosmic and symbolic influences particularly favor {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'a balanced result'}.")
+                        insights["fr"].append(f"Les influences cosmiques et symboliques favorisent particulièrement {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un résultat équilibré'}.")
                     break
         
         # 3. Analyze betting patterns
@@ -3450,50 +3461,64 @@ class ArcanBrain:
                 factor_name = factor['name'].lower()
                 if ('public' in factor_name and 'strong' in factor['value'].lower()):
                     betting_insight = True
-                    insights.append(f"Le public penche fortement vers {home_team if 'home' not in prediction['outcome'] else away_team}, créant une opportunité de valeur contraire.")
+                    insights["en"].append(f"The public is heavily leaning towards {home_team if 'home' not in prediction['outcome'] else away_team}, creating an opportunity for contrary value.")
+                    insights["fr"].append(f"Le public penche fortement vers {home_team if 'home' not in prediction['outcome'] else away_team}, créant une opportunité de valeur contraire.")
                     public_vs_sharp = True
                 elif ('sharp' in factor_name and 'strong' in factor['value'].lower()):
                     betting_insight = True
-                    insights.append(f"Les parieurs professionnels montrent un intérêt significatif pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'le match nul'}.")
+                    insights["en"].append(f"Professional bettors show significant interest in {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'a draw'}.")
+                    insights["fr"].append(f"Les parieurs professionnels montrent un intérêt significatif pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'le match nul'}.")
                 elif ('trap' in factor_name and 'detect' in factor['value'].lower()):
                     betting_insight = True
-                    insights.append("Un piège de cotes a été détecté dans ce match, suggérant que les bookmakers tentent de manipuler le marché.")
+                    insights["en"].append("An odds trap has been detected in this match, suggesting bookmakers are attempting to manipulate the market.")
+                    insights["fr"].append("Un piège de cotes a été détecté dans ce match, suggérant que les bookmakers tentent de manipuler le marché.")
         
         # 4. Generate convergence insight
         if form_insight and esoteric_insight and betting_insight:
-            insights.append(f"Une convergence rare de facteurs statistiques, ésotériques et de cotes soutient cette prédiction, augmentant considérablement sa fiabilité.")
+            insights["en"].append(f"A rare convergence of statistical, esoteric, and odds factors supports this prediction, significantly increasing its reliability.")
+            insights["fr"].append(f"Une convergence rare de facteurs statistiques, ésotériques et de cotes soutient cette prédiction, augmentant considérablement sa fiabilité.")
         elif form_insight and esoteric_insight:
-            insights.append(f"La convergence entre l'analyse de forme et les facteurs ésotériques suggère une prédiction fiable.")
+            insights["en"].append(f"The convergence between form analysis and esoteric factors suggests a reliable prediction.")
+            insights["fr"].append(f"La convergence entre l'analyse de forme et les facteurs ésotériques suggère une prédiction fiable.")
         elif form_insight and betting_insight:
-            insights.append(f"L'analyse de forme est confirmée par les tendances de paris, renforçant la confiance dans cette prédiction.")
+            insights["en"].append(f"Form analysis is confirmed by betting trends, strengthening confidence in this prediction.")
+            insights["fr"].append(f"L'analyse de forme est confirmée par les tendances de paris, renforçant la confiance dans cette prédiction.")
         elif esoteric_insight and betting_insight:
-            insights.append(f"Les facteurs ésotériques alignés avec les mouvements de cotes indiquent une opportunité cachée.")
+            insights["en"].append(f"Esoteric factors aligned with odds movements indicate a hidden opportunity.")
+            insights["fr"].append(f"Les facteurs ésotériques alignés avec les mouvements de cotes indiquent une opportunité cachée.")
             
         # 5. Add contrarian insight if applicable
         if prediction.get('contrarian', False):
-            insights.append(f"Cette prédiction va à l'encontre du consensus général, offrant une opportunité de valeur significative si correcte.")
+            insights["en"].append(f"This prediction goes against the general consensus, offering a significant value opportunity if correct.")
+            insights["fr"].append(f"Cette prédiction va à l'encontre du consensus général, offrant une opportunité de valeur significative si correcte.")
             
         # 6. Add value bet insight if applicable
         if prediction.get('value_bet', False):
-            insights.append(f"Les cotes actuelles offrent une valeur considérable basée sur notre évaluation de la probabilité réelle.")
+            insights["en"].append(f"Current odds offer considerable value based on our assessment of the true probability.")
+            insights["fr"].append(f"Les cotes actuelles offrent une valeur considérable basée sur notre évaluation de la probabilité réelle.")
         
         # 7. Generate neural network insight based on pattern recognition
         outcome_probability = prediction.get('confidence', 0.5) * 100
         if outcome_probability > 80:
-            insights.append(f"Le réseau neuronal détecte un schéma à haute confiance ({outcome_probability:.1f}%) pour ce résultat spécifique.")
+            insights["en"].append(f"The neural network detects a high-confidence pattern ({outcome_probability:.1f}%) for this specific outcome.")
+            insights["fr"].append(f"Le réseau neuronal détecte un schéma à haute confiance ({outcome_probability:.1f}%) pour ce résultat spécifique.")
         elif public_vs_sharp:
-            insights.append(f"Le réseau neuronal a identifié une divergence significative entre l'opinion publique et celle des parieurs professionnels.")
+            insights["en"].append(f"The neural network has identified a significant divergence between public opinion and professional bettors.")
+            insights["fr"].append(f"Le réseau neuronal a identifié une divergence significative entre l'opinion publique et celle des parieurs professionnels.")
         
         # If no insights generated, add a default one
-        if not insights:
-            insights.append(f"L'analyse prédictive suggère une tendance favorable pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un match équilibré'}, mais avec des facteurs mixtes.")
+        if not insights["en"]:
+            insights["en"].append(f"Predictive analysis suggests a favorable trend for {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'a balanced match'}, but with mixed factors.")
+            insights["fr"].append(f"L'analyse prédictive suggère une tendance favorable pour {home_team if 'home' in prediction['outcome'] else away_team if 'away' in prediction['outcome'] else 'un match équilibré'}, mais avec des facteurs mixtes.")
         
-        # Create a cohesive narrative from the insights
-        if len(insights) >= 3:
+        # Create a cohesive narrative from the insights in the specified language
+        selected_insights = insights[language if language in ["en", "fr"] else "en"]
+        
+        if len(selected_insights) >= 3:
             # Use only the top 3 most interesting insights
-            final_text = " ".join(insights[:3])
+            final_text = " ".join(selected_insights[:3])
         else:
-            final_text = " ".join(insights)
+            final_text = " ".join(selected_insights)
             
         return final_text
             

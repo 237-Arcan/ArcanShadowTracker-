@@ -1173,7 +1173,7 @@ with tab1:
                         st.markdown(f"#### {t('deep_analysis')}")
                         
                         try:
-                            insight = meta_systems.arcan_brain.generate_analysis_insight(match, prediction)
+                            insight = meta_systems.arcan_brain.generate_analysis_insight(match, prediction, language=st.session_state.language)
                             st.markdown(f"""
                             <div style='background-color:rgba(30, 30, 60, 0.3); padding:15px; border-radius:5px; margin-top:10px;'>
                                 <p>{insight}</p>
@@ -2491,7 +2491,7 @@ with tab7:
                     }
                     
                     # Generate insight analysis
-                    insight = arcan_brain.generate_analysis_insight(match_data, prediction_data)
+                    insight = arcan_brain.generate_analysis_insight(match_data, prediction_data, language=st.session_state.language)
                     
                     # Display the insight
                     st.markdown(insight)
