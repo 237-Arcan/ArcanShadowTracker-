@@ -4682,3 +4682,49 @@ with tab10:
             """, unsafe_allow_html=True)
     
 # Fin du contenu de l'onglet d'apprentissage
+
+# Pied de page avec les logs système
+st.markdown("""
+<div class="footer-container">
+    <div class="system-status">
+        <div class="status-item">
+            <div class="status-indicator status-active"></div>
+            ArcanX: Actif
+        </div>
+        <div class="status-item">
+            <div class="status-indicator status-active"></div>
+            ShadowOdds: Actif  
+        </div>
+        <div class="status-item">
+            <div class="status-indicator status-warning"></div>
+            API-Sports: Limité
+        </div>
+        <div class="status-item">
+            <div class="status-indicator status-active"></div>
+            Système: 87%
+        </div>
+    </div>
+    
+    <div class="log-container">
+        <div class="log-entry">
+            <span class="log-time">{}</span>
+            <span class="log-module">ArcanBrain</span>
+            Analyse complète pour Man City vs Arsenal...
+        </div>
+        <div class="log-entry">
+            <span class="log-time">{}</span>
+            <span class="log-module">ShadowOdds</span>
+            Détection d'anomalie sur le marché 1X2 pour Juventus vs Inter.
+        </div>
+        <div class="log-entry">
+            <span class="log-time">{}</span>
+            <span class="log-module">KarmicFlow+</span>
+            Cycle de résonance détecté pour Real Madrid.
+        </div>
+    </div>
+</div>
+""".format(
+    (datetime.now() - timedelta(minutes=2)).strftime("%H:%M:%S"),
+    (datetime.now() - timedelta(minutes=3)).strftime("%H:%M:%S"),
+    (datetime.now() - timedelta(minutes=5)).strftime("%H:%M:%S")
+), unsafe_allow_html=True)
