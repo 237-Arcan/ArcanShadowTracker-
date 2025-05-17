@@ -59,6 +59,10 @@ st.markdown("""
         --data-color: #00b894; /* Cyan/Émeraude pour les données */
         --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
         --card-bg-color: rgba(49, 51, 63, 0.7);
+        /* Couleurs des probabilités */
+        --prob-high-color: #4caf50; /* Vert */
+        --prob-medium-color: #ff9800; /* Orange */
+        --prob-low-color: #f44336; /* Rouge */
     }
     
     /* Fond global */
@@ -961,6 +965,20 @@ st.markdown("""
     /* Style pour les success/error messages */
     .stSuccess, .stError, .stWarning, .stInfo {
         border-radius: 6px;
+    }
+    
+    /* Style pour les boutons de paris */
+    button[data-testid="baseButton-secondary"] {
+        min-width: 80px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    /* Style pour la mise en évidence des matchs */
+    .featured-match {
+        border-left: 3px solid var(--esoteric-color);
+        padding-left: 10px;
+        margin-bottom: 5px;
     }
 </style>
 """, unsafe_allow_html=True)
