@@ -473,106 +473,340 @@ with tabs[2]:  # Daily Combo
     df_history = pd.DataFrame(history_data)
     st.dataframe(df_history, use_container_width=True)
 
-with tabs[3]:  # Statistiques
-    st.markdown("## 📈 Statistiques avancées")
-    st.markdown("Explorez les statistiques détaillées et les tendances historiques.")
+with tabs[3]:  # Smart Market Recommendations
+    st.markdown("## 💡 Smart Market Recommendations")
+    st.markdown("Recommandations intelligentes de paris basées sur l'analyse multidimensionnelle des marchés et des anomalies de cotes.")
     
-    # Simuler des données pour les graphiques
-    leagues = ["Ligue 1", "Premier League", "LaLiga", "Bundesliga", "Serie A"]
-    home_win_rates = [np.random.uniform(0.4, 0.55) for _ in leagues]
-    draw_rates = [np.random.uniform(0.2, 0.3) for _ in leagues]
-    away_win_rates = [1 - h - d for h, d in zip(home_win_rates, draw_rates)]
+    # Filtres de marché
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        selected_sport = st.selectbox("Sport", ["Football", "Basketball", "Tennis", "Hockey"])
+    with col2:
+        selected_league = st.selectbox("Compétition", ["Toutes", "Ligue 1", "Premier League", "LaLiga", "Bundesliga", "Serie A"])
+    with col3:
+        market_type = st.selectbox("Type de Marché", ["Résultat final", "Les deux équipes marquent", "Over/Under", "Handicap", "Score exact"])
+    
+    # Tableau de bord des opportunités
+    st.markdown("### 💎 Opportunités Détectées")
+    
+    # Créer un tableau d'anomalies de cotes
+    anomalies = [
+        {
+            "match": "PSG vs Lyon",
+            "market": "Lyon ou Nul",
+            "odds": 2.45,
+            "fair_odds": 2.10,
+            "value": "+16.7%",
+            "confidence": 82,
+            "modules": "ShadowOdds, LineTrap"
+        },
+        {
+            "match": "Arsenal vs Liverpool",
+            "market": "Plus de 2.5 buts",
+            "odds": 1.95,
+            "fair_odds": 1.76,
+            "value": "+10.8%",
+            "confidence": 89,
+            "modules": "NumeriCode, AstroImpact"
+        },
+        {
+            "match": "Real Madrid vs Barcelona",
+            "market": "Les deux équipes marquent",
+            "odds": 1.75,
+            "fair_odds": 1.58,
+            "value": "+10.8%",
+            "confidence": 91,
+            "modules": "ArcanX, KarmicFlow+"
+        },
+        {
+            "match": "Bayern Munich vs Dortmund",
+            "market": "Bayern gagne et Plus de 3.5 buts",
+            "odds": 3.25,
+            "fair_odds": 2.85,
+            "value": "+14.0%",
+            "confidence": 76,
+            "modules": "EchoPath, MetaSystems"
+        },
+        {
+            "match": "Milan vs Inter",
+            "market": "Milan gagne",
+            "odds": 3.10,
+            "fair_odds": 2.65,
+            "value": "+17.0%",
+            "confidence": 73,
+            "modules": "TarotEcho, ShadowOdds+"
+        }
+    ]
+    
+    # Créer un tableau
+    anomalies_df = pd.DataFrame(anomalies)
+    
+    # Appliquer un style conditionnel
+    def highlight_value(val):
+        if '+' in str(val):
+            return 'color: #01ff80; font-weight: bold'
+        return ''
+    
+    # Afficher le tableau avec style
+    st.dataframe(anomalies_df.style.applymap(highlight_value, subset=['value']), use_container_width=True)
+    
+    # Graphique de distribution des valeurs
+    st.markdown("### 📊 Distribution des Valeurs sur le Marché")
+    
+    # Simuler des données pour l'histogramme
+    market_values = np.random.normal(0, 5, 1000)
+    thresholds = np.percentile(market_values, [5, 95])
+    
+    fig_hist = px.histogram(
+        market_values, 
+        nbins=40,
+        title="Distribution de la Valeur (Value) sur le marché",
+        labels={"value": "Valeur (%)", "count": "Nombre de paris"},
+        color_discrete_sequence=["#7000ff"]
+    )
+    
+    fig_hist.add_vline(x=thresholds[0], line_dash="dash", line_color="#ff3364")
+    fig_hist.add_vline(x=thresholds[1], line_dash="dash", line_color="#01ff80")
+    
+    fig_hist.add_annotation(
+        x=thresholds[1] + 1,
+        y=50,
+        text="Zone de valeur",
+        showarrow=True,
+        arrowhead=1,
+        arrowcolor="#01ff80",
+        font=dict(color="#01ff80")
+    )
+    
+    fig_hist.update_layout(template="plotly_dark")
+    
+    st.plotly_chart(fig_hist, use_container_width=True)
+    
+    # Analyse ésotérique des influences
+    st.markdown("### 🔮 Influences Ésotériques Actives")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.1); 
+                    border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+            <div style="font-size: 18px; font-weight: bold; color: #7000ff; margin-bottom: 10px;">
+                ♃ Jupiter en Transit (Impact: Élevé)
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.8);">
+                Jupiter en transit dans la maison V favorise les équipes dominantes.
+                <br><br>
+                <b>Équipes amplifiées:</b> PSG, Real Madrid, Man City, Bayern
+                <br>
+                <b>Marchés favorisés:</b> Victoire à domicile + Over 2.5
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(1, 255, 128, 0.1); 
+                    border: 1px solid rgba(1, 255, 128, 0.2); margin-bottom: 15px;">
+            <div style="font-size: 18px; font-weight: bold; color: #01ff80; margin-bottom: 10px;">
+                ᛘ Rune Mannaz Active (Impact: Moyen)
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.8);">
+                L'influence de Mannaz renforce la cohésion d'équipe et l'harmonie collective.
+                <br><br>
+                <b>Équipes amplifiées:</b> Arsenal, Liverpool, Barcelona
+                <br>
+                <b>Marchés favorisés:</b> Les deux équipes marquent, Over 1.5 MI-TEMPS
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+with tabs[4]:  # Système d'Apprentissage
+    st.markdown("## 🧠 Système d'Apprentissage")
+    st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
+    
+    # Vue d'ensemble du système
+    st.markdown("### 🔄 État du Système ArcanReflex")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(label="Modules Actifs", value="14/16", delta="+1")
+    with col2:
+        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
+    with col3:
+        st.metric(label="Adaptation", value="91%", delta="+2.8%")
+    with col4:
+        st.metric(label="Précision", value="87%", delta="+3.5%")
+    
+    # Visualisation des connexions entre modules
+    st.markdown("### 🌐 Réseau Neural ArcanBrain")
+    
+    # Créer un réseau de modules en apprentissage
+    nodes = [
+        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
+        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
+    ]
+    
+    connections = []
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
+                connections.append((i, j, np.random.uniform(0.1, 1.0)))
+    
+    # Préparer les données pour le graphique
+    edge_x = []
+    edge_y = []
+    edge_weights = []
+    
+    # Créer une disposition circulaire pour les nœuds
+    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    
+    for src, dst, weight in connections:
+        edge_x.extend([node_x[src], node_x[dst], None])
+        edge_y.extend([node_y[src], node_y[dst], None])
+        edge_weights.append(weight)
+    
+    # Créer le graphique
+    fig = go.Figure()
+    
+    # Ajouter les liens
+    for i in range(0, len(edge_x), 3):
+        opacity = min(1, edge_weights[i//3] * 2)
+        width = 1 + 3 * edge_weights[i//3]
+        fig.add_trace(go.Scatter(
+            x=edge_x[i:i+3], y=edge_y[i:i+3],
+            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
+            hoverinfo='none',
+            mode='lines'
+        ))
+    
+    # Ajouter les nœuds
+    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
+                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
+    
+    fig.add_trace(go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        text=nodes,
+        textposition="top center",
+        marker=dict(
+            showscale=False,
+            color=node_colors,
+            size=20,
+            line_width=2,
+            line=dict(color='white')
+        )
+    ))
+    
+    fig.update_layout(
+        title="Réseau de connexions entre modules",
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(b=0, l=0, r=0, t=40),
+        template="plotly_dark",
+        height=500
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Tableau de bord des événements d'apprentissage
+    st.markdown("### 📝 Événements d'apprentissage récents")
+    
+    # Créer des données d'événements simulées
+    events = [
+        {
+            "timestamp": "17/05/2025 18:12",
+            "type": "Pattern Recalibration",
+            "module": "TarotEcho",
+            "description": "Recalibrage des patterns de récurrence La Tour + L'Étoile"
+        },
+        {
+            "timestamp": "17/05/2025 15:47",
+            "type": "Transfer Learning",
+            "module": "ArcanX",
+            "description": "Transfert de connaissance entre contextes Premier League → Ligue 1"
+        },
+        {
+            "timestamp": "17/05/2025 14:33",
+            "type": "Module Activation",
+            "module": "ShadowOdds+",
+            "description": "Activation après seuil de précision atteint (91.3%)"
+        },
+        {
+            "timestamp": "16/05/2025 22:18",
+            "type": "Pattern Recalibration",
+            "module": "NumeriCode",
+            "description": "Ajustement des séquences numériques 3-7-11 → 3-7-12"
+        },
+        {
+            "timestamp": "16/05/2025 17:52",
+            "type": "Architecture Update",
+            "module": "GridSync",
+            "description": "Optimisation de la couche de convergence +8.2% efficacité"
+        }
+    ]
     
     # Créer un dataframe
-    outcome_data = pd.DataFrame({
-        "League": leagues,
-        "Home Win": home_win_rates,
-        "Draw": draw_rates,
-        "Away Win": away_win_rates
-    })
+    events_df = pd.DataFrame(events)
+    st.dataframe(events_df, use_container_width=True)
     
-    # Créer un graphique à barres empilées
-    fig_outcomes = px.bar(
-        outcome_data, x="League", y=["Home Win", "Draw", "Away Win"],
-        title="Répartition des résultats par ligue (2024-2025)",
-        color_discrete_sequence=["#01ff80", "#ffbe41", "#ff3364"]
-    )
+    # Système de logs détaillés
+    st.markdown("### 📋 Logs d'apprentissage détaillés")
     
-    fig_outcomes.update_layout(
-        xaxis_title="Ligue",
-        yaxis_title="Proportion",
-        legend_title="Résultat",
-        template="plotly_dark"
-    )
-    
-    st.plotly_chart(fig_outcomes, use_container_width=True)
+    learning_logs = """
+2025-05-17 18:12:23 [INFO] [TarotEcho] Pattern Recalibration initiated
+2025-05-17 18:12:24 [INFO] [TarotEcho] Analyzing historical pattern accuracy for sequence La Tour + L'Étoile
+2025-05-17 18:12:26 [INFO] [TarotEcho] Previous accuracy: 78.4%, New accuracy after recalibration: 86.2%
+2025-05-17 18:12:27 [INFO] [ArcanReflex] Recognizing improved pattern, saving to ReflexMemory
+2025-05-17 18:12:28 [SUCCESS] [TarotEcho] Pattern recalibration complete, awaiting validation in next predictions
 
-with tabs[4]:  # Match en direct
-    st.markdown("## ⚽ Suivi de match en direct")
-    st.markdown("Experience immersive de suivi de match avec analyse temps réel.")
+2025-05-17 15:47:09 [INFO] [ArcanX] Transfer Learning process initiated
+2025-05-17 15:47:10 [INFO] [ArcanX] Source context: Premier League (confidence: 91.7%)
+2025-05-17 15:47:11 [INFO] [ArcanX] Target context: Ligue 1 (pre-transfer confidence: 76.3%)
+2025-05-17 15:47:15 [INFO] [ArcanX] Adapting Premier League pattern recognition to Ligue 1 context
+2025-05-17 15:47:18 [INFO] [ArcanX] Key transformations: adjusted home advantage -3.2%, tactical variety +7.8%
+2025-05-17 15:47:20 [SUCCESS] [ArcanX] Transfer Learning complete, new Ligue 1 confidence: 84.5%
+
+2025-05-17 14:33:45 [INFO] [ShadowOdds+] Activation threshold check: 91.3% precision reached
+2025-05-17 14:33:47 [INFO] [ShadowOdds+] Analyzing prediction stability across last 241 matches
+2025-05-17 14:33:49 [INFO] [ShadowOdds+] Standard deviation: 4.2%, within acceptable range
+2025-05-17 14:33:50 [INFO] [GridSync] Integrating ShadowOdds+ into primary prediction matrix
+2025-05-17 14:33:52 [INFO] [GridSync] Assigned weight coefficient: 0.23 (moderate-high)
+2025-05-17 14:33:53 [SUCCESS] [ShadowOdds+] Module activation complete, actively contributing to system
+    """
     
-    # Créer un affichage de match en direct simulé
-    col1, col2, col3 = st.columns([1, 3, 1])
+    st.code(learning_logs, language="plaintext")
     
-    with col1:
-        st.markdown("### 🏠 Real Madrid")
-        st.markdown("##### Formation: 4-3-3")
-        st.markdown("##### Possession: 58%")
-        
-    with col2:
-        st.markdown("""
-        <div style="text-align: center; font-size: 24px; font-weight: bold;">
-            2 - 1
-        </div>
-        <div style="text-align: center; font-size: 16px;">
-            73'
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Afficher les événements du match
-        st.markdown("""
-        <div style="border-left: 2px solid #7000ff; padding-left: 10px; margin: 20px 0;">
-            <div style="margin-bottom: 10px;"><span style="color: #01ff80;">⚽ 23'</span> - But par Mbappé (Real Madrid)</div>
-            <div style="margin-bottom: 10px;"><span style="color: #ff3364;">🟨 45+2'</span> - Carton jaune pour Gavi (Barcelona)</div>
-            <div style="margin-bottom: 10px;"><span style="color: #01ff80;">⚽ 58'</span> - But par Vinicius Jr (Real Madrid)</div>
-            <div style="margin-bottom: 10px;"><span style="color: #01ff80;">⚽ 67'</span> - But par Lewandowski (Barcelona)</div>
-            <div style="margin-bottom: 10px;"><span style="color: #ffbe41;">🔄 70'</span> - Remplacement: Yamal ⟶ Ferran Torres (Barcelona)</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    with col3:
-        st.markdown("### 🛫 Barcelona")
-        st.markdown("##### Formation: 4-3-3")
-        st.markdown("##### Possession: 42%")
-        
-    # Afficher les prédictions en direct
-    st.markdown("### 🔮 Prédictions en direct")
+    # Section de recalibration manuelle
+    st.markdown("### ⚙️ Contrôles de recalibration")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns([2, 3])
     
     with col1:
-        st.markdown("""
-        <div style="text-align: center; padding: 15px; background: rgba(1, 255, 128, 0.1); border-radius: 10px; border: 1px solid rgba(1, 255, 128, 0.3);">
-            <div style="font-size: 18px; font-weight: bold; color: #01ff80;">Real Madrid gagne</div>
-            <div style="font-size: 24px; font-weight: bold;">78%</div>
-            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">ArcanShadow</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
+        st.selectbox("Module à recalibrer", ["ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "KarmicFlow+", "Tous les modules"])
+        st.slider("Intensité de recalibration", 1, 10, 5)
+        st.radio("Mode de recalibration", ["Standard", "Deep Learning", "Transfer Learning", "Pattern Recognition"])
+        st.button("Lancer la recalibration", type="primary")
+    
     with col2:
         st.markdown("""
-        <div style="text-align: center; padding: 15px; background: rgba(255, 190, 65, 0.1); border-radius: 10px; border: 1px solid rgba(255, 190, 65, 0.3);">
-            <div style="font-size: 18px; font-weight: bold; color: #ffbe41;">Match nul</div>
-            <div style="font-size: 24px; font-weight: bold;">15%</div>
-            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">ArcanShadow</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    with col3:
-        st.markdown("""
-        <div style="text-align: center; padding: 15px; background: rgba(255, 51, 100, 0.1); border-radius: 10px; border: 1px solid rgba(255, 51, 100, 0.3);">
-            <div style="font-size: 18px; font-weight: bold; color: #ff3364;">Barcelona gagne</div>
-            <div style="font-size: 24px; font-weight: bold;">7%</div>
-            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">ArcanShadow</div>
+        <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 15px; background: rgba(112, 0, 255, 0.05);">
+            <h4 style="color: #7000ff; margin-top: 0;">Processus de recalibration manuelle</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                Le processus de recalibration permet d'ajuster les paramètres internes des modules prédictifs pour améliorer leur précision et leur adaptation aux nouvelles données.
+            </p>
+            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                <li><b>Standard:</b> Recalibration basique sur les dernières données</li>
+                <li><b>Deep Learning:</b> Restructuration complète des couches de patterns</li>
+                <li><b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre</li>
+                <li><b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents</li>
+            </ul>
+            <p style="color: #ffbe41; font-size: 14px; margin-top: 15px;">
+                <b>Note:</b> La recalibration peut temporairement réduire la précision pendant la période d'ajustement (12-24h).
+            </p>
         </div>
         """, unsafe_allow_html=True)
