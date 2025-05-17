@@ -497,8 +497,14 @@ with tabs[2]:  # Performance Notifications
     fig.update_layout(
         xaxis_title="Précision (%)",
         yaxis_title="Module Prédictif",
-        template="plotly_dark"
+        template="plotly_dark",
+        dragmode=False,  # Désactiver le mode glisser
+        fixedrange=True  # Fixer la plage de l'axe
     )
+    
+    # Désactiver le zoom et les interactions
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
     
     st.plotly_chart(fig, use_container_width=True)
     
@@ -555,6 +561,12 @@ with tabs[3]:  # Daily Combo
         names=modules_used,
         title="Pondération des modules pour le combiné",
         color_discrete_sequence=["#7000ff", "#01ff80", "#ffbe41", "#05d9e8"]
+    )
+    
+    # Désactiver les interactions
+    fig_modules.update_layout(
+        dragmode=False,
+        fixedrange=True
     )
     
     st.plotly_chart(fig_modules, use_container_width=True)
@@ -1009,12 +1021,13 @@ with tabs[6]:  # Notifications
     fig.update_layout(
         title="Réseau de connexions entre modules",
         showlegend=False,
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(b=0, l=0, r=0, t=40),
         template="plotly_dark",
-        height=500
+        height=500,
+        dragmode=False
     )
     
     st.plotly_chart(fig, use_container_width=True)
