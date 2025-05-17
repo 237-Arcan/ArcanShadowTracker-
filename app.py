@@ -780,28 +780,63 @@ with st.sidebar:
     
     if featured_matches:
         for match in featured_matches:
-            with st.container():
-                st.markdown(f"""
-                <div class="sidebar-match featured-match">
-                    <div class="match-league">{match.get('league', '')}</div>
+            # Générer les probabilités de victoire (pour la démonstration)
+            home_prob = match.get('home_prob', round(0.7 / float(match.get('home_odds', 2.0)), 2) if match.get('home_odds') else 0.45)
+            draw_prob = match.get('draw_prob', round(0.7 / float(match.get('draw_odds', 3.0)), 2) if match.get('draw_odds') else 0.25)
+            away_prob = match.get('away_prob', round(0.7 / float(match.get('away_odds', 3.5)), 2) if match.get('away_odds') else 0.30)
+            
+            # Classes de probabilité pour le code couleur
+            home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+            draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+            away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+            
+            # Carte de match élégante spéciale pour les matchs vedettes
+            st.markdown(f"""
+            <div class="match-card featured">
+                <div class="match-header">
                     <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
-                    <div class="match-teams"><strong>{match['home_team']} vs {match['away_team']}</strong></div>
+                    <div class="match-league">{match.get('league', '')}</div>
                 </div>
-                """, unsafe_allow_html=True)
-                
-                cols = st.columns(3)
-                with cols[0]:
-                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_featured_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "home_win"
-                with cols[1]:
-                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_featured_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "draw"
-                with cols[2]:
-                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_featured_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "away_win"
+                <div class="featured-badge">Match du jour</div>
+                <div class="match-teams">
+                    <div class="team home-team">{match['home_team']}</div>
+                    <div class="versus">VS</div>
+                    <div class="team away-team">{match['away_team']}</div>
+                </div>
+                <div class="match-odds">
+                    <div class="odds-container">
+                        <div class="odds-label">1</div>
+                        <div class="odds-value">{match.get('home_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{home_prob_class}">{int(home_prob * 100)}%</div>
+                    </div>
+                    <div class="odds-container">
+                        <div class="odds-label">X</div>
+                        <div class="odds-value">{match.get('draw_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{draw_prob_class}">{int(draw_prob * 100)}%</div>
+                    </div>
+                    <div class="odds-container">
+                        <div class="odds-label">2</div>
+                        <div class="odds-value">{match.get('away_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{away_prob_class}">{int(away_prob * 100)}%</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Boutons pour la sélection des paris (invisibles, pour interactivité)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("1", key=f"home_featured_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "home_win"
+            with col2:
+                if st.button("X", key=f"draw_featured_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "draw"
+            with col3:
+                if st.button("2", key=f"away_featured_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "away_win"
     
     # Matchs réguliers du jour (de la ligue sélectionnée)
     st.markdown(f"### 🗓️ {t('todays_matches')}")
@@ -822,27 +857,62 @@ with st.sidebar:
             if is_duplicate:
                 continue
                 
-            with st.container():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"**{match['home_team']} vs {match['away_team']}**")
-                    st.write(f"⏰ {match.get('kickoff_time', '??:??')} - {match.get('league', selected_league)}")
-                
-                cols = st.columns(3)
-                with cols[0]:
-                    if st.button(f"1️⃣ {match.get('home_odds', '?.??')}", key=f"home_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "home_win"
-                with cols[1]:
-                    if st.button(f"❌ {match.get('draw_odds', '?.??')}", key=f"draw_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "draw"
-                with cols[2]:
-                    if st.button(f"2️⃣ {match.get('away_odds', '?.??')}", key=f"away_{match['home_team']}_{match['away_team']}"):
-                        st.session_state.selected_match = match
-                        st.session_state.selected_prediction = "away_win"
-                
-                st.markdown("---")
+            # Générer les probabilités de victoire (pour la démonstration)
+            home_prob = match.get('home_prob', round(0.7 / float(match.get('home_odds', 2.0)), 2) if match.get('home_odds') else 0.45)
+            draw_prob = match.get('draw_prob', round(0.7 / float(match.get('draw_odds', 3.0)), 2) if match.get('draw_odds') else 0.25)
+            away_prob = match.get('away_prob', round(0.7 / float(match.get('away_odds', 3.5)), 2) if match.get('away_odds') else 0.30)
+            
+            # Classes de probabilité pour le code couleur
+            home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+            draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+            away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+            
+            # Carte de match élégante
+            st.markdown(f"""
+            <div class="match-card">
+                <div class="match-header">
+                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
+                    <div class="match-league">{match.get('league', selected_league)}</div>
+                </div>
+                <div class="match-teams">
+                    <div class="team home-team">{match['home_team']}</div>
+                    <div class="versus">VS</div>
+                    <div class="team away-team">{match['away_team']}</div>
+                </div>
+                <div class="match-odds">
+                    <div class="odds-container">
+                        <div class="odds-label">1</div>
+                        <div class="odds-value">{match.get('home_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{home_prob_class}">{int(home_prob * 100)}%</div>
+                    </div>
+                    <div class="odds-container">
+                        <div class="odds-label">X</div>
+                        <div class="odds-value">{match.get('draw_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{draw_prob_class}">{int(draw_prob * 100)}%</div>
+                    </div>
+                    <div class="odds-container">
+                        <div class="odds-label">2</div>
+                        <div class="odds-value">{match.get('away_odds', '?.??')}</div>
+                        <div class="prob-indicator prob-{away_prob_class}">{int(away_prob * 100)}%</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Boutons pour la sélection des paris (invisibles, pour interactivité)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("1", key=f"home_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "home_win"
+            with col2:
+                if st.button("X", key=f"draw_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "draw"
+            with col3:
+                if st.button("2", key=f"away_{match['home_team']}_{match['away_team']}"):
+                    st.session_state.selected_match = match
+                    st.session_state.selected_prediction = "away_win"
     else:
         st.info(t('no_matches_today'))
     
@@ -974,11 +1044,121 @@ st.markdown("""
         font-weight: bold;
     }
     
-    /* Style pour la mise en évidence des matchs */
-    .featured-match {
-        border-left: 3px solid var(--esoteric-color);
-        padding-left: 10px;
-        margin-bottom: 5px;
+    /* Styles pour l'affichage des matchs */
+    .match-card {
+        background: linear-gradient(145deg, rgba(49, 51, 63, 0.7), rgba(35, 37, 49, 0.9));
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        position: relative;
+        border: 1px solid rgba(70, 72, 82, 0.6);
+        overflow: hidden;
+    }
+    
+    .match-card.featured {
+        background: linear-gradient(145deg, rgba(65, 45, 85, 0.7), rgba(45, 35, 65, 0.9));
+        border: 1px solid var(--esoteric-color);
+    }
+    
+    .match-card .match-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        color: #aaa;
+        font-size: 0.85rem;
+    }
+    
+    .match-card .featured-badge {
+        position: absolute;
+        top: 10px;
+        right: -32px;
+        background-color: var(--esoteric-color);
+        color: #000;
+        padding: 3px 40px;
+        transform: rotate(45deg);
+        font-size: 0.7rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .match-card .match-teams {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .match-card .team {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .match-card .home-team {
+        text-align: left;
+        color: #fff;
+    }
+    
+    .match-card .away-team {
+        text-align: right;
+        color: #fff;
+    }
+    
+    .match-card .versus {
+        color: var(--esoteric-color);
+        font-size: 0.9rem;
+        font-weight: bold;
+        padding: 0 15px;
+    }
+    
+    .match-card .match-odds {
+        display: flex;
+        justify-content: space-between;
+        background-color: rgba(30, 30, 40, 0.5);
+        border-radius: 5px;
+        padding: 10px;
+    }
+    
+    .match-card .odds-container {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .match-card .odds-label {
+        font-weight: bold;
+        color: var(--esoteric-color);
+        font-size: 1.1rem;
+    }
+    
+    .match-card .odds-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: white;
+        margin: 5px 0;
+    }
+    
+    .match-card .prob-indicator {
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+    
+    .match-card .prob-high {
+        background-color: var(--prob-high-color);
+        color: white;
+    }
+    
+    .match-card .prob-medium {
+        background-color: var(--prob-medium-color);
+        color: white;
+    }
+    
+    .match-card .prob-low {
+        background-color: var(--prob-low-color);
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
