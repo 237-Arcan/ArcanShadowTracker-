@@ -638,7 +638,7 @@ with tabs[3]:  # Daily Combo
     st.dataframe(df_history, use_container_width=True)
 
 with tabs[4]:  # Smart Market Recommendations
-    st.markdown("## 💡 Smart Market Recommendations")
+    st.markdown("## 💡 Recommandations intelligentes de marché")
     st.markdown("Recommandations intelligentes de paris basées sur l'analyse multidimensionnelle des marchés et des anomalies de cotes.")
     
     # Filtres de marché
