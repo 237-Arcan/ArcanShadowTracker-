@@ -43,60 +43,187 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Thème global - Style ésotérique et moderne basé sur les nouvelles spécifications
+# Thème global complètement refondé pour un style ultra-moderne et immersif
 st.markdown("""
 <style>
-    /* Import des polices */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    /* Importation de polices modernes */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500&display=swap');
     
-    /* Thème général inspiré du design ésotérique-analytique */
+    /* Nouvelle palette de couleurs futuriste avec accents ésotériques */
     :root {
-        /* Palette principale */
-        --background-color: #070720; /* Noir profond ou bleu nuit */
-        --text-color: #f5f5f7;
+        /* Couleurs de base */
+        --deep-space: #030723;
+        --cosmic-void: #05103a;
+        --nebula-purple: #300a58;
+        --stellar-dust: #0a1a40;
+        --astral-glow: #13294b;
         
-        /* Couleurs secondaires */
-        --esoteric-color: #d4af37; /* Or pour l'ésotérisme */
-        --data-color: #00c9b5; /* Cyan/Émeraude pour les données */
-        --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
+        /* Couleurs d'accent */
+        --mystic-gold: #ffbe41;
+        --cosmic-aqua: #05d9e8;
+        --energy-magenta: #d600ff;
+        --cosmic-ray: #005eff;
+        --arcane-emerald: #00ffd0;
         
-        /* Éléments d'interface */
-        --card-bg: rgba(13, 13, 35, 0.7);
-        --panel-bg: rgba(16, 16, 38, 0.85);
-        --header-bg: rgba(10, 10, 30, 0.95);
-        --footer-bg: rgba(8, 8, 28, 0.9);
+        /* Couleurs fonctionnelles */
+        --psychic-alert: #ff3364;
+        --astral-success: #01ff80;
+        --karmic-warning: #ffb838;
         
-        /* Accents et états */
-        --accent-color: #6a0080; /* Violet royal */
-        --success-color: #4cd137;
-        --warning-color: #fbc531;
-        --error-color: #e84118;
+        /* Text and backgrounds */
+        --text-primary: rgba(255, 255, 255, 0.95);
+        --text-secondary: rgba(255, 255, 255, 0.75);
+        --text-muted: rgba(255, 255, 255, 0.55);
+        --panel-bg: rgba(5, 16, 58, 0.8);
+        --card-bg: rgba(3, 7, 35, 0.75);
+        --glass-effect: rgba(19, 41, 75, 0.25);
+        --glass-border: rgba(19, 41, 75, 0.35);
+        --glass-highlight: rgba(255, 190, 65, 0.15);
+        
+        /* Shadows & effects */
+        --cosmic-glow: 0 0 15px rgba(0, 94, 255, 0.3);
+        --mystic-glow: 0 0 15px rgba(255, 190, 65, 0.3);
+        --energy-glow: 0 0 15px rgba(1, 255, 128, 0.3);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
     
-    /* Structure de base */
-    body {
-        font-family: 'Inter', sans-serif;
-        color: var(--text-color);
+    /* Effet de fond cosmique animé et interactif */
+    body:before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 20%, var(--nebula-purple) 0%, transparent 30%),
+            radial-gradient(circle at 80% 80%, var(--stellar-dust) 0%, transparent 40%),
+            var(--deep-space);
+        z-index: -10;
+        pointer-events: none;
     }
     
-    .stApp {
-        background-color: var(--background-color);
+    /* Effet particules stellaires animées */
+    body:after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         background-image: 
-            radial-gradient(circle at 10% 20%, rgba(20, 20, 60, 0.4) 0%, transparent 30%),
-            radial-gradient(circle at 80% 70%, rgba(60, 20, 80, 0.3) 0%, transparent 40%);
+            radial-gradient(var(--cosmic-ray) 1px, transparent 1px),
+            radial-gradient(var(--mystic-gold) 1px, transparent 1px);
+        background-size: 50px 50px, 80px 80px;
+        background-position: 0 0, 25px 25px;
+        opacity: 0.05;
+        animation: starsFloat 120s linear infinite;
+        z-index: -9;
+        pointer-events: none;
     }
     
-    /* Typographie */
-    h1, h2, h3, h4, h5 {
-        font-family: 'Cinzel', serif !important;
-        margin-bottom: 16px;
+    @keyframes starsFloat {
+        0% { background-position: 0 0, 25px 25px; }
+        100% { background-position: 100px 100px, 125px 125px; }
+    }
+    
+    /* Grille cosmique */
+    .main:before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(var(--glass-border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+        background-size: 50px 50px;
+        opacity: 0.05;
+        z-index: -8;
+        pointer-events: none;
+    }
+    
+    /* Base styling */
+    html, body, .stApp {
+        background-color: transparent !important;
+        color: var(--text-primary);
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Container principal avec effet de verre cosmique */
+    .main .block-container {
+        background: var(--glass-effect);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: var(--glass-shadow);
+        padding: 2rem;
+        margin-top: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Overlay de la grille de données avec effet scintilement */
+    .main .block-container:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            linear-gradient(90deg, transparent 99.5%, var(--cosmic-aqua) 99.5%),
+            linear-gradient(transparent 99.5%, var(--cosmic-aqua) 99.5%);
+        background-size: 20px 20px;
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: -1;
+        animation: gridScan 15s linear infinite;
+    }
+    
+    @keyframes gridScan {
+        0% { background-position: 0 0; }
+        100% { background-position: 20px 20px; }
+    }
+    
+    /* Typographie futuriste et mystique */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Orbitron', sans-serif !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1.3;
+        margin-bottom: 1.5rem;
     }
     
     h1 {
-        color: var(--esoteric-color) !important;
+        font-size: 2.5rem;
         font-weight: 700;
-        letter-spacing: 1px;
-        text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        background: linear-gradient(90deg, var(--mystic-gold), var(--cosmic-ray));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        display: inline-block;
+        margin-bottom: 2rem;
+        text-shadow: none;
+        filter: drop-shadow(0 0 10px rgba(255, 190, 65, 0.3));
+    }
+    
+    /* Effet de ligne de données sous le titre h1 */
+    h1:after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--cosmic-ray), transparent);
     }
     
     /* Structure principale */
