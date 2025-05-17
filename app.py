@@ -147,11 +147,18 @@ featured_matches, today_matches = get_sample_data()
 st.title(f"🔮 {t('app_title')}")
 st.markdown(f"### {t('welcome_message')}")
 
-# Créer les onglets
-tabs = st.tabs(["Dashboard", "Prédictions", "Analyse live", "Statistiques", "Match en direct"])
+# Créer les onglets spécifiques au système ArcanShadow
+tabs = st.tabs([
+    "🔍 Live Monitoring", 
+    "🔔 Performance Notifications", 
+    "🎯 Daily Combo", 
+    "💡 Smart Market Recommendations", 
+    "🧠 Système d'Apprentissage"
+])
 
-with tabs[0]:  # Dashboard
-    # Panneau ésotérique dans la barre latérale
+with tabs[0]:  # Live Monitoring
+    st.markdown("## 🔍 Suivi des Matchs en Direct")
+    st.markdown("Visualisez les dynamiques de match en temps réel avec nos capteurs énergétiques avancés.")
     with st.sidebar:
         st.markdown("## 🔯 Aperçus Ésotériques")
         
@@ -253,72 +260,218 @@ with tabs[0]:  # Dashboard
         </div>
         """, unsafe_allow_html=True)
 
-with tabs[1]:  # Prédictions
-    st.markdown("## 🔮 Système de prédiction avancé")
-    st.markdown("Cette section présente les prédictions détaillées générées par notre système ArcanShadow.")
+with tabs[1]:  # Performance Notifications
+    st.markdown("## 🔔 Notifications de Performance")
+    st.markdown("Suivi et analyse des performances prédictives du système ArcanShadow avec comparaison aux résultats réels.")
     
-    # Simulons des données de prédiction
-    st.markdown("### 📊 Convergence des modèles")
+    # En-tête avec statistiques globales
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(label="Précision Globale", value="78%", delta="+2.3%")
+    with col2:
+        st.metric(label="ROI Hebdomadaire", value="12.7%", delta="+0.8%")
+    with col3:
+        st.metric(label="Modules Actifs", value="14/16", delta="+1")
+    with col4:
+        st.metric(label="Échantillon", value="342 matchs", delta="+47")
     
-    # Créer une visualisation de convergence avec Plotly
-    models = ["ArcanX", "ShadowOdds", "NumeriCode", "KarmicFlow+", "AstroImpact"]
-    match_outcomes = ["Home Win", "Draw", "Away Win"]
+    # Tableau des performances récentes
+    st.markdown("### 📈 Bilan de Synthèse (7 derniers jours)")
     
-    # Générer des données aléatoires pour la démo
-    data = []
-    for model in models:
-        for outcome in match_outcomes:
-            confidence = np.random.uniform(0.1, 0.9)
-            data.append({"Model": model, "Outcome": outcome, "Confidence": confidence})
+    # Créer des données de performance simulées
+    performance_data = {
+        "Date": [(datetime.now() - timedelta(days=i)).strftime("%d/%m/%Y") for i in range(7)],
+        "Matchs": [np.random.randint(12, 25) for _ in range(7)],
+        "Prédictions Correctes": [np.random.randint(8, 20) for _ in range(7)],
+        "Précision": [f"{np.random.randint(65, 90)}%" for _ in range(7)],
+        "Module Star": np.random.choice(["ArcanX", "ShadowOdds", "NumeriCode", "KarmicFlow+", "AstroImpact"], 7)
+    }
     
-    df = pd.DataFrame(data)
+    # Calculer le taux de précision
+    for i in range(7):
+        matches = performance_data["Matchs"][i]
+        correct = performance_data["Prédictions Correctes"][i]
+        performance_data["Précision"][i] = f"{round((correct / matches) * 100)}%"
     
-    # Créer un heatmap pour visualiser la convergence
-    fig = px.density_heatmap(
-        df, x="Model", y="Outcome", z="Confidence", 
-        color_continuous_scale=["blue", "purple", "gold"],
-        title="Convergence des modèles prédictifs"
-    )
+    df_performance = pd.DataFrame(performance_data)
+    st.dataframe(df_performance, use_container_width=True)
     
-    st.plotly_chart(fig, use_container_width=True)
-
-with tabs[2]:  # Analyse live
-    st.markdown("## 📊 Analyse des matchs en direct")
-    st.markdown("Visualisez les dynamiques de match en temps réel avec nos outils d'analyse avancés.")
+    # Graphique de performance des modules
+    st.markdown("### 🧩 Performance des Modules Prédictifs")
     
-    # Simuler des données de momentum pour un match en direct
-    match_time = list(range(0, 91, 5))
-    home_momentum = [50 + np.random.normal(0, 10) for _ in match_time]
-    away_momentum = [50 - m + 50 + np.random.normal(0, 5) for m in home_momentum]
+    modules = ["ArcanX", "ShadowOdds", "NumeriCode", "KarmicFlow+", "AstroImpact", 
+               "EchoPath", "TarotEcho", "ShadowOdds+", "MetaSystems"]
+    accuracy = [np.random.uniform(0.65, 0.92) for _ in modules]
+    sample_size = [np.random.randint(50, 300) for _ in modules]
     
-    # Normaliser pour que la somme soit toujours 100
-    for i in range(len(match_time)):
-        total = home_momentum[i] + away_momentum[i]
-        home_momentum[i] = (home_momentum[i] / total) * 100
-        away_momentum[i] = (away_momentum[i] / total) * 100
+    # Trier par précision
+    sorted_indices = sorted(range(len(accuracy)), key=lambda i: accuracy[i], reverse=True)
+    sorted_modules = [modules[i] for i in sorted_indices]
+    sorted_accuracy = [accuracy[i] for i in sorted_indices]
+    sorted_sample = [sample_size[i] for i in sorted_indices]
     
     # Créer un dataframe
-    momentum_data = pd.DataFrame({
-        "Minute": match_time,
-        "Domicile": home_momentum,
-        "Extérieur": away_momentum
+    df_modules = pd.DataFrame({
+        "Module": sorted_modules,
+        "Précision": sorted_accuracy,
+        "Échantillon": sorted_sample
     })
     
-    # Visualiser le momentum avec Plotly
-    fig_momentum = px.line(
-        momentum_data, x="Minute", y=["Domicile", "Extérieur"],
-        title="Évolution du momentum (Real Madrid vs Barcelona)",
-        color_discrete_sequence=["#01ff80", "#ff3364"]
+    # Créer un graphique à barres horizontal
+    fig = px.bar(
+        df_modules, y="Module", x="Précision", 
+        orientation='h',
+        title="Précision par Module (30 derniers jours)",
+        color="Précision",
+        color_continuous_scale=["red", "gold", "green"],
+        range_color=[0.5, 1.0],
+        text=df_modules["Précision"].apply(lambda x: f"{x:.1%}"),
+        size="Échantillon",
+        size_max=50,
+        height=500
     )
     
-    fig_momentum.update_layout(
-        xaxis_title="Minute de jeu",
-        yaxis_title="Momentum (%)",
-        legend_title="Équipe",
+    fig.update_layout(
+        xaxis_title="Précision (%)",
+        yaxis_title="Module Prédictif",
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig_momentum, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Alertes et recommandations de calibration
+    st.markdown("### ⚠️ Alertes et Recommandations")
+    
+    alert1, alert2 = st.columns(2)
+    
+    with alert1:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background-color: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.3);">
+            <h4 style="color: #ff3364;">⚠️ Module en sous-performance</h4>
+            <p><b>EchoPath</b> montre une baisse de précision de 8.7% sur les 14 derniers jours. Recalibration recommandée.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with alert2:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background-color: rgba(1, 255, 128, 0.1); border: 1px solid rgba(1, 255, 128, 0.3);">
+            <h4 style="color: #01ff80;">✅ Module surperformant</h4>
+            <p><b>ShadowOdds+</b> affiche une précision exceptionnelle de 91.3% dans la Ligue 1. Augmentation de pondération recommandée.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+with tabs[2]:  # Daily Combo
+    st.markdown("## 🎯 Combiné du Jour")
+    st.markdown("Sélection automatique optimisée des meilleures opportunités de paris, basée sur les modules les plus performants.")
+    
+    # Paramètres du combiné
+    col1, col2, col3 = st.columns([2, 1, 1])
+    
+    with col1:
+        st.markdown("### ⚙️ Configuration")
+        confidence_level = st.slider("Niveau de confiance minimum", 60, 95, 75, 5)
+        
+    with col2:
+        st.metric(label="Nombre de Sélections", value="3")
+        st.metric(label="Cote Combinée", value="7.36")
+    
+    with col3:
+        st.metric(label="Confiance Globale", value="83%", delta="+8%")
+        st.metric(label="Module Dominant", value="ArcanX")
+    
+    # Sélection des modules performants
+    st.markdown("### 🧩 Modules Utilisés (sélection automatique)")
+    
+    modules_used = ["ArcanX", "ShadowOdds+", "KarmicFlow+", "MetaSystems"]
+    module_weights = [0.35, 0.25, 0.22, 0.18]
+    
+    # Créer un graphique camembert
+    fig_modules = px.pie(
+        values=module_weights, 
+        names=modules_used,
+        title="Pondération des modules pour le combiné",
+        color_discrete_sequence=["#7000ff", "#01ff80", "#ffbe41", "#05d9e8"]
+    )
+    
+    st.plotly_chart(fig_modules, use_container_width=True)
+    
+    # Sélections du jour
+    st.markdown("### 📊 Sélections du Combiné")
+    
+    # Création des sélections
+    selections = [
+        {
+            "match": "PSG vs Lyon",
+            "league": "Ligue 1",
+            "prediction": "PSG gagne",
+            "odds": 1.82,
+            "confidence": 86,
+            "key_factors": ["Momentum favorable: +23%", "Cycle karmique positif", "Delta de cote: 0.21"]
+        },
+        {
+            "match": "Barcelona vs Atletico Madrid",
+            "league": "La Liga",
+            "prediction": "Plus de 2.5 buts",
+            "odds": 1.95,
+            "confidence": 79,
+            "key_factors": ["Tarot: La Tour (renversement)", "Convergence offensive: 68%", "Historique: 8/10 matchs"]
+        },
+        {
+            "match": "Liverpool vs Chelsea",
+            "league": "Premier League",
+            "prediction": "Les deux équipes marquent",
+            "odds": 2.10,
+            "confidence": 84,
+            "key_factors": ["Planetary transit: Jupiter+Mars", "Anomalie de cote: -0.32", "Attack strength: +17%"]
+        }
+    ]
+    
+    # Afficher les sélections dans des cartes visuelles
+    for selection in selections:
+        conf_color = "#01ff80" if selection["confidence"] >= 80 else "#ffbe41"
+        
+        st.markdown(f"""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(8, 15, 40, 0.6); 
+                    border: 1px solid rgba(81, 99, 149, 0.2); margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                    <div style="font-size: 18px; font-weight: bold;">{selection["match"]}</div>
+                    <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">{selection["league"]}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 22px; font-weight: bold; font-family: 'JetBrains Mono', monospace;">{selection["odds"]}</div>
+                    <div style="font-size: 14px; color: {conf_color};">Confiance: {selection["confidence"]}%</div>
+                </div>
+            </div>
+            <div style="background: rgba(112, 0, 255, 0.1); padding: 10px; border-radius: 8px; 
+                        border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 10px;">
+                <div style="font-size: 16px; font-weight: bold; color: #7000ff; margin-bottom: 5px;">
+                    💡 Prédiction: {selection["prediction"]}
+                </div>
+            </div>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.8);">
+                <b>Facteurs clés:</b>
+                <ul style="margin-top: 5px; padding-left: 20px;">
+                    <li>{selection["key_factors"][0]}</li>
+                    <li>{selection["key_factors"][1]}</li>
+                    <li>{selection["key_factors"][2]}</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Historique des performances
+    st.markdown("### 📈 Historique des Combinés")
+    
+    history_data = {
+        "Date": [(datetime.now() - timedelta(days=i)).strftime("%d/%m/%Y") for i in range(1, 11)],
+        "Selections": [np.random.randint(2, 5) for _ in range(10)],
+        "Cote": [round(np.random.uniform(3.5, 12.5), 2) for _ in range(10)],
+        "Résultat": np.random.choice(["✅ Gagné", "❌ Perdu"], 10, p=[0.6, 0.4])
+    }
+    
+    df_history = pd.DataFrame(history_data)
+    st.dataframe(df_history, use_container_width=True)
 
 with tabs[3]:  # Statistiques
     st.markdown("## 📈 Statistiques avancées")
