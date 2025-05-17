@@ -414,6 +414,258 @@ st.markdown("""
         color: var(--alert-color);
     }
     
+    /* Panneau ésotérique déroulant */
+    .esoteric-panel {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 15px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
+    
+    .esoteric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    
+    .esoteric-title {
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif;
+        font-size: 18px;
+    }
+    
+    .esoteric-content {
+        padding-top: 10px;
+    }
+    
+    .esoteric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .esoteric-item {
+        background-color: rgba(25, 25, 50, 0.5);
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+    }
+    
+    .esoteric-icon {
+        font-size: 24px;
+        color: var(--esoteric-color);
+        margin-bottom: 5px;
+    }
+    
+    .esoteric-label {
+        font-size: 12px;
+        color: var(--text-color);
+    }
+    
+    .esoteric-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--esoteric-color);
+    }
+    
+    /* Pied de page (statut et logs) */
+    .footer-container {
+        background-color: var(--footer-bg);
+        margin-top: 30px;
+        padding: 15px 20px;
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .system-status {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .status-item {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+    }
+    
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    
+    .status-active {
+        background-color: var(--success-color);
+    }
+    
+    .status-warning {
+        background-color: var(--warning-color);
+    }
+    
+    .status-error {
+        background-color: var(--error-color);
+    }
+    
+    .log-container {
+        font-family: monospace;
+        font-size: 12px;
+        background-color: rgba(20, 20, 40, 0.7);
+        padding: 8px;
+        border-radius: 4px;
+        height: 60px;
+        overflow-y: auto;
+        color: rgba(245, 245, 247, 0.7);
+    }
+    
+    .log-entry {
+        margin-bottom: 4px;
+    }
+    
+    .log-time {
+        color: var(--data-color);
+        margin-right: 6px;
+    }
+    
+    .log-module {
+        color: var(--esoteric-color);
+        margin-right: 6px;
+    }
+    
+    /* Formulaires et contrôles */
+    .stTextInput input, .stSelectbox, .stMultiselect {
+        background-color: rgba(25, 25, 50, 0.6) !important;
+        color: var(--text-color) !important;
+        border: 1px solid rgba(106, 0, 128, 0.3) !important;
+    }
+    
+    .stTextInput input:focus, .stSelectbox:focus, .stMultiselect:focus {
+        border-color: var(--esoteric-color) !important;
+    }
+    
+    .stButton button {
+        background-color: rgba(106, 0, 128, 0.7) !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.3s ease;
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    .stButton button:hover {
+        background-color: rgba(106, 0, 128, 0.9) !important;
+        box-shadow: 0 0 12px rgba(106, 0, 128, 0.5) !important;
+    }
+    
+    /* Style des onglets */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+        background-color: rgba(10, 10, 30, 0.6);
+        border-radius: 12px;
+        padding: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: auto;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 6px;
+        color: white;
+        border: 1px solid rgba(106, 0, 128, 0.2);
+        padding: 8px 16px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(106, 0, 128, 0.7) !important;
+        border-color: rgba(212, 175, 55, 0.3) !important;
+    }
+    
+    /* Adaptations mobiles */
+    @media (max-width: 768px) {
+        .main-container {
+            flex-direction: column;
+        }
+        
+        .match-teams {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .versus {
+            margin: 10px 0;
+        }
+        
+        .team {
+            width: 100%;
+        }
+        
+        .match-odds {
+            flex-wrap: wrap;
+        }
+        
+        .odds-container {
+            min-width: 90px;
+        }
+        
+        .esoteric-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    /* Animations et comportements */
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+        }
+    }
+    
+    .shimmer {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .shimmer::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        transform: rotate(30deg);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%) rotate(30deg);
+        }
+        100% {
+            transform: translateX(100%) rotate(30deg);
+        }
+    }
+    
     /* Cartes et conteneurs */
     div[data-testid="stVerticalBlock"] > div {
         background-color: rgba(10, 10, 30, 0.7);
@@ -813,23 +1065,30 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# En-tête de l'application
+# En-tête de l'application avec le nouveau design
 st.markdown("""
-<div style="display: flex; align-items: center; margin-bottom: 2rem; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <div style="margin-right: 20px;">
-        <h1 style="margin: 0; color: #f1f1f1; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-            <span style="color: #9c27b0;">Arcan</span><span style="color: #e2e2e2;">Shadow</span>
-        </h1>
-        <p style="margin: 0; opacity: 0.9; color: #ddd; font-style: italic;">Révélation des motifs cachés</p>
-    </div>
-    <div style="margin-left: auto; display: flex; align-items: center;">
-        <div style="font-size: 2.5rem; margin-right: 10px;">🔮</div>
-        <div style="opacity: 0.8; color: #ddd; text-align: right; font-size: 0.85rem;">
-            <div>Système Prédictif Avancé</div>
-            <div>Version 3.7.5</div>
+<div class="header-container">
+    <div class="app-logo">
+        <span style="font-size: 2.2rem; margin-right: 15px;">🔮</span>
+        <div>
+            <h1 style="margin: 0; font-family: 'Cinzel', serif;">
+                <span style="color: var(--esoteric-color);">Arcan</span><span>Shadow</span>
+            </h1>
+            <p style="margin: 0; opacity: 0.8; font-style: italic; font-size: 0.85rem;">Révélation des motifs cachés</p>
         </div>
     </div>
+    <div class="nav-menu">
+        <div class="nav-item active">Prédictions</div>
+        <div class="nav-item">Modules</div>
+        <div class="nav-item">Live</div>
+        <div class="nav-item">Archives</div>
+        <div class="nav-item">Analyse</div>
+        <div class="nav-item">Paramètres</div>
+    </div>
 </div>
+
+<div class="main-container">
+    <div style="flex: 3;">
 """, unsafe_allow_html=True)
 
 # Initialize session state variables if they don't exist
