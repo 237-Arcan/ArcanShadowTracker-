@@ -631,7 +631,7 @@ with tabs[2]:  # Daily Combo
     df_history = pd.DataFrame(history_data)
     st.dataframe(df_history, use_container_width=True)
 
-with tabs[3]:  # Smart Market Recommendations
+with tabs[4]:  # Smart Market Recommendations
     st.markdown("## 💡 Smart Market Recommendations")
     st.markdown("Recommandations intelligentes de paris basées sur l'analyse multidimensionnelle des marchés et des anomalies de cotes.")
     
@@ -779,7 +779,7 @@ with tabs[3]:  # Smart Market Recommendations
         </div>
         """, unsafe_allow_html=True)
 
-with tabs[4]:  # Système d'Apprentissage
+with tabs[5]:  # Système d'Apprentissage
     st.markdown("## 🧠 Système d'Apprentissage")
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
     
