@@ -72,9 +72,13 @@ class DataHandler:
                 'stadium': 'Santiago Bernabéu',
                 'city': 'Madrid',
                 'country': 'Spain',
+                'country_code': 'es',
                 'home_odds': 1.42,
                 'draw_odds': 4.50,
                 'away_odds': 7.25,
+                'home_prob': 0.76,  # Probabilités calculées
+                'draw_prob': 0.22,
+                'away_prob': 0.14,
                 'featured': True  # Mark as featured match
             }
             featured_matches.append(real_madrid_match)
@@ -90,12 +94,38 @@ class DataHandler:
                 'stadium': 'Camp Nou',
                 'city': 'Barcelona',
                 'country': 'Spain',
+                'country_code': 'es',
                 'home_odds': 1.65,
                 'draw_odds': 3.75,
                 'away_odds': 5.25,
+                'home_prob': 0.68,  # Probabilités calculées
+                'draw_prob': 0.28,
+                'away_prob': 0.20,
                 'featured': True
             }
             featured_matches.append(barcelona_match)
+            
+            # Bundesliga match
+            bayern_match = {
+                'sport': 'Football',
+                'league': 'Bundesliga',
+                'home_team': 'Bayern Munich',
+                'away_team': 'Borussia Dortmund',
+                'date': today,
+                'kickoff_time': '20:30',
+                'stadium': 'Allianz Arena',
+                'city': 'Munich',
+                'country': 'Germany',
+                'country_code': 'de',
+                'home_odds': 1.75,
+                'draw_odds': 3.85,
+                'away_odds': 4.50,
+                'home_prob': 0.64,  # Probabilités calculées
+                'draw_prob': 0.30,
+                'away_prob': 0.24,
+                'featured': True
+            }
+            featured_matches.append(bayern_match)
             
             # Premier League match
             premier_match = {
