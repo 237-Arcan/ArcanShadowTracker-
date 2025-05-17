@@ -1957,54 +1957,715 @@ with col3:
             
             # Carte de match élégante spéciale pour les matchs vedettes avec le design amélioré
             country_code = match.get('country_code', 'es').lower()
-            
-            st.markdown(f"""
-            <div class="match-card featured" data-featured="Match du jour">
-                <div class="match-header">
-                    <div class="match-time">
-                        <i>⏰</i> {match.get('kickoff_time', '??:??')}
-                    </div>
-                    <div class="match-league">
-                        <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" alt="{match.get('country', '')}">
-                        {match.get('league', '')}
-                    </div>
+# Corriger l'importation du style
+def load_custom_css():
+    with open('.streamlit/style.css') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# Charger notre CSS personnalisé
+load_custom_css()
+
+st.markdown("""
+<style>
+/* Style déjà importé depuis .streamlit/style.css */
+
+.neo-card {
+    background: linear-gradient(135deg, rgba(8, 15, 40, 0.95), rgba(17, 23, 64, 0.9));
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(81, 99, 149, 0.2);
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.3),
+        0 0 50px rgba(100, 100, 255, 0.1);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 30px;
+    transition: all 0.4s ease;
+}
+
+.neo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.4),
+        0 0 70px rgba(100, 100, 255, 0.15);
+    border-color: rgba(255, 190, 65, 0.3);
+}
+
+/* Badge de match vedette avec animation */
+.neo-card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #ffbe41, #ff3364);
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 0 15px rgba(255, 51, 100, 0.3);
+}
+
+.pulse-effect {
+    width: 8px;
+    height: 8px;
+    background-color: #fff;
+    border-radius: 50%;
+    margin-left: 8px;
+    position: relative;
+}
+
+.pulse-effect:before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    z-index: -1;
+}
+
+/* En-tête de la carte */
+.neo-card-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid rgba(81, 99, 149, 0.15);
+    background: rgba(5, 10, 30, 0.7);
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    gap: 25px;
+}
+
+/* Style de l'heure numérique */
+.time-block {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+}
+
+.digital-time {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #05d9e8;
+    text-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
+    letter-spacing: 1px;
+}
+
+.date-info {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* Information sur la ligue */
+.league-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.country-flag img {
+    width: 24px;
+    height: 18px;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.league-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Évaluation mystique */
+.mystic-rating {
+    text-align: center;
+    background: rgba(8, 15, 40, 0.7);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 190, 65, 0.2);
+}
+
+.rating-symbol {
+    color: #ffbe41;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    text-shadow: 0 0 5px rgba(255, 190, 65, 0.3);
+}
+
+.rating-label {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+}
+
+/* Section des équipes */
+.teams-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 20px;
+    position: relative;
+}
+
+.teams-container:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(81, 99, 149, 0.2), transparent);
+}
+
+.team-block {
+    display: flex;
+    align-items: center;
+    width: 40%;
+    gap: 15px;
+}
+
+.team-block.home {
+    text-align: left;
+}
+
+.team-block.away {
+    text-align: right;
+    flex-direction: row-reverse;
+}
+
+/* Logo hexagonal avec effet 3D */
+.logo-hexagon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(0, 94, 255, 0.1), rgba(5, 217, 232, 0.05));
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.2),
+        inset 0 0 10px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: perspective(500px) rotateX(10deg);
+    transition: all 0.3s ease;
+}
+
+.logo-hexagon:hover {
+    transform: perspective(500px) rotateX(0);
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.3),
+        inset 0 0 15px rgba(255, 255, 255, 0.15);
+    border-color: rgba(5, 217, 232, 0.3);
+}
+
+.logo-content {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(5, 217, 232, 0.5);
+}
+
+/* Détails de l'équipe */
+.team-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.team-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.team-form {
+    display: flex;
+    gap: 4px;
+}
+
+.team-block.away .team-form {
+    justify-content: flex-end;
+}
+
+.team-form span {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.form-w {
+    background-color: rgba(1, 255, 128, 0.2);
+    color: #01ff80;
+    border: 1px solid rgba(1, 255, 128, 0.3);
+}
+
+.form-l {
+    background-color: rgba(255, 51, 100, 0.2);
+    color: #ff3364;
+    border: 1px solid rgba(255, 51, 100, 0.3);
+}
+
+.form-d {
+    background-color: rgba(255, 184, 56, 0.2);
+    color: #ffb838;
+    border: 1px solid rgba(255, 184, 56, 0.3);
+}
+
+/* Bloc versus */
+.versus-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20%;
+    position: relative;
+}
+
+.versus-circle {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(214, 0, 255, 0.2), rgba(0, 94, 255, 0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(214, 0, 255, 0.15);
+    border: 1px solid rgba(214, 0, 255, 0.2);
+    text-shadow: 0 0 10px rgba(214, 0, 255, 0.5);
+}
+
+.match-location {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.cosmic-influence {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 190, 65, 0.1);
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 190, 65, 0.2);
+}
+
+.influence-icon {
+    color: #ffbe41;
+    font-size: 0.9rem;
+}
+
+.influence-text {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Container de prédiction */
+.prediction-container {
+    padding: 20px;
+    background: rgba(8, 15, 40, 0.5);
+    border-top: 1px solid rgba(81, 99, 149, 0.15);
+}
+
+.prediction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.prediction-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #05d9e8;
+    letter-spacing: 1px;
+}
+
+.prediction-powered {
+    display: flex;
+    gap: 5px;
+}
+
+.module-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.module-badge.arcanx {
+    background-color: rgba(255, 190, 65, 0.2);
+    color: #ffbe41;
+    border: 1px solid rgba(255, 190, 65, 0.3);
+}
+
+.module-badge.shadowodds {
+    background-color: rgba(214, 0, 255, 0.15);
+    color: #ff33ff;
+    border: 1px solid rgba(214, 0, 255, 0.25);
+}
+
+/* Grille des cotes */
+.odds-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.odds-block {
+    background: rgba(15, 25, 60, 0.5);
+    border-radius: 10px;
+    padding: 15px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(81, 99, 149, 0.2);
+}
+
+.odds-block:hover {
+    transform: translateY(-3px);
+}
+
+.odds-block[data-type="1"] {
+    border-top: 3px solid #01ff80;
+}
+
+.odds-block[data-type="X"] {
+    border-top: 3px solid #ffb838;
+}
+
+.odds-block[data-type="2"] {
+    border-top: 3px solid #ff3364;
+}
+
+.odds-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.high .odds-value {
+    color: #01ff80;
+    text-shadow: 0 0 10px rgba(1, 255, 128, 0.2);
+}
+
+.medium .odds-value {
+    color: #ffb838;
+    text-shadow: 0 0 10px rgba(255, 184, 56, 0.2);
+}
+
+.low .odds-value {
+    color: #ff3364;
+    text-shadow: 0 0 10px rgba(255, 51, 100, 0.2);
+}
+
+.odds-team {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.probability-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.prob-fill {
+    height: 100%;
+    width: var(--prob-value);
+    border-radius: 3px;
+    transition: width 1s ease-out;
+}
+
+.high .prob-fill {
+    background: linear-gradient(90deg, rgba(1, 255, 128, 0.7), #01ff80);
+    box-shadow: 0 0 10px rgba(1, 255, 128, 0.3);
+}
+
+.medium .prob-fill {
+    background: linear-gradient(90deg, rgba(255, 184, 56, 0.7), #ffb838);
+    box-shadow: 0 0 10px rgba(255, 184, 56, 0.3);
+}
+
+.low .prob-fill {
+    background: linear-gradient(90deg, rgba(255, 51, 100, 0.7), #ff3364);
+    box-shadow: 0 0 10px rgba(255, 51, 100, 0.3);
+}
+
+.prob-percentage {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.high .prob-percentage {
+    color: #01ff80;
+}
+
+.medium .prob-percentage {
+    color: #ffb838;
+}
+
+.low .prob-percentage {
+    color: #ff3364;
+}
+
+/* Visualisation énergétique */
+.energy-pattern {
+    padding: 20px;
+    border-top: 1px solid rgba(81, 99, 149, 0.15);
+    text-align: center;
+}
+
+.energy-header {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.energy-visualization {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 60px;
+    gap: 20px;
+}
+
+.energy-home, .energy-draw, .energy-away {
+    width: 30px;
+    max-height: 60px;
+    border-radius: 3px;
+    transition: height 1s ease-out;
+}
+
+.energy-home {
+    background: linear-gradient(to top, #01ff80, rgba(1, 255, 128, 0.3));
+    box-shadow: 0 0 15px rgba(1, 255, 128, 0.2);
+}
+
+.energy-draw {
+    background: linear-gradient(to top, #ffb838, rgba(255, 184, 56, 0.3));
+    box-shadow: 0 0 15px rgba(255, 184, 56, 0.2);
+}
+
+.energy-away {
+    background: linear-gradient(to top, #ff3364, rgba(255, 51, 100, 0.3));
+    box-shadow: 0 0 15px rgba(255, 51, 100, 0.2);
+}
+
+/* Responsivité */
+@media (max-width: 992px) {
+    .neo-card-badge {
+        top: 10px;
+        right: 10px;
+        font-size: 8px;
+        padding: 4px 10px;
+    }
+    
+    .neo-card-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .digital-time {
+        font-size: 1.3rem;
+    }
+    
+    .odds-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .teams-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .team-block {
+        width: 100%;
+    }
+    
+    .versus-block {
+        width: 100%;
+        margin: 15px 0;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Maintenant affichons le match dans le nouveau format
+st.markdown(f"""
+<div class="neo-card featured-match">
+    <div class="neo-card-badge">
+        <span>MATCH DU JOUR</span>
+        <div class="pulse-effect"></div>
+    </div>
+    
+    <div class="neo-card-header">
+        <div class="header-left">
+            <div class="time-block">
+                <div class="digital-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="date-info">17 MAI 2025</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="league-info">
+                <div class="country-flag">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" alt="{match.get('country', '')}" />
                 </div>
-                <div class="match-teams">
-                    <div class="team">
-                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 48px; height: 48px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
-                            <span style="font-size: 20px;">{match['home_team'][0]}</span>
-                        </div>
-                        <div class="team-name">{match['home_team']}</div>
-                    </div>
-                    <div class="versus">
-                        <div class="versus-symbol">VS</div>
-                        <div style="font-size: 12px;">{match.get('stadium', '')}</div>
-                    </div>
-                    <div class="team">
-                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 48px; height: 48px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
-                            <span style="font-size: 20px;">{match['away_team'][0]}</span>
-                        </div>
-                        <div class="team-name">{match['away_team']}</div>
-                    </div>
-                </div>
-                <div class="match-odds">
-                    <div class="odds-container">
-                        <div class="odds-label">1</div>
-                        <div class="odds-value">{match.get('home_odds', '?.??')}</div>
-                        <div class="prob-indicator prob-{home_prob_class}">{int(home_prob * 100)}%</div>
-                    </div>
-                    <div class="odds-container">
-                        <div class="odds-label">X</div>
-                        <div class="odds-value">{match.get('draw_odds', '?.??')}</div>
-                        <div class="prob-indicator prob-{draw_prob_class}">{int(draw_prob * 100)}%</div>
-                    </div>
-                    <div class="odds-container">
-                        <div class="odds-label">2</div>
-                        <div class="odds-value">{match.get('away_odds', '?.??')}</div>
-                        <div class="prob-indicator prob-{away_prob_class}">{int(away_prob * 100)}%</div>
-                    </div>
+                <div class="league-name">{match.get('league', '')}</div>
+            </div>
+            <div class="mystic-rating">
+                <div class="rating-symbol">★★★☆☆</div>
+                <div class="rating-label">POTENTIEL ÉSOTÉRIQUE</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="teams-container">
+        <div class="team-block home">
+            <div class="team-logo">
+                <div class="logo-hexagon">
+                    <div class="logo-content">{match['home_team'][0]}</div>
                 </div>
             </div>
+            <div class="team-details">
+                <h3 class="team-name">{match['home_team']}</h3>
+                <div class="team-form">
+                    <span class="form-w">W</span>
+                    <span class="form-l">L</span>
+                    <span class="form-w">W</span>
+                    <span class="form-d">D</span>
+                    <span class="form-w">W</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="versus-block">
+            <div class="versus-circle">
+                <span>VS</span>
+            </div>
+            <div class="match-location">{match.get('stadium', 'Stade Principal')}</div>
+            <div class="cosmic-influence">
+                <span class="influence-icon">♃</span>
+                <span class="influence-text">Jupiter Ascendant</span>
+            </div>
+        </div>
+        
+        <div class="team-block away">
+            <div class="team-logo">
+                <div class="logo-hexagon">
+                    <div class="logo-content">{match['away_team'][0]}</div>
+                </div>
+            </div>
+            <div class="team-details">
+                <h3 class="team-name">{match['away_team']}</h3>
+                <div class="team-form">
+                    <span class="form-w">W</span>
+                    <span class="form-w">W</span>
+                    <span class="form-l">L</span>
+                    <span class="form-l">L</span>
+                    <span class="form-d">D</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="prediction-container">
+        <div class="prediction-header">
+            <div class="prediction-title">PRÉDICTION ARCANSHADOW</div>
+            <div class="prediction-powered">
+                <span class="module-badge arcanx">ArcanX</span>
+                <span class="module-badge shadowodds">ShadowOdds</span>
+            </div>
+        </div>
+        
+        <div class="odds-grid">
+            <div class="odds-block {home_prob_class}" data-type="1">
+                <div class="odds-value">{match.get('home_odds', '?.??')}</div>
+                <div class="odds-team">1 • {match['home_team']}</div>
+                <div class="probability-bar" style="--prob-value: {int(home_prob * 100)}%">
+                    <div class="prob-fill"></div>
+                </div>
+                <div class="prob-percentage">{int(home_prob * 100)}%</div>
+            </div>
+            
+            <div class="odds-block {draw_prob_class}" data-type="X">
+                <div class="odds-value">{match.get('draw_odds', '?.??')}</div>
+                <div class="odds-team">X • MATCH NUL</div>
+                <div class="probability-bar" style="--prob-value: {int(draw_prob * 100)}%">
+                    <div class="prob-fill"></div>
+                </div>
+                <div class="prob-percentage">{int(draw_prob * 100)}%</div>
+            </div>
+            
+            <div class="odds-block {away_prob_class}" data-type="2">
+                <div class="odds-value">{match.get('away_odds', '?.??')}</div>
+                <div class="odds-team">2 • {match['away_team']}</div>
+                <div class="probability-bar" style="--prob-value: {int(away_prob * 100)}%">
+                    <div class="prob-fill"></div>
+                </div>
+                <div class="prob-percentage">{int(away_prob * 100)}%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="energy-pattern">
+        <div class="energy-header">TENDANCES ÉNERGÉTIQUES</div>
+        <div class="energy-visualization">
+            <div class="energy-home" style="height:{int(home_prob * 100)}px"></div>
+            <div class="energy-draw" style="height:{int(draw_prob * 100)}px"></div>
+            <div class="energy-away" style="height:{int(away_prob * 100)}px"></div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
             """, unsafe_allow_html=True)
             
             # Boutons pour la sélection des paris (invisibles, pour interactivité)

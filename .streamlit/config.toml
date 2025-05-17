@@ -4,11 +4,9 @@ address = "0.0.0.0"
 port = 5000
 
 [theme]
-primaryColor = "#9c27b0"  # Purple
-backgroundColor = "#121212"  # Dark background
-secondaryBackgroundColor = "#1e1e2f"  # Darker blue-purple
-textColor = "#e0e0e0"  # Light gray text
+# Un thème futuriste et ésotérique
+primaryColor = "#7000ff"  # Violet/pourpre cosmique
+backgroundColor = "#030723"  # Bleu nuit profond
+secondaryBackgroundColor = "#0c1222"  # Légèrement plus clair que le fond
+textColor = "#e4eaff"  # Blanc bleuté
 font = "sans serif"
-
-[deprecation]
-showPyplotGlobalUse = false
