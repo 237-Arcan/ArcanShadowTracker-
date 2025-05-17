@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from streamlit.components.v1 import html
 import time
+import os
 from modules.arcanx import ArcanX
 from modules.shadow_odds import ShadowOdds
 from modules.convergence import Convergence
@@ -18,6 +19,18 @@ from modules.tarot_echo import TarotEcho
 from modules.astro_impact_lite import AstroImpactLite
 from modules.shadow_odds_plus import ShadowOddsPlus
 from modules.echo_path import EchoPath
+
+# Fonction pour charger le CSS personnalisé
+def load_custom_css():
+    """Charge le fichier CSS personnalisé pour transformer l'interface ArcanShadow"""
+    try:
+        with open('.streamlit/style.css') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du CSS: {e}")
+
+# Charger notre CSS personnalisé dès le démarrage
+load_custom_css()
 from modules.fan_sentiment_monitor import FanSentimentMonitor
 from modules.late_surge_detector import LateSurgeDetector
 # Import des modules prédictifs
@@ -1957,32 +1970,31 @@ with col3:
             
             # Carte de match élégante spéciale pour les matchs vedettes avec le design amélioré
             country_code = match.get('country_code', 'es').lower()
-# Corriger l'importation du style
-def load_custom_css():
-    with open('.streamlit/style.css') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+            
+            # Utiliser notre nouvelle classe CSS pour cartes de match
+            st.markdown(f"""
+            <div class="match-card featured">
+                <div class="match-header">
+                    <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                    <div class="match-league">
+                        <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                        <span>{match.get('league', '')}</span>
+                    </div>
+                </div>
+                <div class="match-teams">
+                    <div class="home-team">{match['home_team']}</div>
+                    <div class="versus">VS</div>
+                    <div class="away-team">{match['away_team']}</div>
+                </div>
+                <div class="match-odds">
+                    <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                    <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                    <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# Charger notre CSS personnalisé
-load_custom_css()
-
-st.markdown("""
-<style>
-/* Style déjà importé depuis .streamlit/style.css */
-
-.neo-card {
-    background: linear-gradient(135deg, rgba(8, 15, 40, 0.95), rgba(17, 23, 64, 0.9));
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(81, 99, 149, 0.2);
-    box-shadow: 
-        0 10px 25px rgba(0, 0, 0, 0.3),
-        0 0 50px rgba(100, 100, 255, 0.1);
-    padding: 0;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 30px;
-    transition: all 0.4s ease;
+# Espace réservé pour des commentaires sur le match
 }
 
 .neo-card:hover {
