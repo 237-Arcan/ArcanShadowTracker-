@@ -1625,6 +1625,97 @@ def local_css():
             padding: 2px 5px;
         }
     }
+    
+    /* Panneau ésotérique flottant */
+    .esoteric-floating-panel {
+        position: fixed;
+        top: 120px;
+        right: 20px;
+        width: 280px;
+        background-color: rgba(13, 13, 35, 0.85);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--esoteric-color);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .esoteric-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background-color: rgba(20, 20, 50, 0.9);
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif;
+        font-size: 16px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        cursor: pointer;
+    }
+    
+    .esoteric-panel-toggle {
+        font-size: 12px;
+        transition: transform 0.3s;
+    }
+    
+    .esoteric-panel-content {
+        padding: 15px;
+    }
+    
+    .esoteric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .esoteric-item {
+        background-color: rgba(20, 20, 50, 0.7);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .esoteric-item:hover {
+        transform: translateY(-2px);
+        border-color: rgba(212, 175, 55, 0.4);
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+    
+    .esoteric-icon {
+        font-size: 20px;
+        margin-bottom: 5px;
+        color: var(--esoteric-color);
+    }
+    
+    .esoteric-label {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 2px;
+    }
+    
+    .esoteric-value {
+        font-weight: 600;
+        color: var(--esoteric-color);
+    }
+    
+    .esoteric-summary {
+        text-align: center;
+        font-family: 'Cinzel', serif;
+        font-size: 14px;
+        color: var(--text-color);
+        padding-top: 10px;
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    @media (max-width: 992px) {
+        .esoteric-floating-panel {
+            display: none;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1666,7 +1757,14 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Système de filtres 
+# Système de filtres en colonnes avec légende mystique
+st.markdown("""
+<div style="text-align: center; margin-bottom: 15px; font-family: 'Cinzel', serif; color: var(--esoteric-color);">
+    <span style="font-style: italic; opacity: 0.7;">« La victoire se révèle dans l'alignement des astres et la convergence des énergies »</span>
+</div>
+""", unsafe_allow_html=True)
+
+# Filtres en colonnes
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -1730,18 +1828,37 @@ with col3:
             draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
             away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
             
-            # Carte de match élégante spéciale pour les matchs vedettes
+            # Carte de match élégante spéciale pour les matchs vedettes avec le design amélioré
+            country_code = match.get('country_code', 'es').lower()
+            
             st.markdown(f"""
-            <div class="match-card featured">
+            <div class="match-card featured" data-featured="Match du jour">
                 <div class="match-header">
-                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
-                    <div class="match-league">{match.get('league', '')}</div>
+                    <div class="match-time">
+                        <i>⏰</i> {match.get('kickoff_time', '??:??')}
+                    </div>
+                    <div class="match-league">
+                        <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" alt="{match.get('country', '')}">
+                        {match.get('league', '')}
+                    </div>
                 </div>
-                <div class="featured-badge">Match du jour</div>
                 <div class="match-teams">
-                    <div class="team home-team">{match['home_team']}</div>
-                    <div class="versus">VS</div>
-                    <div class="team away-team">{match['away_team']}</div>
+                    <div class="team">
+                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 48px; height: 48px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 20px;">{match['home_team'][0]}</span>
+                        </div>
+                        <div class="team-name">{match['home_team']}</div>
+                    </div>
+                    <div class="versus">
+                        <div class="versus-symbol">VS</div>
+                        <div style="font-size: 12px;">{match.get('stadium', '')}</div>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 48px; height: 48px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 20px;">{match['away_team'][0]}</span>
+                        </div>
+                        <div class="team-name">{match['away_team']}</div>
+                    </div>
                 </div>
                 <div class="match-odds">
                     <div class="odds-container">
@@ -1807,17 +1924,37 @@ with col3:
             draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
             away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
             
-            # Carte de match élégante
+            # Carte de match élégante améliorée pour matchs réguliers
+            country_code = match.get('country_code', 'es').lower()
+            
             st.markdown(f"""
             <div class="match-card">
                 <div class="match-header">
-                    <div class="match-time">⏰ {match.get('kickoff_time', '??:??')}</div>
-                    <div class="match-league">{match.get('league', selected_league)}</div>
+                    <div class="match-time">
+                        <i>⏰</i> {match.get('kickoff_time', '??:??')}
+                    </div>
+                    <div class="match-league">
+                        <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" alt="{match.get('country', '')}">
+                        {match.get('league', selected_league)}
+                    </div>
                 </div>
                 <div class="match-teams">
-                    <div class="team home-team">{match['home_team']}</div>
-                    <div class="versus">VS</div>
-                    <div class="team away-team">{match['away_team']}</div>
+                    <div class="team">
+                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 18px;">{match['home_team'][0]}</span>
+                        </div>
+                        <div class="team-name">{match['home_team']}</div>
+                    </div>
+                    <div class="versus">
+                        <div class="versus-symbol">VS</div>
+                        <div style="font-size: 11px;">{match.get('stadium', '')}</div>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-color: rgba(255,255,255,0.1); width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 18px;">{match['away_team'][0]}</span>
+                        </div>
+                        <div class="team-name">{match['away_team']}</div>
+                    </div>
                 </div>
                 <div class="match-odds">
                     <div class="odds-container">
@@ -1898,6 +2035,63 @@ with col3:
     st.markdown("---")
     if st.button(t('generate_predictions'), use_container_width=True, type="primary"):
         st.session_state.loading_prediction = True
+
+# Panneau ésotérique flottant
+st.markdown("""
+<div class="esoteric-floating-panel">
+    <div class="esoteric-panel-header">
+        <span>🔮 Influences Ésotériques</span>
+        <span class="esoteric-panel-toggle">▼</span>
+    </div>
+    <div class="esoteric-panel-content">
+        <div class="esoteric-grid">
+            <div class="esoteric-item">
+                <div class="esoteric-icon">🌙</div>
+                <div class="esoteric-label">Lune</div>
+                <div class="esoteric-value">Croissante</div>
+            </div>
+            <div class="esoteric-item">
+                <div class="esoteric-icon">♈</div>
+                <div class="esoteric-label">Ascendant</div>
+                <div class="esoteric-value">Taureau</div>
+            </div>
+            <div class="esoteric-item">
+                <div class="esoteric-icon">⚖️</div>
+                <div class="esoteric-label">Balance</div>
+                <div class="esoteric-value">+2.7</div>
+            </div>
+            <div class="esoteric-item">
+                <div class="esoteric-icon">🔥</div>
+                <div class="esoteric-label">Élément</div>
+                <div class="esoteric-value">Feu</div>
+            </div>
+            <div class="esoteric-item">
+                <div class="esoteric-icon">🔄</div>
+                <div class="esoteric-label">Cycle</div>
+                <div class="esoteric-value">3.5</div>
+            </div>
+            <div class="esoteric-item">
+                <div class="esoteric-icon">✨</div>
+                <div class="esoteric-label">Résonance</div>
+                <div class="esoteric-value">Haute</div>
+            </div>
+        </div>
+        <div class="esoteric-summary">Alignement Astral: <span class="esoteric-value">Favorable</span></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.querySelector('.esoteric-panel-toggle');
+    const content = document.querySelector('.esoteric-panel-content');
+    
+    toggle.addEventListener('click', function() {
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        toggle.textContent = content.style.display === 'none' ? '▲' : '▼';
+    });
+});
+</script>
+""", unsafe_allow_html=True)
 
 # Main content area with tabs
 # We'll use the session state active_tab to control which tab is shown
