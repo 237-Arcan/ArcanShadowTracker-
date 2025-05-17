@@ -1134,84 +1134,192 @@ with tabs[6]:  # Notifications
     with col3:
         st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
-    # Section d'activation d'ArcanSentinel sur un match spécifique
-    st.markdown("### 🔍 Activation d'ArcanSentinel")
+    # Section d'activation d'ArcanSentinel sur les matchs en direct
+    st.markdown("### 🔍 Activation d'ArcanSentinel pour les Matchs en Direct")
     
     st.markdown("""
     <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
                 border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
         <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
-            Mode ArcanSentinel
+            Mode ArcanSentinel - Analyse en Direct
         </div>
         <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
             ArcanSentinel est une version allégée et ultra-réactive d'ArcanShadow spécialement conçue pour l'analyse en direct.
-            L'activation du mode Sentinel permet une surveillance en temps réel du match avec réaction automatique aux événements
-            et ajustement dynamique des prédictions.
+            L'activation automatique permet une surveillance en temps réel des matchs en cours avec réaction immédiate aux événements
+            et ajustement dynamique des prédictions pendant le déroulement du match.
             <br><br>
-            Les résultats de l'analyse Sentinel sont automatiquement intégrés au système d'apprentissage et apparaissent 
-            dans les notifications de performances après validation.
+            Les résultats de l'analyse en direct sont automatiquement intégrés au système d'apprentissage et apparaissent 
+            dans l'onglet Notifications en temps réel.
         </p>
     </div>
     """, unsafe_allow_html=True)
     
+    # Structure pour les matchs en direct
+    if 'live_matches' not in st.session_state:
+        st.session_state.live_matches = [
+            {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
+            {"id": 2, "home": "Liverpool", "away": "Arsenal", "league": "Premier League", "time": "17:30", "status": "En direct", "minute": "68'", "score": "2-1"},
+            {"id": 3, "home": "Bayern Munich", "away": "Dortmund", "league": "Bundesliga", "time": "18:30", "status": "En direct", "minute": "52'", "score": "0-0"}
+        ]
+    
+    # Structure pour gérer les matchs surveillés en direct
+    if 'sentinel_monitored_live_matches' not in st.session_state:
+        st.session_state.sentinel_monitored_live_matches = []
+    
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        # Sélection du match à surveiller
-        sentinel_match = st.selectbox(
-            "Match à surveiller par ArcanSentinel:",
-            [
-                "PSG vs Lyon (Ligue 1) - Aujourd'hui 20:45",
-                "Real Madrid vs Barcelona (La Liga) - Aujourd'hui 21:00",
-                "Liverpool vs Arsenal (Premier League) - Aujourd'hui 17:30",
-                "Bayern Munich vs Dortmund (Bundesliga) - Aujourd'hui 18:30",
-                "Inter vs Milan (Serie A) - Aujourd'hui 20:45"
-            ],
-            index=2
-        )
+        # Tableau des matchs en direct disponibles
+        st.markdown("#### 🔴 Matchs actuellement en direct")
         
-        # Modules Sentinel à activer
-        module_options = [
-            "ShadowMomentum", "BetPulse", "LineTrap", "KarmicFlow", "MirrorPhase"
-        ]
-        
-        selected_modules = st.multiselect(
-            "Modules Sentinel à activer:", 
-            module_options,
-            default=["ShadowMomentum", "LineTrap", "KarmicFlow"]
-        )
+        for match in st.session_state.live_matches:
+            is_monitored = any(m['id'] == match['id'] for m in st.session_state.sentinel_monitored_live_matches)
+            status_color = "#01ff80" if is_monitored else "rgba(255, 255, 255, 0.8)"
+            status_text = "🟢 Surveillé en direct" if is_monitored else "⚪ Disponible"
+            
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                      padding: 12px; border-radius: 5px; margin-bottom: 15px; 
+                      background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
+                <div>
+                    <div style="font-weight: bold; font-size: 16px; color: white;">
+                        {match['home']} {match['score']} {match['away']}
+                    </div>
+                    <div style="font-size: 13px; color: #ff3364; font-weight: bold; margin-top: 4px;">
+                        {match['minute']} • EN DIRECT
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">
+                        {match['league']}
+                    </div>
+                </div>
+                <div style="font-size: 13px; color: {status_color};">
+                    {status_text}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Pour chaque match, ajouter des boutons d'action
+            col_a, col_b = st.columns([3, 2])
+            with col_a:
+                if not is_monitored:
+                    if st.button(f"Activer surveillance en direct", key=f"activate_live_{match['id']}"):
+                        # Configuration de surveillance
+                        surveillance_config = {
+                            "id": match['id'],
+                            "home": match['home'],
+                            "away": match['away'],
+                            "league": match['league'],
+                            "minute": match['minute'],
+                            "score": match['score'],
+                            "monitoring_level": "Maximum",  # Plus haut niveau pour les matchs en direct
+                            "modules": ["ShadowMomentum", "LineTrap", "KarmicFlow", "MirrorPhase", "BetPulse"],
+                            "activated_at": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
+                            "alert_threshold": 5  # Seuil plus bas pour être plus réactif aux matchs en direct
+                        }
+                        st.session_state.sentinel_monitored_live_matches.append(surveillance_config)
+                        
+                        # Ajouter une notification d'activation
+                        if 'notifications' in st.session_state:
+                            new_notif = {
+                                "id": len(st.session_state.notifications) + 1,
+                                "type": "sentinel",
+                                "title": f"🔴 ArcanSentinel activé en DIRECT: {match['home']} vs {match['away']}",
+                                "message": f"Surveillance instantanée lancée sur le match en direct {match['home']} vs {match['away']} ({match['minute']}). Les analyses seront envoyées en temps réel.",
+                                "timestamp": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
+                                "read": False,
+                                "priority": "urgent"
+                            }
+                            st.session_state.notifications.append(new_notif)
+                            # Mise à jour du compteur
+                            st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
+                        
+                        st.rerun()
+                else:
+                    if st.button(f"Désactiver", key=f"deactivate_live_{match['id']}"):
+                        st.session_state.sentinel_monitored_live_matches = [m for m in st.session_state.sentinel_monitored_live_matches if m['id'] != match['id']]
+                        st.rerun()
     
     with col2:
-        # Configuration du seuil d'alerte
-        st.slider("Seuil d'alerte", 1, 10, 7, 1)
+        st.markdown("#### Configuration pour l'analyse en direct")
         
-        # Durée de la surveillance
-        st.radio(
-            "Durée de surveillance:",
-            ["Match complet", "1ère mi-temps", "2ème mi-temps", "15 dernières minutes"]
-        )
+        st.markdown("""
+        <div style="border: 1px solid rgba(255, 51, 100, 0.3); border-radius: 10px; padding: 15px; background: rgba(255, 51, 100, 0.05);">
+            <h4 style="color: #ff3364; margin-top: 0;">Surveillance en Direct</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                ArcanSentinel analyse en temps réel:
+            </p>
+            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                <li>Les changements instantanés de dynamique de jeu</li>
+                <li>Les réactions immédiates des cotes en direct</li>
+                <li>Les patterns d'énergie pendant le match</li>
+                <li>Les moments critiques avec forte probabilité de but</li>
+                <li>Les opportunités de paris optimales en live</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Bouton d'activation
-        sentinel_active = st.checkbox("Mode Sentinel actif", value=False)
-        
-        if sentinel_active:
+        # Affichage des matchs surveillés en direct
+        if st.session_state.sentinel_monitored_live_matches:
+            st.markdown("#### Matchs en direct sous surveillance")
+            for match in st.session_state.sentinel_monitored_live_matches:
+                # Simuler une progression du match
+                current_minute = match.get('minute', "??'")
+                if "'" in current_minute:
+                    minute_num = int(current_minute.replace("'", ""))
+                    minute_num += 3  # Avancer de quelques minutes
+                    current_minute = f"{minute_num}'"
+                
+                st.markdown(f"""
+                <div style="background: rgba(255, 51, 100, 0.15); border: 1px solid rgba(255, 51, 100, 0.3); 
+                          border-radius: 5px; padding: 15px; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-weight: bold; color: white;">
+                            {match['home']} {match['score']} {match['away']}
+                        </div>
+                        <div style="color: #ff3364; font-weight: bold; font-size: 14px;">
+                            {current_minute}
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                        <span style="color: #01ff80;">●</span> Analyse en direct active
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 5px;">
+                        5 modules actifs • Seuil d'alerte: {match.get('alert_threshold', 5)}/10
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Information sur le traitement automatique
             st.markdown("""
-            <div style="padding: 8px; background-color: rgba(1, 255, 128, 0.1); border-radius: 5px; 
-                        border: 1px solid rgba(1, 255, 128, 0.3); text-align: center;">
-                <span style="color: #01ff80; font-weight: bold;">ArcanSentinel activé</span>
+            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); border-left: 2px solid #ff3364; 
+                      padding-left: 10px; margin-top: 15px;">
+                Les insights détectés en direct sont automatiquement envoyés à l'onglet Notifications.
+                <br><br>
+                Les patterns détectés par ArcanSentinel sont transmis à D-forge pour analyse 
+                et développement potentiel de nouveaux modules.
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown("""
-            <div style="padding: 8px; background-color: rgba(255, 51, 100, 0.1); border-radius: 5px; 
-                        border: 1px solid rgba(255, 51, 100, 0.3); text-align: center;">
-                <span style="color: #ff3364; font-weight: bold;">ArcanSentinel inactif</span>
-            </div>
-            """, unsafe_allow_html=True)
+            st.info("Aucun match en direct sous surveillance. Activez ArcanSentinel sur un match en cours pour recevoir des insights en temps réel.")
     
-    if sentinel_active:
-        # Affichage des indicateurs en temps réel (simulé)
+    # Affichage des indicateurs en temps réel si au moins un match est surveillé
+    if st.session_state.sentinel_monitored_live_matches:
         st.markdown("### 🔄 Indicateurs ArcanSentinel en temps réel")
+        
+        # Prendre le premier match surveillé pour afficher des données
+        active_match = st.session_state.sentinel_monitored_live_matches[0]
+        
+        st.markdown(f"""
+        <div style="padding: 12px; border-radius: 8px; margin-bottom: 15px; 
+                    background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
+            <div style="font-weight: bold; font-size: 18px; color: white; margin-bottom: 8px;">
+                {active_match['home']} {active_match['score']} {active_match['away']} • {active_match['minute']}
+            </div>
+            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                <span style="color: #ff3364; font-weight: bold;">ANALYSE EN DIRECT</span> • {active_match['league']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Surveillance simulée
         sentinel_metrics = [
