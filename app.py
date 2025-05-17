@@ -57,7 +57,7 @@ st.markdown("""
         
         /* Couleurs secondaires */
         --esoteric-color: #d4af37; /* Or pour l'ésotérisme */
-        --data-color: #00b894; /* Cyan/Émeraude pour les données */
+        --data-color: #00c9b5; /* Cyan/Émeraude pour les données */
         --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
         
         /* Éléments d'interface */
@@ -97,6 +97,243 @@ st.markdown("""
         font-weight: 700;
         letter-spacing: 1px;
         text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+    }
+    
+    /* Structure principale */
+    .main-container {
+        display: flex;
+        flex-direction: row;
+        min-height: calc(100vh - 160px);
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* En-tête avec navigation */
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--header-bg);
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .nav-container {
+        display: flex;
+        gap: 20px;
+    }
+    
+    .nav-item {
+        padding: 8px 15px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-family: 'Cinzel', serif;
+        font-weight: 600;
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(212, 175, 55, 0.15);
+    }
+    
+    .nav-item.active {
+        background-color: rgba(212, 175, 55, 0.25);
+        border: 1px solid var(--esoteric-color);
+    }
+    
+    /* Sidebar */
+    .sidebar-container {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        padding: 15px;
+        margin-left: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border-left: 1px solid rgba(212, 175, 55, 0.2);
+        min-width: 300px;
+        max-width: 350px;
+    }
+    
+    .sidebar-title {
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        padding-bottom: 10px;
+    }
+    
+    .module-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        background-color: rgba(13, 13, 35, 0.7);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .module-toggle:hover {
+        background-color: rgba(20, 20, 60, 0.8);
+    }
+    
+    .module-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .module-icon {
+        font-size: 18px;
+    }
+    
+    .module-esoteric {
+        color: var(--esoteric-color);
+    }
+    
+    .module-data {
+        color: var(--data-color);
+    }
+    
+    .module-alert {
+        color: var(--alert-color);
+    }
+    
+    /* Panneau ésotérique */
+    .esoteric-panel {
+        background-color: rgba(10, 10, 30, 0.8);
+        border-radius: 12px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        margin-top: 25px;
+        overflow: hidden;
+    }
+    
+    .esoteric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background-color: rgba(15, 15, 40, 0.9);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .esoteric-title {
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .esoteric-content {
+        padding: 15px;
+    }
+    
+    .esoteric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .esoteric-item {
+        background-color: rgba(20, 20, 50, 0.7);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+    }
+    
+    .esoteric-icon {
+        font-size: 20px;
+        margin-bottom: 5px;
+        color: var(--esoteric-color);
+    }
+    
+    .esoteric-label {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 2px;
+    }
+    
+    .esoteric-value {
+        font-weight: 600;
+        color: var(--esoteric-color);
+    }
+    
+    /* Pied de page avec logs */
+    .footer-container {
+        margin-top: 25px;
+        background-color: var(--footer-bg);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .system-status {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    
+    .status-active {
+        background-color: var(--success-color);
+        box-shadow: 0 0 5px var(--success-color);
+    }
+    
+    .status-warning {
+        background-color: var(--warning-color);
+        box-shadow: 0 0 5px var(--warning-color);
+    }
+    
+    .status-error {
+        background-color: var(--error-color);
+        box-shadow: 0 0 5px var(--error-color);
+    }
+    
+    .log-container {
+        background-color: rgba(10, 10, 25, 0.8);
+        border-radius: 8px;
+        padding: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .log-entry {
+        font-family: monospace;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .log-time {
+        color: var(--data-color);
+        margin-right: 10px;
+    }
+    
+    .log-module {
+        color: var(--esoteric-color);
+        margin-right: 10px;
+        font-weight: 600;
     }
     
     h2 {
@@ -1295,14 +1532,41 @@ def local_css():
 
 local_css()
 
-# Main title with mystical element
-st.markdown("<div class='header-container'><h1>🔮 ArcanShadow</h1><div>" + get_symbol('pentagram') + "</div></div>", unsafe_allow_html=True)
-st.markdown(f"<p class='gold-text'>{t('app_subtitle')}</p>", unsafe_allow_html=True)
+# En-tête avec logo et navigation
+st.markdown(f"""
+<div class="header-container">
+    <div style="display: flex; align-items: center;">
+        <div style="font-size: 30px; margin-right: 10px;">🔮</div>
+        <h1 style="margin: 0;">ArcanShadow</h1>
+    </div>
+    <div class="nav-container">
+        <div class="nav-item active">Accueil</div>
+        <div class="nav-item">Prédictions</div>
+        <div class="nav-item">Analyse</div>
+        <div class="nav-item">Configuration</div>
+        <div class="nav-item">Archives</div>
+    </div>
+    <div>{get_symbol('pentagram')}</div>
+</div>
 
-# Sidebar for filters and controls
-with st.sidebar:
-    st.markdown(f"## 🧙‍♂️ {t('system_controls')}")
-    
+<!-- Structure principale -->
+<div class="main-container">
+    <div style="flex: 3;">
+""", unsafe_allow_html=True)
+
+# Filtres pour la sélection des matchs
+st.markdown(f"""
+<div class="filter-panel" style="background-color: var(--panel-bg); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+    <h3 style="color: var(--esoteric-color); font-family: 'Cinzel', serif; margin-bottom: 15px;">
+        🧙‍♂️ {t('system_controls')}
+    </h3>
+</div>
+""", unsafe_allow_html=True)
+
+# Système de filtres 
+col1, col2, col3 = st.columns(3)
+
+with col1:
     # Language selection
     languages = {"en": "English", "fr": "Français"}
     selected_language = st.selectbox(
@@ -1316,7 +1580,8 @@ with st.sidebar:
     if selected_language != st.session_state.language:
         st.session_state.language = selected_language
         st.rerun()  # Rerun to update all UI text
-    
+
+with col2:
     # Sport selection
     sports = ['Football', 'Basketball', 'Tennis', 'Baseball', 'Hockey']
     selected_sport = st.selectbox(t('select_sport'), sports, index=sports.index(st.session_state.selected_sport))
@@ -1326,7 +1591,8 @@ with st.sidebar:
     leagues = data_handler.get_leagues_for_sport(selected_sport)
     selected_league = st.selectbox(t('select_league'), leagues, index=0 if st.session_state.selected_league not in leagues else leagues.index(st.session_state.selected_league))
     st.session_state.selected_league = selected_league
-    
+
+with col3:
     # Date selection
     selected_date = st.date_input(t('select_date'), st.session_state.selected_date)
     st.session_state.selected_date = selected_date
