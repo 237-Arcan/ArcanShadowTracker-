@@ -1527,6 +1527,104 @@ def local_css():
         background-color: #333366;
         border-color: #9966CC;
     }
+    
+    /* Design responsive pour différents appareils */
+    @media (max-width: 992px) {
+        .main-container {
+            flex-direction: column;
+        }
+        
+        .sidebar-container {
+            margin-left: 0;
+            margin-top: 20px;
+            max-width: 100%;
+        }
+        
+        .header-container {
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+        }
+        
+        .nav-container {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .nav-item {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .esoteric-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .match-teams {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .versus {
+            margin: 10px 0;
+        }
+        
+        .match-odds {
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 5px;
+        }
+        
+        .odds-container {
+            padding: 5px;
+        }
+        
+        .system-status {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .footer-container {
+            padding: 10px;
+        }
+        
+        .log-container {
+            max-height: 100px;
+        }
+        
+        .esoteric-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 20px;
+        }
+        
+        .match-card {
+            padding: 12px;
+        }
+        
+        .nav-item {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+        
+        .odds-value {
+            font-size: 16px;
+        }
+        
+        .prob-indicator {
+            font-size: 11px;
+            padding: 2px 5px;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1551,7 +1649,7 @@ st.markdown(f"""
 
 <!-- Structure principale -->
 <div class="main-container">
-    <div style="flex: 3;">
+    <div style="flex: 3; min-width: 0;">
 """, unsafe_allow_html=True)
 
 # Filtres pour la sélection des matchs
@@ -1560,6 +1658,11 @@ st.markdown(f"""
     <h3 style="color: var(--esoteric-color); font-family: 'Cinzel', serif; margin-bottom: 15px;">
         🧙‍♂️ {t('system_controls')}
     </h3>
+    
+    <div class="date-info" style="text-align: right; font-size: 14px; margin-top: -40px; color: var(--data-color);">
+        <span style="opacity: 0.8;">Date astrale:</span> 
+        <span style="font-weight: 600;">{datetime.now().strftime('%d.%m.%Y')}</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
