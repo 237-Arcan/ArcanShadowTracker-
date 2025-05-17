@@ -523,6 +523,7 @@ with tabs[2]:  # Performance Notifications
         </div>
         """, unsafe_allow_html=True)
 
+
 with tabs[3]:  # Daily Combo
     st.markdown("## 🎯 Combiné du Jour")
     st.markdown("Sélection automatique optimisée des meilleures opportunités de paris, basée sur les modules les plus performants.")
