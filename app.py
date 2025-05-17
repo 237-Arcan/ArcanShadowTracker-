@@ -59,10 +59,6 @@ st.markdown("""
         --data-color: #00b894; /* Cyan/Émeraude pour les données */
         --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
         --card-bg-color: rgba(49, 51, 63, 0.7);
-        /* Couleurs des probabilités */
-        --prob-high-color: #4caf50; /* Vert */
-        --prob-medium-color: #ff9800; /* Orange */
-        --prob-low-color: #f44336; /* Rouge */
     }
     
     /* Fond global */
