@@ -150,6 +150,7 @@ st.markdown(f"### {t('welcome_message')}")
 # Créer les onglets spécifiques au système ArcanShadow
 tabs = st.tabs([
     "🔍 Live Monitoring", 
+    "🔮 Prédictions",
     "🔔 Performance Notifications", 
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
@@ -260,7 +261,166 @@ with tabs[0]:  # Live Monitoring
         </div>
         """, unsafe_allow_html=True)
 
-with tabs[1]:  # Performance Notifications
+with tabs[1]:  # Prédictions
+    st.markdown("## 🔮 Prédictions d'ArcanShadow")
+    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
+    
+    # Sélection du match à analyser
+    st.markdown("### ⚽ Sélectionner un match")
+    
+    # Créer des données fictives de matchs à venir pour la sélection
+    upcoming_matches = [
+        "PSG vs Lyon (Ligue 1) - 20:45",
+        "Real Madrid vs Barcelona (La Liga) - 21:00",
+        "Liverpool vs Arsenal (Premier League) - 17:30",
+        "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
+        "Inter vs Milan (Serie A) - 20:45"
+    ]
+    
+    selected_match = st.selectbox("Match à analyser:", upcoming_matches)
+    
+    # Extraire les équipes et la ligue du match sélectionné
+    match_parts = selected_match.split(" (")
+    teams = match_parts[0].split(" vs ")
+    home_team = teams[0]
+    away_team = teams[1]
+    league = match_parts[1].split(")")[0]
+    
+    # Afficher le résumé de la prédiction
+    st.markdown(f"### 📊 Prédiction pour {home_team} vs {away_team}")
+    
+    # Créer une carte de prédiction détaillée
+    st.markdown("""
+    <div style="padding: 20px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
+                border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="font-size: 24px; font-weight: bold;">Prédiction principale</div>
+            <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                        border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                Confiance: 87%
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; 
+                    background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
+                    border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+            <div>
+                <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
+                <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
+            </div>
+            <div style="font-size: 24px; font-weight: bold; font-family: 'JetBrains Mono', monospace;">
+                1.85
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Autres scénarios</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
+                    <div>Match nul</div>
+                    <div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div>
+                </div>
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
+                    <div>Victoire d'Arsenal</div>
+                    <div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div>
+                </div>
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
+                    <div>Plus de 2.5 buts</div>
+                    <div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div>
+                </div>
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
+                    <div>Les deux équipes marquent</div>
+                    <div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Modules contributeurs et leur impact
+    st.markdown("### 🧠 Modules contributeurs")
+    
+    # Créer des statistiques pour les modules qui ont contribué à la prédiction
+    contributing_modules = [
+        {"name": "ArcanX", "confidence": 0.92, "weight": 0.35, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
+        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.25, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
+        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.15, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
+        {"name": "NumeriCode", "confidence": 0.87, "weight": 0.10, "key_insights": "Concordance numérique: date du match (17) + patron tactique (4-3-3)"},
+        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.15, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
+    ]
+    
+    # Créer un dataframe pour les modules contributeurs
+    df_modules_contrib = pd.DataFrame(contributing_modules)
+    
+    # Calculer l'impact de chaque module (confiance × poids)
+    df_modules_contrib["impact"] = df_modules_contrib["confidence"] * df_modules_contrib["weight"]
+    
+    # Trier par impact
+    df_modules_contrib = df_modules_contrib.sort_values(by="impact", ascending=False)
+    
+    # Créer une visualisation pour montrer la contribution de chaque module
+    fig = px.bar(
+        df_modules_contrib,
+        x="impact",
+        y="name",
+        orientation='h',
+        labels={"impact": "Impact sur la prédiction", "name": "Module"},
+        title="Contribution des modules à la prédiction finale",
+        color="confidence",
+        text=df_modules_contrib["impact"].apply(lambda x: f"{x:.2f}"),
+        color_continuous_scale=["red", "gold", "green"],
+        range_color=[0.6, 1.0],
+        height=400
+    )
+    
+    fig.update_layout(template="plotly_dark", yaxis=dict(autorange="reversed"))
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Afficher les insights clés de chaque module
+    st.markdown("### 🔑 Insights clés par module")
+    
+    for module in df_modules_contrib.itertuples():
+        confidence_color = "#01ff80" if module.confidence >= 0.85 else "#ffbe41" if module.confidence >= 0.75 else "#ff3364"
+        
+        st.markdown(f"""
+        <div style="padding: 12px; border-radius: 8px; background: rgba(8, 15, 40, 0.6); 
+                    border-left: 4px solid {confidence_color}; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: bold; font-size: 16px;">{module.name}</div>
+                <div style="color: {confidence_color}; font-family: 'JetBrains Mono', monospace;">
+                    Confiance: {module.confidence:.0%}
+                </div>
+            </div>
+            <div style="margin-top: 5px; color: rgba(255, 255, 255, 0.8);">
+                {module.key_insights}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Narratif de la prédiction
+    st.markdown("### 📜 Narratif de la prédiction")
+    
+    st.markdown("""
+    <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
+                border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
+            L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
+            après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
+            avec Jupiter en transit dans la maison de la victoire.
+            <br><br>
+            L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
+            créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
+            <br><br>
+            Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
+            de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
+            <br><br>
+            <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
+            suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+with tabs[2]:  # Performance Notifications
     st.markdown("## 🔔 Notifications de Performance")
     st.markdown("Suivi et analyse des performances prédictives du système ArcanShadow avec comparaison aux résultats réels.")
     
@@ -326,8 +486,6 @@ with tabs[1]:  # Performance Notifications
         color_continuous_scale=["red", "gold", "green"],
         range_color=[0.5, 1.0],
         text=df_modules["Précision"].apply(lambda x: f"{x:.1%}"),
-        size="Échantillon",
-        size_max=50,
         height=500
     )
     
@@ -810,3 +968,102 @@ with tabs[4]:  # Système d'Apprentissage
             </p>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Section d'activation d'ArcanSentinel sur un match spécifique
+    st.markdown("### 🔍 Activation d'ArcanSentinel")
+    
+    st.markdown("""
+    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
+                border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
+        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
+            Mode ArcanSentinel
+        </div>
+        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
+            ArcanSentinel est une version allégée et ultra-réactive d'ArcanShadow spécialement conçue pour l'analyse en direct.
+            L'activation du mode Sentinel permet une surveillance en temps réel du match avec réaction automatique aux événements
+            et ajustement dynamique des prédictions.
+            <br><br>
+            Les résultats de l'analyse Sentinel sont automatiquement intégrés au système d'apprentissage et apparaissent 
+            dans les notifications de performances après validation.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        # Sélection du match à surveiller
+        sentinel_match = st.selectbox(
+            "Match à surveiller par ArcanSentinel:",
+            [
+                "PSG vs Lyon (Ligue 1) - Aujourd'hui 20:45",
+                "Real Madrid vs Barcelona (La Liga) - Aujourd'hui 21:00",
+                "Liverpool vs Arsenal (Premier League) - Aujourd'hui 17:30",
+                "Bayern Munich vs Dortmund (Bundesliga) - Aujourd'hui 18:30",
+                "Inter vs Milan (Serie A) - Aujourd'hui 20:45"
+            ],
+            index=2
+        )
+        
+        # Modules Sentinel à activer
+        module_options = [
+            "ShadowMomentum", "BetPulse", "LineTrap", "KarmicFlow", "MirrorPhase"
+        ]
+        
+        selected_modules = st.multiselect(
+            "Modules Sentinel à activer:", 
+            module_options,
+            default=["ShadowMomentum", "LineTrap", "KarmicFlow"]
+        )
+    
+    with col2:
+        # Configuration du seuil d'alerte
+        st.slider("Seuil d'alerte", 1, 10, 7, 1)
+        
+        # Durée de la surveillance
+        st.radio(
+            "Durée de surveillance:",
+            ["Match complet", "1ère mi-temps", "2ème mi-temps", "15 dernières minutes"]
+        )
+        
+        # Bouton d'activation
+        sentinel_active = st.checkbox("Mode Sentinel actif", value=False)
+        
+        if sentinel_active:
+            st.markdown("""
+            <div style="padding: 8px; background-color: rgba(1, 255, 128, 0.1); border-radius: 5px; 
+                        border: 1px solid rgba(1, 255, 128, 0.3); text-align: center;">
+                <span style="color: #01ff80; font-weight: bold;">ArcanSentinel activé</span>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="padding: 8px; background-color: rgba(255, 51, 100, 0.1); border-radius: 5px; 
+                        border: 1px solid rgba(255, 51, 100, 0.3); text-align: center;">
+                <span style="color: #ff3364; font-weight: bold;">ArcanSentinel inactif</span>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    if sentinel_active:
+        # Affichage des indicateurs en temps réel (simulé)
+        st.markdown("### 🔄 Indicateurs ArcanSentinel en temps réel")
+        
+        # Surveillance simulée
+        sentinel_metrics = [
+            {"name": "Momentum", "value": 72, "delta": "+3", "color": "#01ff80"},
+            {"name": "Variance de cote", "value": 0.18, "delta": "-0.05", "color": "#ffbe41"}, 
+            {"name": "Pression collective", "value": 64, "delta": "+8", "color": "#01ff80"},
+            {"name": "Cycle karmique", "value": 88, "delta": "+2", "color": "#01ff80"},
+            {"name": "Anomalie structurelle", "value": 22, "delta": "-4", "color": "#ff3364"}
+        ]
+        
+        cols = st.columns(len(sentinel_metrics))
+        for i, metric in enumerate(sentinel_metrics):
+            with cols[i]:
+                st.markdown(f"""
+                <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">{metric['name']}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: {metric['color']};">{metric['value']}</div>
+                    <div style="font-size: 12px; color: {metric['color']};">{metric['delta']}</div>
+                </div>
+                """, unsafe_allow_html=True)
