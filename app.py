@@ -304,18 +304,15 @@ st.markdown("""
     
     /* Couleurs des probabilités */
     .prob-high {
-        background-color: #4caf50; /* Vert */
-        color: white;
+        color: #4cd137; /* Vert */
     }
     
     .prob-medium {
-        background-color: #ff9800; /* Orange */
-        color: white;
+        color: #fbc531; /* Orange */
     }
     
     .prob-low {
-        background-color: #f44336; /* Rouge */
-        color: white;
+        color: #e84118; /* Rouge */
     }
     
     /* Pour les predictions */
@@ -1146,18 +1143,15 @@ st.markdown("""
     }
     
     .match-card .prob-high {
-        background-color: #4caf50;
-        color: white;
+        color: #4cd137;
     }
     
     .match-card .prob-medium {
-        background-color: #ff9800;
-        color: white;
+        color: #fbc531;
     }
     
     .match-card .prob-low {
-        background-color: #f44336;
-        color: white;
+        color: #e84118;
     }
 </style>
 """, unsafe_allow_html=True)
