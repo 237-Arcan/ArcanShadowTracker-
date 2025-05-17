@@ -138,9 +138,13 @@ class DataHandler:
                 'stadium': 'Etihad Stadium',
                 'city': 'Manchester',
                 'country': 'England',
+                'country_code': 'gb',
                 'home_odds': 1.95,
                 'draw_odds': 3.50,
                 'away_odds': 3.80,
+                'home_prob': 0.58,
+                'draw_prob': 0.32,
+                'away_prob': 0.30,
                 'featured': True
             }
             featured_matches.append(premier_match)
@@ -156,9 +160,13 @@ class DataHandler:
                 'stadium': 'Allianz Stadium',
                 'city': 'Turin',
                 'country': 'Italy',
+                'country_code': 'it',
                 'home_odds': 2.30,
                 'draw_odds': 3.25,
                 'away_odds': 3.10,
+                'home_prob': 0.52,
+                'draw_prob': 0.35,
+                'away_prob': 0.38,
                 'featured': True
             }
             featured_matches.append(serie_a_match)
