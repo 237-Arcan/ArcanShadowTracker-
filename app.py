@@ -872,7 +872,7 @@ with tabs[6]:  # Notifications
         for notif in st.session_state.notifications:
             notif["read"] = True
         st.session_state.notification_count = 0
-        st.experimental_rerun()
+        st.rerun()
     
     # Affichage des notifications
     st.markdown("### Notifications récentes")
@@ -928,7 +928,7 @@ with tabs[6]:  # Notifications
                 
                 # Mettre à jour le compteur de notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
-                st.experimental_rerun()
+                st.rerun()
     
     # Vue d'ensemble du système
     st.markdown("### 🔄 État du Système ArcanReflex")
