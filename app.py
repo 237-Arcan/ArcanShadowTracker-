@@ -147,6 +147,10 @@ featured_matches, today_matches = get_sample_data()
 st.title(f"🔮 {t('app_title')}")
 st.markdown(f"### {t('welcome_message')}")
 
+# Simuler un nombre de notifications non lues
+if 'notification_count' not in st.session_state:
+    st.session_state.notification_count = 3
+
 # Créer les onglets spécifiques au système ArcanShadow
 tabs = st.tabs([
     "🔍 Live Monitoring", 
@@ -154,7 +158,8 @@ tabs = st.tabs([
     "🔔 Performance Notifications", 
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
-    "🧠 Système d'Apprentissage"
+    "🧠 Système d'Apprentissage",
+    f"📬 Notifications ({st.session_state.notification_count})"
 ])
 
 with tabs[0]:  # Live Monitoring
@@ -782,6 +787,148 @@ with tabs[4]:  # Smart Market Recommendations
 with tabs[5]:  # Système d'Apprentissage
     st.markdown("## 🧠 Système d'Apprentissage")
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
+
+# Nouvel onglet Notifications
+with tabs[6]:  # Notifications
+    st.markdown("## 📬 Centre de Notifications")
+    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
+    
+    # Structure pour gérer les notifications
+    if 'notifications' not in st.session_state:
+        st.session_state.notifications = [
+            {
+                "id": 1,
+                "type": "recalibration",
+                "title": "Recalibration automatique de ArcanX",
+                "message": "ArcanBrain a détecté une dérive de performance de 3.7% sur ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
+                "timestamp": "2025-05-17 09:14:32",
+                "read": False,
+                "priority": "medium"
+            },
+            {
+                "id": 2,
+                "type": "pattern",
+                "title": "Nouveau pattern détecté par ArcanReflex",
+                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
+                "timestamp": "2025-05-16 21:03:47",
+                "read": False,
+                "priority": "high"
+            },
+            {
+                "id": 3,
+                "type": "sentinel",
+                "title": "Analyse en direct PSG vs Lyon",
+                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
+                "timestamp": "2025-05-16 15:37:21",
+                "read": False,
+                "priority": "urgent"
+            },
+            {
+                "id": 4,
+                "type": "module",
+                "title": "Nouveau module recommandé par D-forge",
+                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
+                "timestamp": "2025-05-15 18:42:09",
+                "read": True,
+                "priority": "medium"
+            },
+            {
+                "id": 5,
+                "type": "performance",
+                "title": "Synthèse de performance hebdomadaire",
+                "message": "Taux de précision global: 78.3% (+2.1% vs semaine précédente). Modules les plus performants: TarotEcho (83.9%), ArcanX (81.7%), KarmicFlow+ (80.3%).",
+                "timestamp": "2025-05-15 08:00:00", 
+                "read": True,
+                "priority": "medium"
+            }
+        ]
+    
+    # Filtres pour les notifications
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        filter_option = st.selectbox("Filtrer par", ["Toutes", "Non lues", "Recalibration", "Pattern", "Sentinel", "Module", "Performance"], index=0)
+    with col2:
+        sort_option = st.radio("Trier par", ["Plus récent", "Plus ancien", "Priorité"], horizontal=True)
+    
+    # Appliquer les filtres
+    filtered_notifications = st.session_state.notifications.copy()
+    if filter_option == "Non lues":
+        filtered_notifications = [n for n in filtered_notifications if not n["read"]]
+    elif filter_option != "Toutes":
+        filter_type = filter_option.lower()
+        filtered_notifications = [n for n in filtered_notifications if n["type"] == filter_type]
+    
+    # Appliquer le tri
+    if sort_option == "Plus récent":
+        filtered_notifications.sort(key=lambda x: x["timestamp"], reverse=True)
+    elif sort_option == "Plus ancien":
+        filtered_notifications.sort(key=lambda x: x["timestamp"])
+    elif sort_option == "Priorité":
+        priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
+        filtered_notifications.sort(key=lambda x: (priority_order.get(x["priority"], 4), x["timestamp"]), reverse=True)
+    
+    # Bouton pour marquer toutes les notifications comme lues
+    if st.button("Marquer toutes comme lues"):
+        for notif in st.session_state.notifications:
+            notif["read"] = True
+        st.session_state.notification_count = 0
+        st.experimental_rerun()
+    
+    # Affichage des notifications
+    st.markdown("### Notifications récentes")
+    
+    if not filtered_notifications:
+        st.info("Aucune notification ne correspond aux filtres sélectionnés.")
+    
+    for notification in filtered_notifications:
+        # Couleur basée sur le type et la priorité
+        color_map = {
+            "recalibration": "#7000ff",  # Violet
+            "pattern": "#01ff80",  # Vert
+            "sentinel": "#ff3860",  # Rouge
+            "module": "#ffbe41",  # Orange
+            "performance": "#3273dc"  # Bleu
+        }
+        
+        priority_bg = {
+            "urgent": "rgba(255, 56, 96, 0.15)",
+            "high": "rgba(255, 190, 65, 0.15)",
+            "medium": "rgba(112, 0, 255, 0.15)",
+            "low": "rgba(50, 115, 220, 0.15)"
+        }
+        
+        border_color = color_map.get(notification["type"], "#3273dc")
+        bg_color = priority_bg.get(notification["priority"], "rgba(50, 115, 220, 0.15)")
+        read_marker = "" if notification["read"] else "📌 "
+        
+        st.markdown(f"""
+        <div style="border-left: 4px solid {border_color}; background: {bg_color}; 
+                  border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: bold; font-size: 16px; color: white;">
+                    {read_marker}{notification["title"]}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">
+                    {notification["timestamp"]}
+                </div>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 8px 0;">
+                {notification["message"]}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Option pour marquer une notification comme lue
+        if not notification["read"]:
+            if st.button(f"Marquer comme lu #{notification['id']}", key=f"mark_read_{notification['id']}"):
+                for notif in st.session_state.notifications:
+                    if notif["id"] == notification["id"]:
+                        notif["read"] = True
+                        break
+                
+                # Mettre à jour le compteur de notifications
+                st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
+                st.experimental_rerun()
     
     # Vue d'ensemble du système
     st.markdown("### 🔄 État du Système ArcanReflex")
@@ -939,35 +1086,53 @@ with tabs[5]:  # Système d'Apprentissage
     
     st.code(learning_logs, language="plaintext")
     
-    # Section de recalibration manuelle
-    st.markdown("### ⚙️ Contrôles de recalibration")
+    # Section de recalibration automatique
+    st.markdown("### ⚙️ Système de recalibration automatique")
     
-    col1, col2 = st.columns([2, 3])
-    
-    with col1:
-        st.selectbox("Module à recalibrer", ["ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "KarmicFlow+", "Tous les modules"])
-        st.slider("Intensité de recalibration", 1, 10, 5)
-        st.radio("Mode de recalibration", ["Standard", "Deep Learning", "Transfer Learning", "Pattern Recognition"])
-        st.button("Lancer la recalibration", type="primary")
-    
-    with col2:
-        st.markdown("""
-        <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 15px; background: rgba(112, 0, 255, 0.05);">
-            <h4 style="color: #7000ff; margin-top: 0;">Processus de recalibration manuelle</h4>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
-                Le processus de recalibration permet d'ajuster les paramètres internes des modules prédictifs pour améliorer leur précision et leur adaptation aux nouvelles données.
-            </p>
-            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+    st.markdown("""
+    <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
+            <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                     border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                Actif
+            </div>
+        </div>
+        
+        <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
+            ArcanBrain surveille en permanence les performances du système et procède automatiquement
+            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+            Les processus de recalibration sont entièrement gérés par l'intelligence système.
+        </p>
+        
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin: 15px 0;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">Modes de recalibration automatiques:</div>
+            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px; padding-left: 20px; margin: 0;">
                 <li><b>Standard:</b> Recalibration basique sur les dernières données</li>
                 <li><b>Deep Learning:</b> Restructuration complète des couches de patterns</li>
                 <li><b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre</li>
                 <li><b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents</li>
             </ul>
-            <p style="color: #ffbe41; font-size: 14px; margin-top: 15px;">
-                <b>Note:</b> La recalibration peut temporairement réduire la précision pendant la période d'ajustement (12-24h).
-            </p>
         </div>
-        """, unsafe_allow_html=True)
+        
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8); margin-top: 10px;">
+            <b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.
+            <br>
+            <b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### 📊 Métriques ArcanReflex")
+    
+    # Afficher les métriques de santé du système
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="Santé globale", value="97%", delta="+2.3%")
+    with col2:
+        st.metric(label="Efficacité d'apprentissage", value="91.4%", delta="+4.7%")
+    with col3:
+        st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
     # Section d'activation d'ArcanSentinel sur un match spécifique
     st.markdown("### 🔍 Activation d'ArcanSentinel")
