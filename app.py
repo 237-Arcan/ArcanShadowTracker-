@@ -43,59 +43,375 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Thème global - Style ésotérique et moderne
+# Thème global - Style ésotérique et moderne basé sur les nouvelles spécifications
 st.markdown("""
 <style>
+    /* Import des polices */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    
     /* Thème général inspiré du design ésotérique-analytique */
     :root {
-        /* Couleurs principales */
-        --primary-color: #9c27b0;
-        --secondary-color: #6a0080;
-        --text-color: #f1f1f1;
-        --background-color: #0a0a14; /* Bleu nuit profond */
+        /* Palette principale */
+        --background-color: #070720; /* Noir profond ou bleu nuit */
+        --text-color: #f5f5f7;
         
-        /* Couleurs secondaires (modules) */
+        /* Couleurs secondaires */
         --esoteric-color: #d4af37; /* Or pour l'ésotérisme */
         --data-color: #00b894; /* Cyan/Émeraude pour les données */
         --alert-color: #b71540; /* Rouge cramoisi pour les alertes */
-        --card-bg-color: rgba(49, 51, 63, 0.7);
+        
+        /* Éléments d'interface */
+        --card-bg: rgba(13, 13, 35, 0.7);
+        --panel-bg: rgba(16, 16, 38, 0.85);
+        --header-bg: rgba(10, 10, 30, 0.95);
+        --footer-bg: rgba(8, 8, 28, 0.9);
+        
+        /* Accents et états */
+        --accent-color: #6a0080; /* Violet royal */
+        --success-color: #4cd137;
+        --warning-color: #fbc531;
+        --error-color: #e84118;
     }
     
-    /* Fond global */
+    /* Structure de base */
+    body {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-color);
+    }
+    
     .stApp {
-        background: linear-gradient(135deg, #050510, #0d0d2a);
+        background-color: var(--background-color);
         background-image: 
-            radial-gradient(circle at top right, rgba(156, 39, 176, 0.15), transparent 50%),
-            radial-gradient(circle at bottom left, rgba(0, 184, 148, 0.1), transparent 50%);
+            radial-gradient(circle at 10% 20%, rgba(20, 20, 60, 0.4) 0%, transparent 30%),
+            radial-gradient(circle at 80% 70%, rgba(60, 20, 80, 0.3) 0%, transparent 40%);
     }
-    
-    /* Importation des polices */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
     
     /* Typographie */
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5 {
         font-family: 'Cinzel', serif !important;
-        letter-spacing: 0.05em;
-        font-weight: 600;
+        margin-bottom: 16px;
     }
     
     h1 {
-        color: var(--primary-color);
-        text-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+        color: var(--esoteric-color) !important;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
     }
     
     h2 {
         color: var(--text-color);
-        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-        padding-bottom: 0.3em;
+        border-bottom: 1px solid var(--esoteric-color);
+        padding-bottom: 8px;
+        font-weight: 600;
     }
     
     h3 {
-        color: var(--esoteric-color);
+        color: var(--data-color);
+        font-weight: 600;
+        font-size: 20px;
+    }
+    
+    /* En-tête et navigation */
+    .header-container {
+        background-color: var(--header-bg);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .app-logo {
+        display: flex;
+        align-items: center;
+    }
+    
+    .app-logo img {
+        height: 40px;
+        margin-right: 12px;
+    }
+    
+    .nav-menu {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .nav-item {
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(106, 0, 128, 0.4);
+    }
+    
+    .nav-item.active {
+        background-color: rgba(106, 0, 128, 0.6);
+        border: 1px solid rgba(212, 175, 55, 0.3);
     }
     
     p, div, span, li, .stMarkdown {
         font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Conteneur principal */
+    .main-container {
+        display: flex;
+        gap: 20px;
+        padding: 0 20px;
+    }
+    
+    /* Cartes de match */
+    .match-card {
+        position: relative;
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 22px;
+        border: 1px solid rgba(106, 0, 128, 0.3);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .match-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            linear-gradient(45deg, transparent 25%, rgba(212, 175, 55, 0.03) 25%, 
+            rgba(212, 175, 55, 0.03) 50%, transparent 50%, transparent 75%, 
+            rgba(212, 175, 55, 0.03) 75%);
+        background-size: 5px 5px;
+        pointer-events: none;
+    }
+    
+    .match-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        border-color: rgba(212, 175, 55, 0.4);
+    }
+    
+    .featured {
+        border: 1px solid var(--esoteric-color);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+    }
+    
+    .featured::after {
+        content: "Match du jour";
+        position: absolute;
+        top: 12px;
+        right: -30px;
+        background-color: var(--esoteric-color);
+        color: var(--background-color);
+        padding: 4px 35px;
+        font-size: 12px;
+        font-weight: 700;
+        transform: rotate(45deg);
+        z-index: 1;
+    }
+    
+    .match-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 12px;
+    }
+    
+    .match-time {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: var(--esoteric-color);
+    }
+    
+    .match-time i {
+        margin-right: 6px;
+    }
+    
+    .match-league {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        background-color: rgba(0, 184, 148, 0.1);
+        padding: 3px 10px;
+        border-radius: 6px;
+        color: var(--data-color);
+    }
+    
+    .match-league img {
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+    }
+    
+    .match-teams {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 20px 0;
+    }
+    
+    .team {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 45%;
+    }
+    
+    .team-logo {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 8px;
+        object-fit: contain;
+    }
+    
+    .team-name {
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .versus {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Cinzel', serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--esoteric-color);
+    }
+    
+    .versus-symbol {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 50%;
+        margin-bottom: 4px;
+    }
+    
+    .match-odds {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+    }
+    
+    .odds-container {
+        flex: 1;
+        background-color: rgba(25, 25, 50, 0.6);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        transition: transform 0.2s ease;
+        border: 1px solid rgba(106, 0, 128, 0.2);
+    }
+    
+    .odds-container:hover {
+        transform: scale(1.03);
+        background-color: rgba(35, 35, 60, 0.6);
+        border-color: rgba(212, 175, 55, 0.25);
+    }
+    
+    .odds-label {
+        font-size: 14px;
+        color: var(--text-color);
+        margin-bottom: 6px;
+    }
+    
+    .odds-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--esoteric-color);
+        margin-bottom: 6px;
+    }
+    
+    .prob-indicator {
+        font-size: 13px;
+        font-weight: 600;
+    }
+    
+    .prob-high {
+        color: var(--success-color);
+    }
+    
+    .prob-medium {
+        color: var(--warning-color);
+    }
+    
+    .prob-low {
+        color: var(--error-color);
+    }
+    
+    /* Sidebar modules */
+    .sidebar-container {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid rgba(106, 0, 128, 0.2);
+    }
+    
+    .sidebar-title {
+        color: var(--esoteric-color);
+        font-family: 'Cinzel', serif;
+        font-size: 18px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        padding-bottom: 10px;
+    }
+    
+    .module-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 8px;
+        background-color: rgba(25, 25, 50, 0.5);
+        border-radius: 6px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .module-toggle:hover {
+        background-color: rgba(35, 35, 60, 0.6);
+        border-color: rgba(106, 0, 128, 0.3);
+    }
+    
+    .module-name {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+    }
+    
+    .module-icon {
+        margin-right: 8px;
+        color: var(--esoteric-color);
+    }
+    
+    .module-data {
+        color: var(--data-color);
+    }
+    
+    .module-esoteric {
+        color: var(--esoteric-color);
+    }
+    
+    .module-alert {
+        color: var(--alert-color);
     }
     
     /* Cartes et conteneurs */
