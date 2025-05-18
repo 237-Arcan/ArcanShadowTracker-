@@ -781,49 +781,59 @@ with tabs[4]:  # Smart Market Recommendations
     # Graphique de distribution des valeurs
     st.markdown("### 📊 Distribution des Valeurs sur le Marché")
     
-    # Approche alternative : générer l'image statique du graphique
-    
+    # Utiliser une image prédéfinie pour éviter toute interactivité
     # Simuler des données pour l'histogramme
     market_values = np.random.normal(0, 5, 1000)
     thresholds = np.percentile(market_values, [5, 95])
     
-    # Créer le graphique avec matplotlib (complètement statique)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor('#0e1117')  # Fond sombre
-    ax.set_facecolor('#1a1c26')  # Fond du graphique
-    
-    # Tracer l'histogramme
-    n, bins, patches = ax.hist(market_values, bins=40, color='#7000ff', alpha=0.7)
+    # Créer un histogramme simple avec Plotly mais le convertir en image
+    fig_hist = px.histogram(
+        market_values, 
+        nbins=40,
+        title="Distribution de la Valeur (Value) sur le marché",
+        labels={"value": "Valeur (%)", "count": "Nombre de paris"},
+        color_discrete_sequence=["#7000ff"]
+    )
     
     # Ajouter les lignes de seuil
-    ax.axvline(x=thresholds[0], linestyle='--', color='#ff3364')
-    ax.axvline(x=thresholds[1], linestyle='--', color='#01ff80')
+    fig_hist.add_vline(x=thresholds[0], line_dash="dash", line_color="#ff3364")
+    fig_hist.add_vline(x=thresholds[1], line_dash="dash", line_color="#01ff80")
     
     # Ajouter l'annotation
-    ax.annotate('Zone de valeur', 
-                xy=(thresholds[1], 50),
-                xytext=(thresholds[1] + 1, 50),
-                color='#01ff80',
-                arrowprops=dict(arrowstyle='->', color='#01ff80'))
+    fig_hist.add_annotation(
+        x=thresholds[1] + 1,
+        y=50,
+        text="Zone de valeur",
+        showarrow=True,
+        arrowhead=1,
+        arrowcolor="#01ff80",
+        font=dict(color="#01ff80")
+    )
     
-    # Paramétrer les axes et titres
-    ax.set_title("Distribution de la Valeur (Value) sur le marché", color='white', fontsize=14)
-    ax.set_xlabel("Valeur (%)", color='white')
-    ax.set_ylabel("Nombre de paris", color='white')
+    # Mise en page
+    fig_hist.update_layout(
+        template="plotly_dark",
+        margin=dict(l=10, r=10, t=30, b=10),
+        height=400,
+        dragmode=False,
+        xaxis=dict(fixedrange=True),  # Désactive le zoom sur l'axe X
+        yaxis=dict(fixedrange=True)   # Désactive le zoom sur l'axe Y
+    )
     
-    # Style des axes
-    ax.spines['bottom'].set_color('#555')
-    ax.spines['top'].set_color('#555') 
-    ax.spines['right'].set_color('#555')
-    ax.spines['left'].set_color('#555')
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-    
-    # Ajuster l'apparence générale
-    plt.tight_layout()
-    
-    # Afficher le graphique statique
-    st.pyplot(fig)
+    # Utiliser un rendu statique (en désactivant tous les contrôles et interactions)
+    st.plotly_chart(
+        fig_hist, 
+        use_container_width=True, 
+        config={
+            "staticPlot": True,              # Force un plot statique
+            "displayModeBar": False,         # Masque la barre d'outils
+            "showTips": False,               # Désactive les astuces
+            "doubleClick": False,            # Désactive le double-clic
+            "showAxisDragHandles": False,    # Désactive les poignées d'axe
+            "showAxisRangeEntryBoxes": False, # Désactive les boîtes de plage d'axe
+            "displaylogo": False             # Désactive le logo Plotly
+        }
+    )
     
     # Analyse ésotérique des influences
     st.markdown("### 🔮 Influences Ésotériques Actives")
