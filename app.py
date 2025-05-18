@@ -320,21 +320,33 @@ with tabs[1]:  # Prédictions
         <div style="margin-bottom: 20px;">
             <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Autres scénarios</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
-                    <div>Match nul</div>
-                    <div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div>
+                <!-- Scénario 1 -->
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="color: white;">Match nul</div>
+                        <div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div>
+                    </div>
                 </div>
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
-                    <div>Victoire d'Arsenal</div>
-                    <div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div>
+                <!-- Scénario 2 -->
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="color: white;">Victoire d'Arsenal</div>
+                        <div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div>
+                    </div>
                 </div>
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
-                    <div>Plus de 2.5 buts</div>
-                    <div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div>
+                <!-- Scénario 3 -->
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="color: white;">Plus de 2.5 buts</div>
+                        <div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div>
+                    </div>
                 </div>
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; display: flex; justify-content: space-between;">
-                    <div>Les deux équipes marquent</div>
-                    <div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div>
+                <!-- Scénario 4 -->
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="color: white;">Les deux équipes marquent</div>
+                        <div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div>
+                    </div>
                 </div>
             </div>
         </div>
