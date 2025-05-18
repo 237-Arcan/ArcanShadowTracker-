@@ -1049,9 +1049,9 @@ with tabs[1]:  # Prédictions
     fig = px.bar(
         df_modules_contrib,
         x="impact",
-        y="name",
+        y="module",
         orientation='h',
-        labels={"impact": "Impact sur la prédiction", "name": "Module"},
+        labels={"impact": "Impact sur la prédiction", "module": "Module"},
         title="Contribution des modules à la prédiction finale",
         color="confidence",
         text=df_modules_contrib["impact"].apply(lambda x: f"{x:.2f}"),
