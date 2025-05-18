@@ -1126,6 +1126,329 @@ with tabs[4]:  # Smart Market Recommendations
     # Tableau de bord des opportunités
     st.markdown("### 💎 Opportunités Détectées")
     
+with tabs[5]:  # Scores probables
+    st.markdown("## 🎲 Scores probables")
+    st.markdown("Prédictions avancées de scores les plus probables grâce à l'écosystème ScoreForge et ses modules d'optimisation.")
+    
+    # En-tête avec métrique de performance
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(label="Précision ScoreMatrix", value="76.4%", delta="+4.2%")
+    with col2:
+        st.metric(label="Taux de réussite Score Exact", value="21.8%", delta="+3.5%")
+    with col3:
+        st.metric(label="Performance Buteurs", value="63.2%", delta="+2.1%")
+    with col4:
+        st.metric(label="Matchs Analysés", value="3,249", delta="+47")
+    
+    # Sélection de match pour l'analyse de score
+    st.markdown("### 🎯 Analyse détaillée des scores probables")
+    
+    # Filtres pour les matchs
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        selected_competition = st.selectbox("Compétition", ["Premier League", "Ligue 1", "LaLiga", "Bundesliga", "Serie A"], key="score_competition")
+    with col2:
+        selected_match_date = st.date_input("Date du match", value=datetime.now())
+    with col3:
+        selected_match_score = st.selectbox("Match", 
+            ["Liverpool vs Arsenal", "Man City vs Chelsea", "PSG vs Lyon", "Real Madrid vs Barcelona", "Bayern Munich vs Dortmund"],
+            key="score_match")
+    
+    # Afficher les modules qui contribuent à l'analyse
+    st.markdown("### 🧠 Modules d'analyse des scores")
+    
+    # Section des modules
+    modules_col1, modules_col2 = st.columns(2)
+    
+    with modules_col1:
+        st.markdown("#### 🔍 Module principal: ScoreForge")
+        
+        # Créer un tableau d'informations sur les sous-modules
+        core_modules = {
+            "Sous-module": ["PatternsCore", "FormationImpact", "XGoalRefiner"],
+            "Fonction": ["Analyse des séquences récurrentes de scores", "Influence des formations tactiques", "Affinage des xG situationnels"],
+            "Confiance": ["89.2%", "82.7%", "91.5%"]
+        }
+        
+        df_core = pd.DataFrame(core_modules)
+        st.dataframe(df_core, hide_index=True, use_container_width=True)
+        
+        # Explication du module principal
+        st.info("""
+        **ScoreForge** analyse en profondeur les tendances historiques de scores, les formations tactiques 
+        et les statistiques avancées pour générer des prédictions de scores précises.
+        
+        Le modèle utilise l'historique des 3 dernières saisons avec une pondération plus forte pour 
+        les matchs récents et les confrontations directes.
+        """)
+    
+    with modules_col2:
+        st.markdown("#### 📊 Module de soutien: TrendAnalyzer")
+        
+        # Créer un tableau d'informations sur les sous-modules de support
+        support_modules = {
+            "Sous-module": ["SeasonalWeight", "MatchflowPredictor", "DefenseVulnerability"],
+            "Fonction": ["Ajustement saisonnier", "Prédiction du déroulement", "Analyse des faiblesses défensives"],
+            "Confiance": ["78.4%", "85.1%", "87.2%"]
+        }
+        
+        df_support = pd.DataFrame(support_modules)
+        st.dataframe(df_support, hide_index=True, use_container_width=True)
+        
+        # Explication du module de soutien
+        st.info("""
+        **TrendAnalyzer** contextualise les prédictions en tenant compte de la période de la saison, 
+        des schémas de déroulement des matchs et des vulnérabilités défensives spécifiques.
+        
+        Cette analyse situationnelle permet d'affiner les prédictions brutes et d'identifier 
+        les scénarios de match les plus probables.
+        """)
+    
+    # Résultats de prédiction de score
+    st.markdown("### 📈 Distribution des scores probables")
+    
+    # Création de données simulées pour la heatmap des scores
+    home_goals = [0, 1, 2, 3, 4]
+    away_goals = [0, 1, 2, 3, 4]
+    
+    # Probabilités pour chaque combinaison de score
+    probabilities = [
+        [0.07, 0.09, 0.05, 0.02, 0.01],
+        [0.12, 0.15, 0.08, 0.03, 0.01],
+        [0.10, 0.09, 0.05, 0.02, 0.01],
+        [0.04, 0.03, 0.02, 0.01, 0.00],
+        [0.01, 0.01, 0.00, 0.00, 0.00]
+    ]
+    
+    # Créer la heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=probabilities,
+        x=away_goals,
+        y=home_goals,
+        colorscale=[[0, "#080f28"], [0.3, "#7000ff"], [0.6, "#ffbe41"], [1, "#01ff80"]],
+        showscale=True,
+        text=[[f"{prob*100:.1f}%" for prob in row] for row in probabilities],
+        texttemplate="%{text}",
+        textfont={"color":"white"}
+    ))
+    
+    # Configurer la mise en page
+    fig.update_layout(
+        title="Probabilités des scores pour Liverpool vs Arsenal",
+        xaxis_title="Buts Arsenal",
+        yaxis_title="Buts Liverpool",
+        xaxis=dict(tickmode="array", tickvals=away_goals),
+        yaxis=dict(tickmode="array", tickvals=home_goals, autorange="reversed"),
+        height=400,
+        margin=dict(l=60, r=50, b=50, t=50),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white")
+    )
+    
+    # Afficher la heatmap
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Scores les plus probables
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🥇 Top 5 des scores les plus probables")
+        
+        top_scores = {
+            "Score": ["2-1", "2-0", "1-0", "1-1", "3-1"],
+            "Probabilité": ["15.0%", "12.0%", "10.0%", "9.0%", "8.0%"],
+            "Modules favorables": ["PatternsCore, XGoalRefiner", "FormationImpact, DefenseVulnerability", 
+                               "SeasonalWeight, DefenseVulnerability", "MatchflowPredictor", "PatternsCore"]
+        }
+        
+        df_top_scores = pd.DataFrame(top_scores)
+        st.dataframe(df_top_scores, hide_index=True, use_container_width=True)
+        
+    with col2:
+        st.markdown("#### 🎯 Prédictions de buteurs")
+        
+        goal_scorers = {
+            "Joueur": ["Salah", "Diaz", "Jota", "Saka", "Havertz"],
+            "Équipe": ["Liverpool", "Liverpool", "Liverpool", "Arsenal", "Arsenal"],
+            "Probabilité de marquer": ["65%", "42%", "38%", "31%", "27%"],
+        }
+        
+        df_scorers = pd.DataFrame(goal_scorers)
+        st.dataframe(df_scorers, hide_index=True, use_container_width=True)
+    
+    # Intégration avec d'autres modules
+    st.markdown("### 🔗 Intégrations avec l'écosystème ArcanShadow")
+    
+    integration_col1, integration_col2, integration_col3 = st.columns(3)
+    
+    with integration_col1:
+        st.markdown("#### 🧠 ArcanBrain")
+        st.markdown("""
+        - Coordination des prédictions
+        - Calibration des poids algorithmiques
+        - Rétroaction basée sur les résultats
+        """)
+        
+        precision = 86
+        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
+        
+    with integration_col2:
+        st.markdown("#### 🔢 GematriaOracle")
+        st.markdown("""
+        - Analyse numérique des scores
+        - Résonances et correspondances
+        - Influence numérologique sur les scores
+        """)
+        
+        precision = 73
+        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
+        
+    with integration_col3:
+        st.markdown("#### 📊 PredictiveForge")
+        st.markdown("""
+        - Prédictions XGBoost
+        - Analyse des caractéristiques
+        - Optimisation du modèle
+        """)
+        
+        precision = 91
+        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
+    
+with tabs[6]:  # Système d'Apprentissage
+    st.markdown("## 🧠 Système d'Apprentissage")
+    st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
+    
+    # État du système ArcanReflex/ArcanBrain
+    st.markdown("### 🔍 État du système ArcanReflex/ArcanBrain")
+    
+    # Afficher les métriques système
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(label="Stabilité", value="98%", delta="+1.7%")
+    with col2:
+        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
+    with col3:
+        st.metric(label="Adaptation", value="91%", delta="+2.8%")
+    with col4:
+        st.metric(label="Précision", value="87%", delta="+3.5%")
+    
+    # Visualisation des connexions entre modules
+    st.markdown("### 🌐 Réseau Neural ArcanBrain")
+    
+    # Créer un réseau de modules en apprentissage
+    nodes = [
+        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
+        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
+    ]
+    
+    connections = []
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
+                connections.append((i, j, np.random.uniform(0.1, 1.0)))
+    
+    # Préparer les données pour le graphique
+    edge_x = []
+    edge_y = []
+    edge_weights = []
+    
+    # Créer une disposition circulaire pour les nœuds
+    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    
+    for src, dst, weight in connections:
+        edge_x.extend([node_x[src], node_x[dst], None])
+        edge_y.extend([node_y[src], node_y[dst], None])
+        edge_weights.append(weight)
+    
+    # Créer le graphique
+    fig = go.Figure()
+    
+    # Ajouter les liens
+    for i in range(0, len(edge_x), 3):
+        opacity = min(1, edge_weights[i//3] * 2)
+        width = 1 + 3 * edge_weights[i//3]
+        fig.add_trace(go.Scatter(
+            x=edge_x[i:i+3], y=edge_y[i:i+3],
+            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
+            hoverinfo='none',
+            mode='lines'
+        ))
+    
+    # Ajouter les nœuds
+    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
+                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
+    
+    
+with tabs[7]:  # Notifications
+    st.markdown("## 📬 Centre de Notifications")
+    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
+    
+    # Structure pour gérer les notifications
+    if 'notifications' not in st.session_state:
+        st.session_state.notifications = [
+            {
+                "id": 1,
+                "type": "recalibration",
+                "title": "Recalibration automatique de ArcanX",
+                "message": "ArcanBrain a détecté une dérive de performance d'ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
+                "timestamp": "2025-05-17 09:14:32",
+                "read": False,
+                "priority": "medium"
+            },
+            {
+                "id": 2,
+                "type": "pattern",
+                "title": "Nouveau pattern détecté par ArcanReflex",
+                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
+                "timestamp": "2025-05-16 21:03:47",
+                "read": False,
+                "priority": "high"
+            },
+            {
+                "id": 3,
+                "type": "sentinel",
+                "title": "Analyse en direct PSG vs Lyon",
+                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
+                "timestamp": "2025-05-16 15:37:21",
+                "read": False,
+                "priority": "urgent"
+            },
+            {
+                "id": 4,
+                "type": "module",
+                "title": "Nouveau module recommandé par D-forge",
+                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
+                "timestamp": "2025-05-15 16:42:10",
+                "read": False,
+                "priority": "low"
+            }
+        ]
+    
+    # Filtres de notifications
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        priority_filter = st.multiselect(
+            "Priorité", 
+            ["urgent", "high", "medium", "low"],
+            default=["urgent", "high", "medium", "low"]
+        )
+    with col2:
+        type_filter = st.multiselect(
+            "Type", 
+            ["recalibration", "pattern", "sentinel", "module"],
+            default=["recalibration", "pattern", "sentinel", "module"]
+        )
+    
+    # Affichage des notifications
+    st.markdown("### 📨 Dernières Notifications")
+    
+    # Filtrage des notifications
+    filtered_notifications = [n for n in st.session_state.notifications 
+                             if n["priority"] in priority_filter and n["type"] in type_filter]
+    
     # Créer un tableau d'anomalies de cotes
     anomalies = [
         {
