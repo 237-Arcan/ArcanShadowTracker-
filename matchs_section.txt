@@ -1,0 +1,58 @@
+    # Affichage des matchs à la une
+    st.markdown(f"## 🌟 {t('featured_matches')}")
+    
+    for match in featured_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante avec notre nouvelle conception
+        st.markdown(f"""
+        <div class="match-card featured">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Affichage des matchs du jour
+    st.markdown(f"## 🗓️ {t('todays_matches')}")
+    
+    for match in today_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante standard
+        st.markdown(f"""
+        <div class="match-card">

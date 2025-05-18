@@ -1350,6 +1350,106 @@ with tabs[5]:  # Système d'Apprentissage
     # Rendre le graphique statique
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
 
+# Nouvel onglet pour les Aperçus & Matchs Spéciaux
+with tabs[7]:  # Aperçus & Matchs Spéciaux
+    st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
+    st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
+    
+    # Affichage des matchs à la une
+    st.markdown(f"### 🌟 {t('featured_matches')}")
+    
+    for match in featured_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante avec notre nouvelle conception
+        st.markdown(f"""
+        <div class="match-card featured">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Affichage des matchs du jour
+    st.markdown(f"### 🗓️ {t('todays_matches')}")
+    
+    filtered_leagues = st.multiselect(
+        "Filtrer par ligue", 
+        ["Toutes les ligues", "Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"],
+        default=["Toutes les ligues"]
+    )
+    
+    # Filtrer en fonction des ligues sélectionnées si nécessaire
+    filtered_matches = matches
+    if "Toutes les ligues" not in filtered_leagues:
+        filtered_matches = [m for m in matches if m['league'] in filtered_leagues]
+    
+    # Créer une grille de matchs pour une meilleure présentation
+    cols = st.columns(2)
+    for i, match in enumerate(filtered_matches):
+        col = cols[i % 2]  # Alternance entre les colonnes
+        with col:
+            prob_1 = match.get('home_prob', 0.33)
+            prob_x = match.get('draw_prob', 0.33)
+            prob_2 = match.get('away_prob', 0.33)
+            
+            # Déterminer automatiquement la classe CSS basée sur la probabilité
+            home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
+            draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
+            away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
+            
+            country_code = match.get('country_code', 'fr').lower()
+            
+            st.markdown(f"""
+            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                    {match['league']} • {match['time']}
+                </div>
+                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                    {match['home']} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match['away']}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <div class="prob-{home_class}" style="text-align: center; flex: 1;">
+                        <div>1</div>
+                        <div>{int(prob_1 * 100)}%</div>
+                    </div>
+                    <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
+                        <div>X</div>
+                        <div>{int(prob_x * 100)}%</div>
+                    </div>
+                    <div class="prob-{away_class}" style="text-align: center; flex: 1;">
+                        <div>2</div>
+                        <div>{int(prob_2 * 100)}%</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
     st.markdown("## 📬 Centre de Notifications")
