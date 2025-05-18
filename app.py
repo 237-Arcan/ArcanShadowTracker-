@@ -2244,9 +2244,12 @@ with tabs[1]:  # Prédictions
                         
                         st.rerun()
                 else:
-                    match_index = st.session_state.sentinel_monitored_live_matches.index(match)
-                    if st.button(f"Désactiver", key=f"deactivate_live_{match.get('id', '')}_{match_index}"):
-                        st.session_state.sentinel_monitored_live_matches = [m for m in st.session_state.sentinel_monitored_live_matches if m['id'] != match['id']]
+                    # Utiliser un identifiant unique basé sur les informations du match
+                    match_id = match.get('id', '')
+                    match_key = f"{match.get('home', '')}_{match.get('away', '')}_{match_id}"
+                    if st.button(f"Désactiver", key=f"deactivate_live_{match_key}"):
+                        # Utiliser une comparaison d'objets complets pour la suppression
+                        st.session_state.sentinel_monitored_live_matches.remove(match)
                         st.rerun()
     
     with col2:
