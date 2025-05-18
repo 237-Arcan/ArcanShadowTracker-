@@ -1256,49 +1256,51 @@ with tabs[5]:  # Système d'Apprentissage
     st.code(learning_logs, language="plaintext")
     
     # Section de recalibration automatique
-    st.markdown("### ⚙️ Système de recalibration automatique")
+    st.subheader("⚙️ Système de recalibration automatique")
     
-    # Interface de recalibration avec composants Streamlit
+    # Créer un conteneur avec bordure personnalisée 
     with st.container():
+        st.write("")  # Espace
+        # En-tête avec titre et statut
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.markdown("#### Processus de recalibration par ArcanBrain")
+            st.write("#### Processus de recalibration par ArcanBrain")
         with col2:
-            st.markdown('<div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold; text-align: center;">Actif</div>', unsafe_allow_html=True)
+            st.success("Actif")
         
-    # Description du processus
-    st.markdown("""
-        ArcanBrain surveille en permanence les performances du système et procède automatiquement
-        à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
-        Les processus de recalibration sont entièrement gérés par l'intelligence système.
-    """)
-    
-    # Modes de recalibration
-    st.markdown("### Modes de recalibration automatiques:")
-    
-    modes = {
-        "Standard": "Recalibration basique sur les dernières données",
-        "Deep Learning": "Restructuration complète des couches de patterns",
-        "Transfer Learning": "Application des connaissances d'une ligue à une autre",
-        "Pattern Recognition": "Focus sur la détection des motifs récurrents"
-    }
-    
-    for mode, description in modes.items():
-        st.markdown(f"• **{mode}:** {description}")
-    
-    # Informations système
-    st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Dernier diagnostic système:**")
-    with col2:
-        st.markdown("Tous les modules fonctionnent dans les paramètres optimaux.")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Temps écoulé depuis la dernière recalibration:**")
-    with col2:
-        st.markdown("3h 17min")
+        # Description
+        st.write("""
+            ArcanBrain surveille en permanence les performances du système et procède automatiquement
+            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+            Les processus de recalibration sont entièrement gérés par l'intelligence système.
+        """)
+        
+        # Modes de recalibration dans une boîte info
+        st.info("#### Modes de recalibration automatiques")
+        
+        modes = {
+            "Standard": "Recalibration basique sur les dernières données",
+            "Deep Learning": "Restructuration complète des couches de patterns",
+            "Transfer Learning": "Application des connaissances d'une ligue à une autre",
+            "Pattern Recognition": "Focus sur la détection des motifs récurrents"
+        }
+        
+        for mode, description in modes.items():
+            st.write(f"• **{mode}:** {description}")
+        
+        # Informations système
+        st.write("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Dernier diagnostic système:**")
+        with col2:
+            st.write("Tous les modules fonctionnent dans les paramètres optimaux.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Temps écoulé depuis la dernière recalibration:**")
+        with col2:
+            st.write("3h 17min")
     
     st.markdown("### 📊 Métriques ArcanReflex")
     
