@@ -6,7 +6,19 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 import os
+import sys
 import matplotlib.pyplot as plt
+import random
+
+# Import des modules pour les données réelles
+try:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from utils.football_data import get_future_matches, get_team_form, get_head_to_head, get_team_stats
+    from utils.prediction_analysis import get_prediction_data
+    from utils.daily_combo import get_daily_combos, get_daily_combo_analysis
+    from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
+except Exception as e:
+    pass
 
 # Configuration de la page
 st.set_page_config(
@@ -369,6 +381,240 @@ tabs = st.tabs([
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
     st.markdown("## 🔍 Suivi des Matchs en Direct")
     st.markdown("Visualisez les dynamiques de match en temps réel avec nos capteurs énergétiques avancés.")
+    
+    # Utiliser les données réelles pour la surveillance en direct
+    try:
+        live_matches = get_live_matches()
+        if live_matches:
+            st.success(f"{len(live_matches)} matchs en direct disponibles pour analyse")
+            
+            # Sélection du match
+            match_options = [f"{m['home_team']} vs {m['away_team']} ({m['league']}) - {m['period']} {m['minute']}" for m in live_matches]
+            selected_match_idx = st.selectbox("Sélectionner un match", range(len(match_options)), format_func=lambda x: match_options[x])
+            
+            if selected_match_idx is not None:
+                selected_match = live_matches[selected_match_idx]
+                
+                # Afficher les informations du match
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    # Score et temps
+                    st.markdown(f"""
+                    <div style="text-align: center; background: rgba(8, 15, 40, 0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 18px; color: rgba(255, 255, 255, 0.8);">{selected_match['league']}</div>
+                        <div style="display: flex; justify-content: center; align-items: center; margin: 15px 0;">
+                            <div style="flex: 1; text-align: right; padding-right: 15px;">
+                                <div style="font-size: 24px; font-weight: bold; color: white;">{selected_match['home_team']}</div>
+                            </div>
+                            <div style="padding: 0 15px;">
+                                <div style="font-size: 32px; font-weight: bold; color: white;">{selected_match['home_score']} - {selected_match['away_score']}</div>
+                                <div style="font-size: 14px; color: #01ff80;">{selected_match['period']} • {selected_match['minute']}'</div>
+                            </div>
+                            <div style="flex: 1; text-align: left; padding-left: 15px;">
+                                <div style="font-size: 24px; font-weight: bold; color: white;">{selected_match['away_team']}</div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Statistiques du match
+                    st.markdown("### Statistiques")
+                    stats = selected_match['stats']
+                    
+                    # Créer une visualisation des statistiques
+                    stats_cols = st.columns(3)
+                    
+                    with stats_cols[0]:
+                        st.metric("Possession", f"{stats['possession']}%", delta=None)
+                        st.metric("Tirs", f"{stats['shots']}", delta=None)
+                        
+                    with stats_cols[1]:
+                        st.metric("Tirs cadrés", f"{stats['shots_on_target']}", delta=None)
+                        st.metric("Corners", f"{stats['corners']}", delta=None)
+                        
+                    with stats_cols[2]:
+                        st.metric("Cartons jaunes", f"{stats['yellow_cards']}", delta=None)
+                        st.metric("Cartons rouges", f"{stats['red_cards']}", delta=None)
+                    
+                    # Derniers événements
+                    st.markdown("### Derniers événements")
+                    events = selected_match['recent_events']
+                    
+                    for event in events:
+                        event_type = event['type']
+                        minute = event['minute']
+                        team = event['team']
+                        description = event.get('description', '')
+                        
+                        # Couleur selon le type d'événement
+                        if event_type == 'but':
+                            color = "#01ff80"
+                            icon = "⚽"
+                        elif event_type == 'carton':
+                            color = "#ffbe41" if event.get('card_type', '') == 'jaune' else "#ff3364"
+                            icon = "🟨" if event.get('card_type', '') == 'jaune' else "🟥"
+                        elif event_type == 'occasion':
+                            color = "#7000ff"
+                            icon = "🎯"
+                        elif event_type == 'remplacement':
+                            color = "#516395"
+                            icon = "🔄"
+                        else:
+                            color = "white"
+                            icon = "🚩"
+                        
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; background: rgba(8, 15, 40, 0.5); padding: 10px; border-radius: 5px;">
+                            <div style="min-width: 40px; text-align: center; font-weight: bold; color: {color};">{minute}'</div>
+                            <div style="min-width: 30px; text-align: center; font-size: 18px;">{icon}</div>
+                            <div style="flex-grow: 1; padding-left: 10px; color: white;">{description}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                with col2:
+                    # Cotes en direct
+                    st.markdown("### Cotes live")
+                    live_odds = selected_match['live_odds']
+                    
+                    st.markdown(f"""
+                    <div style="padding: 15px; background: rgba(17, 23, 64, 0.7); border-radius: 10px; margin-bottom: 15px;">
+                        <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+                            <div style="color: rgba(255, 255, 255, 0.7);">1</div>
+                            <div style="color: rgba(255, 255, 255, 0.7);">X</div>
+                            <div style="color: rgba(255, 255, 255, 0.7);">2</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['home_win']}</div>
+                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['draw']}</div>
+                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['away_win']}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Momentum
+                    st.markdown("### Momentum")
+                    momentum = selected_match['momentum']
+                    
+                    # Créer une jauge de momentum
+                    fig = go.Figure(go.Indicator(
+                        mode = "gauge+number",
+                        value = momentum,
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                        title = {'text': "Indice de momentum", 'font': {'color': 'white', 'size': 14}},
+                        gauge = {
+                            'axis': {'range': [0, 100], 'tickcolor': "white"},
+                            'bar': {'color': "#7000ff"},
+                            'bgcolor': "rgba(8, 15, 40, 0.7)",
+                            'borderwidth': 0,
+                            'steps': [
+                                {'range': [0, 40], 'color': 'rgba(255, 51, 100, 0.3)'},
+                                {'range': [40, 60], 'color': 'rgba(255, 190, 65, 0.3)'},
+                                {'range': [60, 100], 'color': 'rgba(1, 255, 128, 0.3)'}
+                            ],
+                        },
+                        number = {'font': {'color': 'white'}}
+                    ))
+                    
+                    fig.update_layout(
+                        paper_bgcolor = 'rgba(0,0,0,0)',
+                        plot_bgcolor = 'rgba(0,0,0,0)',
+                        font = {'color': 'white'},
+                        height = 250,
+                        margin = dict(l=20, r=20, t=30, b=20)
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Alertes
+                    st.markdown("### Alertes spéciales")
+                    
+                    # Générer des alertes adaptées au match
+                    alert_types = ["Momentum", "Cote", "Tendance"]
+                    alert_selected = random.choice(alert_types)
+                    
+                    if alert_selected == "Momentum":
+                        if momentum > 60:
+                            team_type = "l'équipe à domicile"
+                        elif momentum < 40:
+                            team_type = "l'équipe à l'extérieur"
+                        else:
+                            team_type = "aucune équipe"
+                        alert_content = f"Forte dynamique en faveur de {team_type}"
+                        alert_color = "#01ff80" if momentum > 60 or momentum < 40 else "#ffbe41"
+                    elif alert_selected == "Cote":
+                        if live_odds['home_win'] < 2.0:
+                            odds_team = "l'équipe à domicile"
+                        elif live_odds['away_win'] < 2.5:
+                            odds_team = "l'équipe à l'extérieur"
+                        else:
+                            odds_team = "le match nul"
+                        alert_content = f"Les cotes pour {odds_team} ont significativement évolué"
+                        alert_color = "#01ff80"
+                    else:
+                        team_name = selected_match['home_team'] if stats['shots'] > 8 else selected_match['away_team']
+                        alert_content = f"Le match présente une tendance inhabituelle dans les statistiques de {team_name}"
+                        alert_color = "#7000ff"
+                        
+                    st.markdown(f"""
+                    <div style="padding: 15px; background: rgba(8, 15, 40, 0.8); border-radius: 10px; border-left: 4px solid {alert_color};">
+                        <div style="font-weight: bold; color: {alert_color}; margin-bottom: 5px;">{alert_selected.upper()}</div>
+                        <div style="color: white;">{alert_content}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Récupérer les alertes en direct
+                st.markdown("### 🚨 Alertes en direct")
+                live_alerts = get_live_alerts()
+                
+                if live_alerts:
+                    alert_cols = st.columns(len(live_alerts))
+                    
+                    for i, alert in enumerate(live_alerts):
+                        alert_type = alert['type']
+                        timestamp = alert['timestamp']
+                        match_name = alert['match']
+                        title = alert['title']
+                        content = alert['content']
+                        importance = alert['importance']
+                        
+                        # Déterminer la couleur selon l'importance
+                        if importance == 'high':
+                            color = "#ff3364"
+                        elif importance == 'medium':
+                            color = "#ffbe41"
+                        else:
+                            color = "#516395"
+                            
+                        with alert_cols[i]:
+                            st.markdown(f"""
+                            <div style="border-left: 3px solid {color}; padding: 10px; background: rgba(8, 15, 40, 0.6); border-radius: 5px; height: 100%;">
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7);">{timestamp}</div>
+                                <div style="font-weight: bold; color: white; margin: 5px 0;">{title}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px;">{match_name}</div>
+                                <div style="font-size: 14px; color: white;">{content}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("Aucune alerte en direct disponible actuellement.")
+        else:
+            st.info("Aucun match en direct disponible actuellement. Veuillez vérifier plus tard.")
+            
+            # Afficher un exemple d'interface
+            st.markdown("""
+            ### Interface de suivi en direct (exemple)
+            
+            Lorsque des matchs sont en direct, vous pourrez suivre:
+            - Score en temps réel
+            - Statistiques du match
+            - Derniers événements importants
+            - Évolution du momentum
+            - Alertes spéciales et opportunités
+            """)
+            
+    except Exception as e:
+        st.error(f"Une erreur s'est produite lors du chargement des matchs en direct: {str(e)}")
+        # Afficher l'interface simulée de base
     
     # Section d'activation d'ArcanSentinel sur les matchs en direct
     st.markdown("### 🔍 Activation d'ArcanSentinel pour les Matchs en Direct")
