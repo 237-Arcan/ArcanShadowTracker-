@@ -347,7 +347,7 @@ def _generate_match_narrative(home_team, away_team, home_form, away_form, h2h,
     # Ajouter un conseil de pari
     if prediction == 'Victoire à domicile' and home_form['form_trend'] == 'positive':
         narrative += f"\n\nConseil de pari: Victoire de {home_team} semble être une option solide avec un bon ratio risque/récompense."
-    elif prediction == 'Victoire à l'extérieur' and away_form['form_trend'] == 'positive':
+    elif prediction == 'Victoire à l\'extérieur' and away_form['form_trend'] == 'positive':
         narrative += f"\n\nConseil de pari: Victoire de {away_team} à l'extérieur pourrait offrir une valeur intéressante étant donné leur forme actuelle."
     elif prediction == 'Match nul':
         narrative += "\n\nConseil de pari: Le match nul semble être une option à considérer vu l'équilibre des forces."

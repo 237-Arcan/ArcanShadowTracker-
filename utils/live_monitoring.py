@@ -432,7 +432,7 @@ def get_match_momentum(match_id):
                 'team': team_gained,
                 'delta': delta,
                 'event_type': random.choice(['but', 'occasion', 'carton', 'remplacement']),
-                'description': f"Changement significatif de momentum en faveur de l'équipe {'à domicile' if team_gained == 'home' else 'à l'extérieur'}"
+                'description': "Changement significatif de momentum en faveur de l'équipe " + ("à domicile" if team_gained == 'home' else "à l'extérieur")
             })
     
     return {
@@ -565,7 +565,7 @@ def get_live_alerts():
                 'match': f"{home_team} vs {away_team}",
                 'minute': random.randint(1, 90),
                 'title': f"Changement de momentum!",
-                'content': f"{gaining_team} prend l'ascendant sur {other_team} dans les dernières minutes!",
+                'content': f"{gaining_team} prend l\'ascendant sur {other_team} dans les dernières minutes!",
                 'importance': 'medium'
             })
             
