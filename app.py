@@ -1094,13 +1094,13 @@ with tabs[1]:  # Prédictions
         <div style="padding: 12px; border-radius: 8px; background: rgba(8, 15, 40, 0.6); 
                     border-left: 4px solid {confidence_color}; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-weight: bold; font-size: 16px;">{module["name"]}</div>
+                <div style="font-weight: bold; font-size: 16px;">{module.get("module", "Module inconnu")}</div>
                 <div style="color: {confidence_color}; font-family: 'JetBrains Mono', monospace;">
                     Confiance: {int(confidence * 100)}%
                 </div>
             </div>
             <div style="margin-top: 5px; color: rgba(255, 255, 255, 0.8);">
-                {module["key_insights"]}
+                {module.get("key_insights", "Pas d'insights disponibles pour ce module.")}
             </div>
         </div>
         """, unsafe_allow_html=True)
