@@ -362,7 +362,8 @@ tabs = st.tabs([
     "💡 Smart Market Recommendations", 
     "🧠 Système d'Apprentissage",
     f"📬 Notifications ({st.session_state.notification_count})",
-    "🌟 Aperçus & Matchs Spéciaux"
+    "🌟 Aperçus & Matchs Spéciaux",
+    "🌍 Données Réelles" # Nouvel onglet avec les données réelles
 ])
 
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
