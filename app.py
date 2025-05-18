@@ -159,6 +159,7 @@ tabs = st.tabs([
     "🔔 Performance Notifications", 
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
+    "🎲 Scores probables",
     "🧠 Système d'Apprentissage",
     f"📬 Notifications ({st.session_state.notification_count})"
 ])
