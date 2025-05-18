@@ -1303,6 +1303,51 @@ with tabs[5]:  # Système d'Apprentissage
     """, unsafe_allow_html=True)
     
     st.markdown("### 📊 Métriques ArcanReflex")
+    
+    # Créer des métriques de performance et d'apprentissage
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(label="Stabilité des patterns", value="92.4%", delta="+3.8%")
+    with col2:
+        st.metric(label="Vitesse d'adaptation", value="23.7 ms", delta="-4.2 ms")
+    with col3:
+        st.metric(label="Profondeur d'analyse", value="96.3%", delta="+2.1%")
+    
+    # Graphique d'évolution de l'apprentissage sur 30 jours
+    st.markdown("#### Évolution des performances sur 30 jours")
+    
+    # Simuler des données d'évolution
+    dates = [(datetime.now() - timedelta(days=i)).strftime("%d-%m") for i in range(30, 0, -1)]
+    precision_values = [75 + 0.5*i + np.random.normal(0, 2) for i in range(30)]
+    precision_values = [min(max(v, 70), 99) for v in precision_values]  # Limiter entre 70% et 99%
+    
+    # Créer le graphique avec Plotly
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates, 
+        y=precision_values,
+        mode='lines+markers',
+        name='Précision',
+        line=dict(color='#01ff80', width=2),
+        marker=dict(size=6, color='#01ff80')
+    ))
+    
+    fig.update_layout(
+        title="Évolution de la précision prédictive",
+        xaxis_title="Date",
+        yaxis_title="Précision (%)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='rgba(255, 255, 255, 0.8)'),
+        height=350,
+        margin=dict(l=40, r=40, t=40, b=40),
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=True, gridcolor='rgba(255, 255, 255, 0.1)')
+    )
+    
+    # Rendre le graphique statique
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
