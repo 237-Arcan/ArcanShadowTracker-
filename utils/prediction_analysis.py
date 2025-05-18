@@ -47,7 +47,7 @@ def get_prediction_data(match, all_matches=None):
     away_stats = get_team_stats(away_team)
     
     # Déterminer le résultat le plus probable
-    outcomes = ['Victoire à domicile', 'Match nul', 'Victoire à l'extérieur']
+    outcomes = ['Victoire à domicile', 'Match nul', 'Victoire à l\'extérieur']
     probabilities = [home_prob, draw_prob, away_prob]
     main_outcome = outcomes[probabilities.index(max(probabilities))]
     
@@ -60,9 +60,10 @@ def get_prediction_data(match, all_matches=None):
         weight_factor = home_prob / 100
         for score in home_win_scores:
             # Attribution aléatoire de probabilités, mais influencées par la probabilité générale
+            probability = int(random.uniform(0.5, 1.0) * weight_factor * 100)
             possible_scores.append({
                 'score': score,
-                'probability': int(random.uniform(0.5, 1.0) * weight_factor * 100),
+                'probability': probability,
                 'outcome': 'Victoire à domicile'
             })
     
@@ -82,10 +83,11 @@ def get_prediction_data(match, all_matches=None):
         away_win_scores = ['0-1', '0-2', '1-2', '1-3']
         weight_factor = away_prob / 100
         for score in away_win_scores:
+            probability = int(random.uniform(0.5, 1.0) * weight_factor * 100)
             possible_scores.append({
                 'score': score,
-                'probability': int(random.uniform(0.5, 1.0) * weight_factor * 100),
-                'outcome': 'Victoire à l'extérieur'
+                'probability': probability,
+                'outcome': 'Victoire à l\'extérieur'
             })
     
     # Trier par probabilité et prendre les plus probables

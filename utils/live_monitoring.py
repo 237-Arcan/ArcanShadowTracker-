@@ -543,6 +543,7 @@ def get_live_alerts():
             new_odds = old_odds * (0.8 if direction == "baisse" else 1.2)
             new_odds = round(new_odds, 2)
             
+            importance = 'medium' if abs(old_odds - new_odds) > 0.5 else 'low'
             alerts.append({
                 'type': 'odds_change',
                 'timestamp': timestamp,
@@ -550,7 +551,7 @@ def get_live_alerts():
                 'minute': random.randint(1, 90),
                 'title': f"Changement de cote pour {team}",
                 'content': f"La cote pour une victoire de {team} est en {direction}, passant de {old_odds} à {new_odds}.",
-                'importance': 'medium' if abs(old_odds - new_odds) > 0.5 else 'low'
+                'importance': importance
             })
             
         elif alert_type == "momentum_shift":
@@ -574,6 +575,7 @@ def get_live_alerts():
             bet_type = random.choice(bet_types)
             
             # Valeur détectée
+            content = ""
             if bet_type == "1X2":
                 team = random.choice([home_team, away_team])
                 odds = round(2.0 + random.random() * 3, 2)

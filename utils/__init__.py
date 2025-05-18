@@ -1,1 +1,1 @@
-# This file makes the 'utils' directory a Python package
+# Module pour les utilitaires d'ArcanShadow
