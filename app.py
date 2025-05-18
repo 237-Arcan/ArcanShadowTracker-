@@ -601,11 +601,13 @@ with tabs[1]:  # Prédictions
     
     # Créer des statistiques pour les modules qui ont contribué à la prédiction
     contributing_modules = [
-        {"name": "ArcanX", "confidence": 0.92, "weight": 0.35, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
-        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.25, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
-        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.15, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
+        {"name": "ArcanX", "confidence": 0.92, "weight": 0.28, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
+        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.18, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
+        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.12, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
         {"name": "NumeriCode", "confidence": 0.87, "weight": 0.10, "key_insights": "Concordance numérique: date du match (17) + patron tactique (4-3-3)"},
-        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.15, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
+        {"name": "GematriaOracle", "confidence": 0.85, "weight": 0.12, "key_insights": "Signature numérique 𝌡 correspondance exacte entre Liverpool (valeur simple: 98) et date du match"},
+        {"name": "PredictiveForge", "confidence": 0.91, "weight": 0.15, "key_insights": "Modèle XGBoost prédit victoire avec 91% de confiance, score probable 2-0"},
+        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.05, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
     ]
     
     # Créer un dataframe pour les modules contributeurs
@@ -676,28 +678,137 @@ with tabs[1]:  # Prédictions
         </div>
         """, unsafe_allow_html=True)
     
-    # Narratif de la prédiction
-    st.markdown("### 📜 Narratif de la prédiction")
+    # Analyses avancées
+    st.markdown("### 🔍 Analyses Avancées")
     
-    st.markdown("""
-    <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
-                border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
-        <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
-            L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
-            après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
-            avec Jupiter en transit dans la maison de la victoire.
-            <br><br>
-            L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
-            créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
-            <br><br>
-            Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
-            de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
-            <br><br>
-            <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
-            suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    tab1, tab2 = st.tabs(["📜 Narratif", "🔢 Analyse Gematria & Prédictions XGBoost"])
+    
+    with tab1:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
+                    border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
+            <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
+                L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
+                après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
+                avec Jupiter en transit dans la maison de la victoire.
+                <br><br>
+                L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
+                créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
+                <br><br>
+                Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
+                de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
+                <br><br>
+                <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
+                suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with tab2:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🔢 Analyse Gematria")
+            
+            # Analyse Gematria
+            st.markdown("""
+            <div style="padding: 15px; border-radius: 10px; background: rgba(255, 190, 65, 0.05); 
+                        border: 1px solid rgba(255, 190, 65, 0.2); margin-bottom: 20px; height: 100%;">
+                <h5 style="color: #ffbe41; margin-top: 0;">Résonances Numériques</h5>
+                
+                <table style="width: 100%; color: rgba(255, 255, 255, 0.8);">
+                    <tr>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            <b>Liverpool</b>
+                        </td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            Simple: 98 | Réduit: 8
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            <b>Arsenal</b>
+                        </td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            Simple: 76 | Réduit: 4
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            <b>Date</b>
+                        </td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            17/05/2025 → Réduit: 11
+                        </td>
+                    </tr>
+                </table>
+                
+                <h5 style="color: #ffbe41; margin-top: 15px;">Correspondances</h5>
+                <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
+                    <li>Correspondance exacte: Liverpool (98) et date du match (17+05+20+25 = 67 → 6+7 = 13 → 1+3 = 4)</li>
+                    <li>Valeur 8 (Liverpool réduit) = pouvoir et abondance, victoire</li>
+                    <li>Résonance temporelle: Jour favorable pour Liverpool</li>
+                </ul>
+                
+                <h5 style="color: #ffbe41; margin-top: 15px;">Conclusion Gematria</h5>
+                <p style="color: rgba(255, 255, 255, 0.8);">
+                    Les alignements numériques révèlent un avantage numérique substantiel pour Liverpool.
+                    La date du match amplifie les qualités associées au nombre 8 (pouvoir, accomplissement),
+                    créant un environnement favorable pour Liverpool.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("#### 📊 Prédictions XGBoost")
+            
+            # Résultats XGBoost
+            st.markdown("""
+            <div style="padding: 15px; border-radius: 10px; background: rgba(1, 255, 128, 0.05); 
+                        border: 1px solid rgba(1, 255, 128, 0.2); margin-bottom: 20px; height: 100%;">
+                <h5 style="color: #01ff80; margin-top: 0;">Prédiction de Résultat</h5>
+                
+                <div style="margin: 15px 0; background: rgba(1, 255, 128, 0.1); padding: 10px; border-radius: 5px;">
+                    <table style="width: 100%; color: rgba(255, 255, 255, 0.8);">
+                        <tr>
+                            <td><b>Prédiction:</b></td>
+                            <td style="text-align: right; font-weight: bold; color: #01ff80;">Victoire Liverpool</td>
+                        </tr>
+                        <tr>
+                            <td><b>Confiance:</b></td>
+                            <td style="text-align: right; font-weight: bold;">91%</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h5 style="color: #01ff80; margin-top: 15px;">Probabilités détaillées</h5>
+                <div style="display: flex; margin: 10px 0;">
+                    <div style="flex: 0.91; height: 20px; background: #01ff80; border-radius: 4px 0 0 4px; color: #000; text-align: center; font-size: 12px;">91%</div>
+                    <div style="flex: 0.06; height: 20px; background: #ffbe41; color: #000; text-align: center; font-size: 12px;">6%</div>
+                    <div style="flex: 0.03; height: 20px; background: #ff3364; border-radius: 0 4px 4px 0; color: #000; text-align: center; font-size: 12px;">3%</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+                    <div>Victoire Liverpool</div>
+                    <div>Match nul</div>
+                    <div>Victoire Arsenal</div>
+                </div>
+                
+                <h5 style="color: #01ff80; margin-top: 15px;">Prédiction de Score</h5>
+                <div style="text-align: center; font-size: 24px; font-weight: bold; color: #fff; margin: 10px 0;">
+                    Liverpool 2 - 0 Arsenal
+                </div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); text-align: center;">
+                    Autres scores probables: 2-1 (18%), 1-0 (15%), 3-1 (10%)
+                </div>
+                
+                <h5 style="color: #01ff80; margin-top: 15px;">Facteurs clés</h5>
+                <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
+                    <li>Forme récente de Liverpool (5 victoires consécutives)</li>
+                    <li>Avantage du terrain (13 victoires sur 16 matchs à domicile)</li>
+                    <li>Historique des confrontations directes favorable</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
     
 with tabs[2]:  # Performance Notifications
     st.markdown("## 🔔 Notifications de Performance")
@@ -735,11 +846,128 @@ with tabs[2]:  # Performance Notifications
     df_performance = pd.DataFrame(performance_data)
     st.dataframe(df_performance, use_container_width=True)
     
+    # Analyse comparative
+    st.markdown("### 📊 Analyse Comparative (Prédictions vs Résultats)")
+    st.markdown("Comparaison entre les prédictions pré-match, les analyses en direct d'ArcanSentinel et les statistiques officielles.")
+    
+    # Sélection du match
+    match_options = ["Liverpool vs Arsenal (17/05/2025)", 
+                     "PSG vs Lyon (16/05/2025)",
+                     "Bayern Munich vs Dortmund (15/05/2025)",
+                     "Real Madrid vs Barcelona (14/05/2025)",
+                     "Inter Milan vs Juventus (13/05/2025)"]
+    
+    selected_match = st.selectbox("Sélectionner un match pour l'analyse comparative:", match_options)
+    
+    # Contenu du tableau d'analyse comparative
+    st.markdown("""
+    <div style="padding: 20px; border-radius: 10px; background: rgba(8, 15, 40, 0.5); margin-bottom: 15px;">
+        <h4 style="color: #05d9e8; margin-top: 0;">Analyse Comparative : Liverpool vs Arsenal</h4>
+        
+        <table style="width: 100%; margin-top: 15px; border-collapse: collapse; color: rgba(255, 255, 255, 0.9);">
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.3); text-align: left;">
+                <th style="padding: 8px 12px; width: 25%;">Métrique</th>
+                <th style="padding: 8px 12px; width: 25%;">Prédiction Pré-Match</th>
+                <th style="padding: 8px 12px; width: 25%;">Analyse ArcanSentinel</th>
+                <th style="padding: 8px 12px; width: 25%;">Résultat Officiel</th>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Résultat</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Victoire Liverpool</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Victoire Liverpool</td>
+                <td style="padding: 10px 12px;">Victoire Liverpool</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Score</td>
+                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 2-0</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 2-1</td>
+                <td style="padding: 10px 12px;">2-1</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Possession</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Liverpool 58%</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Liverpool 62%</td>
+                <td style="padding: 10px 12px;">Liverpool 61%</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Tirs cadrés</td>
+                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 7-3</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 8-4</td>
+                <td style="padding: 10px 12px;">8-4</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Corners</td>
+                <td style="padding: 10px 12px;"><span style="color: #ff3364;">✗</span> 4-2</td>
+                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 5-4</td>
+                <td style="padding: 10px 12px;">7-3</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
+                <td style="padding: 10px 12px; font-weight: bold;">Cartons jaunes</td>
+                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 2-3</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 3-2</td>
+                <td style="padding: 10px 12px;">3-2</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; font-weight: bold;">Buteurs</td>
+                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> Salah, Jota</td>
+                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Salah, Diaz | Saka</td>
+                <td style="padding: 10px 12px;">Salah, Diaz | Saka</td>
+            </tr>
+        </table>
+        
+        <div style="margin-top: 20px; background: rgba(1, 255, 128, 0.05); padding: 12px; border-radius: 5px; border-left: 4px solid #01ff80;">
+            <h5 style="color: #01ff80; margin-top: 0; margin-bottom: 5px;">Synthèse de l'Analyse Comparative</h5>
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 0;">
+                <span style="font-weight: bold;">Précision de la prédiction pré-match:</span> 71% (5/7 métriques correctes ou partiellement correctes)<br>
+                <span style="font-weight: bold;">Précision d'ArcanSentinel en direct:</span> 93% (6/7 métriques correctes, 1 partiellement correcte)<br>
+                <span style="font-weight: bold;">Modules les plus précis:</span> GematriaOracle (prédiction de victoire), PredictiveForge (tendances statistiques), ArcanSentinel (analyse en temps réel)
+            </p>
+        </div>
+        
+        <div style="margin-top: 15px; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-align: right;">
+            Match terminé | Dernière mise à jour: 17/05/2025 22:15
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Insights d'amélioration
+    st.markdown("### 🔍 Insights d'Amélioration")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(1, 255, 128, 0.05); 
+                  border: 1px solid rgba(1, 255, 128, 0.2); height: 100%;">
+            <h5 style="color: #01ff80; margin-top: 0;">Points forts du système</h5>
+            <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
+                <li><b>Prédiction des résultats:</b> Précision élevée (89%) sur les 50 derniers matchs</li>
+                <li><b>Analyse en direct:</b> ArcanSentinel identifie avec succès les changements de tendance (93%)</li>
+                <li><b>Statistiques de possession:</b> Erreur moyenne de seulement 3.2%</li>
+                <li><b>Nouvelles intégrations:</b> GematriaOracle et PredictiveForge améliorent la précision de +7.5%</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="padding: 15px; border-radius: 10px; background: rgba(255, 56, 96, 0.05); 
+                  border: 1px solid rgba(255, 56, 96, 0.2); height: 100%;">
+            <h5 style="color: #ff3860; margin-top: 0;">Axes d'amélioration</h5>
+            <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
+                <li><b>Prédictions de corners:</b> Écart moyen de 37% - Module NumeriCode à recalibrer</li>
+                <li><b>Identification des buteurs:</b> Précision de 68% - Besoin d'intégrer plus de données historiques</li>
+                <li><b>Score exact:</b> Précision actuelle de 41% - PredictiveForge nécessite plus d'entraînement</li>
+                <li><b>Module KarmicFlow+:</b> Performance sous-optimale (71%) - Requiert une recalibration</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
     # Graphique de performance des modules
     st.markdown("### 🧩 Performance des Modules Prédictifs")
     
     modules = ["ArcanX", "ShadowOdds", "NumeriCode", "KarmicFlow+", "AstroImpact", 
-               "EchoPath", "TarotEcho", "ShadowOdds+", "MetaSystems"]
+               "EchoPath", "TarotEcho", "ShadowOdds+", "GematriaOracle", "PredictiveForge", "MetaSystems"]
     accuracy = [np.random.uniform(0.65, 0.92) for _ in modules]
     sample_size = [np.random.randint(50, 300) for _ in modules]
     
