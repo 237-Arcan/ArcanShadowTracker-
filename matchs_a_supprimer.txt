@@ -1,0 +1,58 @@
+    # Cette section a été déplacée vers l'onglet "Aperçus & Matchs Spéciaux"
+    
+    # Affichage des matchs du jour
+    st.markdown(f"## 🗓️ {t('todays_matches')}")
+    
+    for match in today_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante standard
+        st.markdown(f"""
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+with tabs[1]:  # Prédictions
+    st.markdown("## 🔮 Prédictions d'ArcanShadow")
+    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
+    
+    # Sélection du match à analyser
+    st.markdown("### ⚽ Sélectionner un match")
+    
+    # Créer des données fictives de matchs à venir pour la sélection
+    upcoming_matches = [
+        "PSG vs Lyon (Ligue 1) - 20:45",
+        "Real Madrid vs Barcelona (La Liga) - 21:00",
+        "Liverpool vs Arsenal (Premier League) - 17:30",
+        "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
+        "Inter vs Milan (Serie A) - 20:45"
+    ]
+    
+    selected_match = st.selectbox("Match à analyser:", upcoming_matches)
