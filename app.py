@@ -437,29 +437,27 @@ with tabs[1]:  # Prédictions
     # Afficher le résumé de la prédiction
     st.markdown(f"### 📊 Prédiction pour {home_team} vs {away_team}")
     
-    # Au lieu d'une seule grande structure HTML, on va la diviser en plusieurs parties
-    
-    # En-tête de la prédiction
-    st.markdown("""
-    <div style="padding: 20px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
-                border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 20px;">
-    """, unsafe_allow_html=True)
-    
-    # Titre et confiance
-    st.markdown("""
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold; color: white;">Prédiction principale</div>
-            <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
-                     border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
-                Confiance: 87%
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # En-tête de la prédiction avec conteneur principal
+    with st.container():
+        col_header1, col_header2 = st.columns([3, 1])
+        with col_header1:
+            st.subheader("Prédiction principale")
+        with col_header2:
+            st.markdown(
+                """
+                <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                        border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold; text-align: center;">
+                    Confiance: 87%
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
     
     # Résultat le plus probable
-    st.markdown("""
+    st.markdown(
+        """
         <div style="background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
-                  border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+                border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td>
@@ -472,18 +470,19 @@ with tabs[1]:  # Prédictions
                 </tr>
             </table>
         </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
     
     # Titre des autres scénarios
-    st.markdown("""
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: white;">Autres scénarios</div>
-    """, unsafe_allow_html=True)
+    st.subheader("Autres scénarios")
     
     # Les scénarios en 2 colonnes (premier arrangement)
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
             <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
                 <table width="100%" style="border-collapse: collapse;">
                     <tr>
@@ -492,10 +491,13 @@ with tabs[1]:  # Prédictions
                     </tr>
                 </table>
             </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
     
     with col2:
-        st.markdown("""
+        st.markdown(
+            """
             <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
                 <table width="100%" style="border-collapse: collapse;">
                     <tr>
@@ -504,13 +506,16 @@ with tabs[1]:  # Prédictions
                     </tr>
                 </table>
             </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
     
     # Les scénarios en 2 colonnes (deuxième arrangement)
     col3, col4 = st.columns(2)
     
     with col3:
-        st.markdown("""
+        st.markdown(
+            """
             <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
                 <table width="100%" style="border-collapse: collapse;">
                     <tr>
@@ -519,10 +524,13 @@ with tabs[1]:  # Prédictions
                     </tr>
                 </table>
             </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
     
     with col4:
-        st.markdown("""
+        st.markdown(
+            """
             <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
                 <table width="100%" style="border-collapse: collapse;">
                     <tr>
@@ -531,12 +539,9 @@ with tabs[1]:  # Prédictions
                     </tr>
                 </table>
             </div>
-        """, unsafe_allow_html=True)
-    
-    # Fermeture du conteneur principal
-    st.markdown("""
-    </div>
-    """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
     
     # Modules contributeurs et leur impact
     st.markdown("### 🧠 Modules contributeurs")
@@ -600,20 +605,21 @@ with tabs[1]:  # Prédictions
     # Afficher les insights clés de chaque module
     st.markdown("### 🔑 Insights clés par module")
     
-    for module in df_modules_contrib.itertuples():
-        confidence_color = "#01ff80" if module.confidence >= 0.85 else "#ffbe41" if module.confidence >= 0.75 else "#ff3364"
+    for i, module in enumerate(df_modules_contrib.to_dict('records')):
+        confidence = module["confidence"]
+        confidence_color = "#01ff80" if confidence >= 0.85 else "#ffbe41" if confidence >= 0.75 else "#ff3364"
         
         st.markdown(f"""
         <div style="padding: 12px; border-radius: 8px; background: rgba(8, 15, 40, 0.6); 
                     border-left: 4px solid {confidence_color}; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-weight: bold; font-size: 16px;">{module.name}</div>
+                <div style="font-weight: bold; font-size: 16px;">{module["name"]}</div>
                 <div style="color: {confidence_color}; font-family: 'JetBrains Mono', monospace;">
-                    Confiance: {module.confidence:.0%}
+                    Confiance: {int(confidence * 100)}%
                 </div>
             </div>
             <div style="margin-top: 5px; color: rgba(255, 255, 255, 0.8);">
-                {module.key_insights}
+                {module["key_insights"]}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1338,68 +1344,100 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     # Affichage des matchs du jour
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
-    # Filtrer par ligue si nécessaire
-    all_leagues = ["Toutes les ligues"] + list(set([m.get('league', '') for m in today_matches if isinstance(m, dict) and 'league' in m]))
-    filtered_leagues = st.multiselect(
-        "Filtrer par ligue", 
-        all_leagues,
-        default=["Toutes les ligues"]
-    )
-    
-    # Filtrer les matchs selon les ligues sélectionnées
-    if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
-        filtered_matches = [m for m in today_matches if m.get('league', '') in filtered_leagues]
-    else:
-        filtered_matches = today_matches
+    # Garantir que today_matches est bien une liste
+    if not isinstance(today_matches, list):
+        today_matches = []
     
     # Affichage sécurisé des matchs du jour
-    if not filtered_matches or not isinstance(filtered_matches, list):
+    if not today_matches:
         st.info("Aucun match disponible pour aujourd'hui")
     else:
-        # Créer une grille de matchs pour une meilleure présentation
-        cols = st.columns(2)
-        for i, match in enumerate(filtered_matches):
-            try:
-                col = cols[i % 2]  # Alternance entre les colonnes
-                with col:
-                    prob_1 = match.get('home_prob', 0.33)
-                    prob_x = match.get('draw_prob', 0.33)
-                    prob_2 = match.get('away_prob', 0.33)
-                    
-                    # Déterminer automatiquement la classe CSS basée sur la probabilité
-                    home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
-                    draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
-                    away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
-                    
-                    country_code = match.get('country_code', 'fr').lower()
-                    
-                    st.markdown(f"""
-                    <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
-                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
-                            <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                            {match.get('league', '')} • {match.get('time', match.get('kickoff_time', '??:??'))}
-                        </div>
-                        <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
-                            {match.get('home', match.get('home_team', '?'))} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match.get('away', match.get('away_team', '?'))}
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                            <div class="prob-{home_class}" style="text-align: center; flex: 1;">
-                                <div>1</div>
-                                <div>{int(prob_1 * 100)}%</div>
+        # Collecter toutes les ligues disponibles
+        all_leagues_set = set()
+        for match in today_matches:
+            if isinstance(match, dict) and 'league' in match:
+                all_leagues_set.add(match.get('league', ''))
+        
+        # Créer la liste des options de filtre
+        all_leagues = ["Toutes les ligues"] + sorted(list(all_leagues_set))
+        
+        # Widget de sélection de ligue
+        filtered_leagues = st.multiselect(
+            "Filtrer par ligue", 
+            all_leagues,
+            default=["Toutes les ligues"]
+        )
+        
+        # Appliquer le filtre
+        if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
+            filtered_matches = [m for m in today_matches if isinstance(m, dict) and m.get('league', '') in filtered_leagues]
+        else:
+            filtered_matches = today_matches
+        
+        # Vérifier si nous avons des matchs après filtrage
+        if not filtered_matches:
+            st.info("Aucun match ne correspond aux critères de filtre")
+        else:
+            # Créer une grille de matchs pour une meilleure présentation
+            cols = st.columns(2)
+            for i, match in enumerate(filtered_matches):
+                try:
+                    # Vérifier que match est bien un dictionnaire
+                    if not isinstance(match, dict):
+                        continue
+                        
+                    col = cols[i % 2]  # Alternance entre les colonnes
+                    with col:
+                        # Récupérer les probabilités avec des valeurs par défaut
+                        prob_1 = float(match.get('home_prob', 0.33))
+                        prob_x = float(match.get('draw_prob', 0.33))
+                        prob_2 = float(match.get('away_prob', 0.33))
+                        
+                        # Déterminer automatiquement la classe CSS basée sur la probabilité
+                        home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
+                        draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
+                        away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
+                        
+                        # Garantir que le code pays est valide
+                        country_code = str(match.get('country_code', 'fr')).lower()
+                        
+                        # Récupérer l'heure du match de façon sécurisée
+                        match_time = match.get('time', match.get('kickoff_time', '??:??'))
+                        
+                        # Récupérer les noms d'équipe de façon sécurisée
+                        home_team = match.get('home', match.get('home_team', '?'))
+                        away_team = match.get('away', match.get('away_team', '?'))
+                        
+                        # Récupérer le nom de la ligue de façon sécurisée
+                        league_name = match.get('league', '')
+                        
+                        st.markdown(f"""
+                        <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                                <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                                {league_name} • {match_time}
                             </div>
-                            <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
-                                <div>X</div>
-                                <div>{int(prob_x * 100)}%</div>
+                            <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                                {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
                             </div>
-                            <div class="prob-{away_class}" style="text-align: center; flex: 1;">
-                                <div>2</div>
-                                <div>{int(prob_2 * 100)}%</div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                <div class="prob-{home_class}" style="text-align: center; flex: 1;">
+                                    <div>1</div>
+                                    <div>{int(prob_1 * 100)}%</div>
+                                </div>
+                                <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
+                                    <div>X</div>
+                                    <div>{int(prob_x * 100)}%</div>
+                                </div>
+                                <div class="prob-{away_class}" style="text-align: center; flex: 1;">
+                                    <div>2</div>
+                                    <div>{int(prob_2 * 100)}%</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Erreur lors de l'affichage d'un match: {e}")
+                        """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Erreur lors de l'affichage d'un match: {str(e)}")
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
