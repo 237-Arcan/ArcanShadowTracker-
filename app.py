@@ -159,7 +159,8 @@ tabs = st.tabs([
     "🔔 Performance Notifications", 
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
-    "🎲 Scores probables"
+    "🧠 Système d'Apprentissage",
+    f"📬 Notifications ({st.session_state.notification_count})"
 ])
 
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
@@ -600,13 +601,11 @@ with tabs[1]:  # Prédictions
     
     # Créer des statistiques pour les modules qui ont contribué à la prédiction
     contributing_modules = [
-        {"name": "ArcanX", "confidence": 0.92, "weight": 0.28, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
-        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.18, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
-        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.12, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
+        {"name": "ArcanX", "confidence": 0.92, "weight": 0.35, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
+        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.25, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
+        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.15, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
         {"name": "NumeriCode", "confidence": 0.87, "weight": 0.10, "key_insights": "Concordance numérique: date du match (17) + patron tactique (4-3-3)"},
-        {"name": "GematriaOracle", "confidence": 0.85, "weight": 0.12, "key_insights": "Signature numérique 𝌡 correspondance exacte entre Liverpool (valeur simple: 98) et date du match"},
-        {"name": "PredictiveForge", "confidence": 0.91, "weight": 0.15, "key_insights": "Modèle XGBoost prédit victoire avec 91% de confiance, score probable 2-0"},
-        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.05, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
+        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.15, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
     ]
     
     # Créer un dataframe pour les modules contributeurs
@@ -677,108 +676,28 @@ with tabs[1]:  # Prédictions
         </div>
         """, unsafe_allow_html=True)
     
-    # Analyses avancées
-    st.markdown("### 🔍 Analyses Avancées")
+    # Narratif de la prédiction
+    st.markdown("### 📜 Narratif de la prédiction")
     
-    # Narratif
-    st.markdown("#### 📜 Narratif de l'analyse")
-    
-    narratif_container = st.container()
-    with narratif_container:
-        st.info("""
-        L'analyse des cycles karmiques révèle un alignement favorable pour **Liverpool** qui entre dans une phase ascendante
-        après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
-        avec Jupiter en transit dans la maison de la victoire.
-        
-        L'analyse **NumeriCode** détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
-        créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
-        
-        Les cotes actuelles sous-évaluent le potentiel de Liverpool de **0.22 points**, créant une opportunité
-        de value bet selon le module **ShadowOdds**. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
-        
-        **Conclusion:** La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
-        suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
-        """)
-    
-    # Analyse Gematria & Prédictions XGBoost
-    st.markdown("#### 🔢 Analyses avancées GematriaOracle & PredictiveForge")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("🔢 Analyse Gematria")
-        
-        # Créer un conteneur stylisé pour l'analyse Gematria
-        gematria_container = st.container()
-        with gematria_container:
-            st.markdown("##### Résonances Numériques")
-            
-            # Tableau de données Gematria
-            df_gematria = pd.DataFrame({
-                "Équipe/Élément": ["Liverpool", "Arsenal", "Date"],
-                "Valeur Simple": ["98", "76", "17/05/2025"],
-                "Valeur Réduite": ["8", "4", "11"]
-            })
-            st.dataframe(df_gematria, hide_index=True)
-            
-            st.markdown("##### Correspondances")
-            st.markdown("""
-            - Correspondance exacte: Liverpool (98) et date du match (17+05+20+25 = 67 → 6+7 = 13 → 1+3 = 4)
-            - Valeur 8 (Liverpool réduit) = pouvoir et abondance, victoire
-            - Résonance temporelle: Jour favorable pour Liverpool
-            """)
-            
-            st.markdown("##### Conclusion Gematria")
-            st.success("""
-            Les alignements numériques révèlent un avantage numérique substantiel pour Liverpool.
-            La date du match amplifie les qualités associées au nombre 8 (pouvoir, accomplissement),
-            créant un environnement favorable pour Liverpool.
-            """)
-    
-    with col2:
-        st.subheader("📊 Prédictions XGBoost")
-        
-        # Créer un conteneur stylisé pour les prédictions XGBoost
-        xgboost_container = st.container()
-        with xgboost_container:
-            st.markdown("##### Prédiction de Résultat")
-            
-            # Informations de prédiction
-            col_pred1, col_pred2 = st.columns(2)
-            with col_pred1:
-                st.metric(label="Prédiction", value="Victoire Liverpool")
-            with col_pred2:
-                st.metric(label="Confiance", value="91%")
-            
-            st.markdown("##### Probabilités détaillées")
-            
-            # Données de probabilité
-            proba_data = {"Résultat": ["Victoire Liverpool", "Match nul", "Victoire Arsenal"],
-                         "Probabilité": [0.91, 0.06, 0.03]}
-            df_proba = pd.DataFrame(proba_data)
-            
-            # Graphique à barres pour les probabilités
-            fig = px.bar(df_proba, y="Résultat", x="Probabilité", orientation='h',
-                        color="Probabilité", 
-                        color_continuous_scale=["#ff3364", "#ffbe41", "#01ff80"])
-            fig.update_layout(height=150, margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.markdown("##### Prédiction de Score")
-            st.markdown("""
-            <div style="text-align: center; font-size: 24px; font-weight: bold; margin: 10px 0;">
-                Liverpool 2 - 0 Arsenal
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.caption("Autres scores probables: 2-1 (18%), 1-0 (15%), 3-1 (10%)")
-            
-            st.markdown("##### Facteurs clés")
-            st.markdown("""
-            - Forme récente de Liverpool (5 victoires consécutives)
-            - Avantage du terrain (13 victoires sur 16 matchs à domicile)
-            - Historique des confrontations directes favorable
-            """)
+    st.markdown("""
+    <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
+                border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
+        <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
+            L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
+            après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
+            avec Jupiter en transit dans la maison de la victoire.
+            <br><br>
+            L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
+            créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
+            <br><br>
+            Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
+            de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
+            <br><br>
+            <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
+            suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
 with tabs[2]:  # Performance Notifications
     st.markdown("## 🔔 Notifications de Performance")
@@ -816,117 +735,11 @@ with tabs[2]:  # Performance Notifications
     df_performance = pd.DataFrame(performance_data)
     st.dataframe(df_performance, use_container_width=True)
     
-    # Analyse comparative
-    st.markdown("### 📊 Analyse Comparative (Prédictions vs Résultats)")
-    st.markdown("Comparaison entre les prédictions pré-match, les analyses en direct d'ArcanSentinel et les statistiques officielles.")
-    
-    # Sélection du match
-    match_options = ["Liverpool vs Arsenal (17/05/2025)", 
-                     "PSG vs Lyon (16/05/2025)",
-                     "Bayern Munich vs Dortmund (15/05/2025)",
-                     "Real Madrid vs Barcelona (14/05/2025)",
-                     "Inter Milan vs Juventus (13/05/2025)"]
-    
-    selected_match = st.selectbox("Sélectionner un match pour l'analyse comparative:", match_options)
-    
-    # Affichage de l'analyse comparative avec des composants Streamlit natifs
-    st.subheader("Analyse Comparative : Liverpool vs Arsenal")
-    
-    # Créer un DataFrame pour les données d'analyse comparative
-    metrics = ["Résultat", "Score", "Possession", "Tirs cadrés", "Corners", "Cartons jaunes", "Buteurs"]
-    
-    pre_match = [
-        "✅ Victoire Liverpool", 
-        "🟨 2-0", 
-        "✅ Liverpool 58%", 
-        "🟨 7-3", 
-        "❌ 4-2", 
-        "🟨 2-3", 
-        "🟨 Salah, Jota"
-    ]
-    
-    sentinel = [
-        "✅ Victoire Liverpool", 
-        "✅ 2-1", 
-        "✅ Liverpool 62%", 
-        "✅ 8-4", 
-        "🟨 5-4", 
-        "✅ 3-2", 
-        "✅ Salah, Diaz | Saka"
-    ]
-    
-    official = [
-        "Victoire Liverpool", 
-        "2-1", 
-        "Liverpool 61%", 
-        "8-4", 
-        "7-3", 
-        "3-2", 
-        "Salah, Diaz | Saka"
-    ]
-    
-    # Créer le DataFrame
-    df_match = pd.DataFrame({
-        "Métrique": metrics,
-        "Prédiction Pré-Match": pre_match,
-        "Analyse ArcanSentinel": sentinel,
-        "Résultat Officiel": official
-    })
-    
-    # Afficher le tableau stylisé
-    st.dataframe(df_match, hide_index=True, use_container_width=True)
-    
-    # Synthèse de l'analyse comparative
-    st.success("""
-    ### Synthèse de l'Analyse Comparative
-    
-    **Précision de la prédiction pré-match:** 71% (5/7 métriques correctes ou partiellement correctes)
-    
-    **Précision d'ArcanSentinel en direct:** 93% (6/7 métriques correctes, 1 partiellement correcte)
-    
-    **Modules les plus précis:** GematriaOracle (prédiction de victoire), PredictiveForge (tendances statistiques), ArcanSentinel (analyse en temps réel)
-    """)
-    
-    st.caption("Match terminé | Dernière mise à jour: 17/05/2025 22:15")
-    
-    # Insights d'amélioration
-    st.markdown("### 🔍 Insights d'Amélioration")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        <div style="padding: 15px; border-radius: 10px; background: rgba(1, 255, 128, 0.05); 
-                  border: 1px solid rgba(1, 255, 128, 0.2); height: 100%;">
-            <h5 style="color: #01ff80; margin-top: 0;">Points forts du système</h5>
-            <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
-                <li><b>Prédiction des résultats:</b> Précision élevée (89%) sur les 50 derniers matchs</li>
-                <li><b>Analyse en direct:</b> ArcanSentinel identifie avec succès les changements de tendance (93%)</li>
-                <li><b>Statistiques de possession:</b> Erreur moyenne de seulement 3.2%</li>
-                <li><b>Nouvelles intégrations:</b> GematriaOracle et PredictiveForge améliorent la précision de +7.5%</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div style="padding: 15px; border-radius: 10px; background: rgba(255, 56, 96, 0.05); 
-                  border: 1px solid rgba(255, 56, 96, 0.2); height: 100%;">
-            <h5 style="color: #ff3860; margin-top: 0;">Axes d'amélioration</h5>
-            <ul style="color: rgba(255, 255, 255, 0.8); padding-left: 20px;">
-                <li><b>Prédictions de corners:</b> Écart moyen de 37% - Module NumeriCode à recalibrer</li>
-                <li><b>Identification des buteurs:</b> Précision de 68% - Besoin d'intégrer plus de données historiques</li>
-                <li><b>Score exact:</b> Précision actuelle de 41% - PredictiveForge nécessite plus d'entraînement</li>
-                <li><b>Module KarmicFlow+:</b> Performance sous-optimale (71%) - Requiert une recalibration</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
     # Graphique de performance des modules
     st.markdown("### 🧩 Performance des Modules Prédictifs")
     
     modules = ["ArcanX", "ShadowOdds", "NumeriCode", "KarmicFlow+", "AstroImpact", 
-               "EchoPath", "TarotEcho", "ShadowOdds+", "GematriaOracle", "PredictiveForge", "MetaSystems"]
+               "EchoPath", "TarotEcho", "ShadowOdds+", "MetaSystems"]
     accuracy = [np.random.uniform(0.65, 0.92) for _ in modules]
     sample_size = [np.random.randint(50, 300) for _ in modules]
     
@@ -1124,329 +937,6 @@ with tabs[4]:  # Smart Market Recommendations
     # Tableau de bord des opportunités
     st.markdown("### 💎 Opportunités Détectées")
     
-with tabs[5]:  # Scores probables
-    st.markdown("## 🎲 Scores probables")
-    st.markdown("Prédictions avancées de scores les plus probables grâce à l'écosystème ScoreForge et ses modules d'optimisation.")
-    
-    # En-tête avec métrique de performance
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(label="Précision ScoreMatrix", value="76.4%", delta="+4.2%")
-    with col2:
-        st.metric(label="Taux de réussite Score Exact", value="21.8%", delta="+3.5%")
-    with col3:
-        st.metric(label="Performance Buteurs", value="63.2%", delta="+2.1%")
-    with col4:
-        st.metric(label="Matchs Analysés", value="3,249", delta="+47")
-    
-    # Sélection de match pour l'analyse de score
-    st.markdown("### 🎯 Analyse détaillée des scores probables")
-    
-    # Filtres pour les matchs
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        selected_competition = st.selectbox("Compétition", ["Premier League", "Ligue 1", "LaLiga", "Bundesliga", "Serie A"], key="score_competition")
-    with col2:
-        selected_match_date = st.date_input("Date du match", value=datetime.now())
-    with col3:
-        selected_match_score = st.selectbox("Match", 
-            ["Liverpool vs Arsenal", "Man City vs Chelsea", "PSG vs Lyon", "Real Madrid vs Barcelona", "Bayern Munich vs Dortmund"],
-            key="score_match")
-    
-    # Afficher les modules qui contribuent à l'analyse
-    st.markdown("### 🧠 Modules d'analyse des scores")
-    
-    # Section des modules
-    modules_col1, modules_col2 = st.columns(2)
-    
-    with modules_col1:
-        st.markdown("#### 🔍 Module principal: ScoreForge")
-        
-        # Créer un tableau d'informations sur les sous-modules
-        core_modules = {
-            "Sous-module": ["PatternsCore", "FormationImpact", "XGoalRefiner"],
-            "Fonction": ["Analyse des séquences récurrentes de scores", "Influence des formations tactiques", "Affinage des xG situationnels"],
-            "Confiance": ["89.2%", "82.7%", "91.5%"]
-        }
-        
-        df_core = pd.DataFrame(core_modules)
-        st.dataframe(df_core, hide_index=True, use_container_width=True)
-        
-        # Explication du module principal
-        st.info("""
-        **ScoreForge** analyse en profondeur les tendances historiques de scores, les formations tactiques 
-        et les statistiques avancées pour générer des prédictions de scores précises.
-        
-        Le modèle utilise l'historique des 3 dernières saisons avec une pondération plus forte pour 
-        les matchs récents et les confrontations directes.
-        """)
-    
-    with modules_col2:
-        st.markdown("#### 📊 Module de soutien: TrendAnalyzer")
-        
-        # Créer un tableau d'informations sur les sous-modules de support
-        support_modules = {
-            "Sous-module": ["SeasonalWeight", "MatchflowPredictor", "DefenseVulnerability"],
-            "Fonction": ["Ajustement saisonnier", "Prédiction du déroulement", "Analyse des faiblesses défensives"],
-            "Confiance": ["78.4%", "85.1%", "87.2%"]
-        }
-        
-        df_support = pd.DataFrame(support_modules)
-        st.dataframe(df_support, hide_index=True, use_container_width=True)
-        
-        # Explication du module de soutien
-        st.info("""
-        **TrendAnalyzer** contextualise les prédictions en tenant compte de la période de la saison, 
-        des schémas de déroulement des matchs et des vulnérabilités défensives spécifiques.
-        
-        Cette analyse situationnelle permet d'affiner les prédictions brutes et d'identifier 
-        les scénarios de match les plus probables.
-        """)
-    
-    # Résultats de prédiction de score
-    st.markdown("### 📈 Distribution des scores probables")
-    
-    # Création de données simulées pour la heatmap des scores
-    home_goals = [0, 1, 2, 3, 4]
-    away_goals = [0, 1, 2, 3, 4]
-    
-    # Probabilités pour chaque combinaison de score
-    probabilities = [
-        [0.07, 0.09, 0.05, 0.02, 0.01],
-        [0.12, 0.15, 0.08, 0.03, 0.01],
-        [0.10, 0.09, 0.05, 0.02, 0.01],
-        [0.04, 0.03, 0.02, 0.01, 0.00],
-        [0.01, 0.01, 0.00, 0.00, 0.00]
-    ]
-    
-    # Créer la heatmap
-    fig = go.Figure(data=go.Heatmap(
-        z=probabilities,
-        x=away_goals,
-        y=home_goals,
-        colorscale=[[0, "#080f28"], [0.3, "#7000ff"], [0.6, "#ffbe41"], [1, "#01ff80"]],
-        showscale=True,
-        text=[[f"{prob*100:.1f}%" for prob in row] for row in probabilities],
-        texttemplate="%{text}",
-        textfont={"color":"white"}
-    ))
-    
-    # Configurer la mise en page
-    fig.update_layout(
-        title="Probabilités des scores pour Liverpool vs Arsenal",
-        xaxis_title="Buts Arsenal",
-        yaxis_title="Buts Liverpool",
-        xaxis=dict(tickmode="array", tickvals=away_goals),
-        yaxis=dict(tickmode="array", tickvals=home_goals, autorange="reversed"),
-        height=400,
-        margin=dict(l=60, r=50, b=50, t=50),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white")
-    )
-    
-    # Afficher la heatmap
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Scores les plus probables
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 🥇 Top 5 des scores les plus probables")
-        
-        top_scores = {
-            "Score": ["2-1", "2-0", "1-0", "1-1", "3-1"],
-            "Probabilité": ["15.0%", "12.0%", "10.0%", "9.0%", "8.0%"],
-            "Modules favorables": ["PatternsCore, XGoalRefiner", "FormationImpact, DefenseVulnerability", 
-                               "SeasonalWeight, DefenseVulnerability", "MatchflowPredictor", "PatternsCore"]
-        }
-        
-        df_top_scores = pd.DataFrame(top_scores)
-        st.dataframe(df_top_scores, hide_index=True, use_container_width=True)
-        
-    with col2:
-        st.markdown("#### 🎯 Prédictions de buteurs")
-        
-        goal_scorers = {
-            "Joueur": ["Salah", "Diaz", "Jota", "Saka", "Havertz"],
-            "Équipe": ["Liverpool", "Liverpool", "Liverpool", "Arsenal", "Arsenal"],
-            "Probabilité de marquer": ["65%", "42%", "38%", "31%", "27%"],
-        }
-        
-        df_scorers = pd.DataFrame(goal_scorers)
-        st.dataframe(df_scorers, hide_index=True, use_container_width=True)
-    
-    # Intégration avec d'autres modules
-    st.markdown("### 🔗 Intégrations avec l'écosystème ArcanShadow")
-    
-    integration_col1, integration_col2, integration_col3 = st.columns(3)
-    
-    with integration_col1:
-        st.markdown("#### 🧠 ArcanBrain")
-        st.markdown("""
-        - Coordination des prédictions
-        - Calibration des poids algorithmiques
-        - Rétroaction basée sur les résultats
-        """)
-        
-        precision = 86
-        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
-        
-    with integration_col2:
-        st.markdown("#### 🔢 GematriaOracle")
-        st.markdown("""
-        - Analyse numérique des scores
-        - Résonances et correspondances
-        - Influence numérologique sur les scores
-        """)
-        
-        precision = 73
-        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
-        
-    with integration_col3:
-        st.markdown("#### 📊 PredictiveForge")
-        st.markdown("""
-        - Prédictions XGBoost
-        - Analyse des caractéristiques
-        - Optimisation du modèle
-        """)
-        
-        precision = 91
-        st.progress(precision/100, text=f"Précision d'intégration: {precision}%")
-    
-with tabs[6]:  # Système d'Apprentissage
-    st.markdown("## 🧠 Système d'Apprentissage")
-    st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
-    
-    # État du système ArcanReflex/ArcanBrain
-    st.markdown("### 🔍 État du système ArcanReflex/ArcanBrain")
-    
-    # Afficher les métriques système
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(label="Stabilité", value="98%", delta="+1.7%")
-    with col2:
-        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
-    with col3:
-        st.metric(label="Adaptation", value="91%", delta="+2.8%")
-    with col4:
-        st.metric(label="Précision", value="87%", delta="+3.5%")
-    
-    # Visualisation des connexions entre modules
-    st.markdown("### 🌐 Réseau Neural ArcanBrain")
-    
-    # Créer un réseau de modules en apprentissage
-    nodes = [
-        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
-        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
-    ]
-    
-    connections = []
-    for i in range(len(nodes)):
-        for j in range(i+1, len(nodes)):
-            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
-                connections.append((i, j, np.random.uniform(0.1, 1.0)))
-    
-    # Préparer les données pour le graphique
-    edge_x = []
-    edge_y = []
-    edge_weights = []
-    
-    # Créer une disposition circulaire pour les nœuds
-    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
-    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
-    
-    for src, dst, weight in connections:
-        edge_x.extend([node_x[src], node_x[dst], None])
-        edge_y.extend([node_y[src], node_y[dst], None])
-        edge_weights.append(weight)
-    
-    # Créer le graphique
-    fig = go.Figure()
-    
-    # Ajouter les liens
-    for i in range(0, len(edge_x), 3):
-        opacity = min(1, edge_weights[i//3] * 2)
-        width = 1 + 3 * edge_weights[i//3]
-        fig.add_trace(go.Scatter(
-            x=edge_x[i:i+3], y=edge_y[i:i+3],
-            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
-            hoverinfo='none',
-            mode='lines'
-        ))
-    
-    # Ajouter les nœuds
-    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
-                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
-    
-    
-with tabs[7]:  # Notifications
-    st.markdown("## 📬 Centre de Notifications")
-    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
-    
-    # Structure pour gérer les notifications
-    if 'notifications' not in st.session_state:
-        st.session_state.notifications = [
-            {
-                "id": 1,
-                "type": "recalibration",
-                "title": "Recalibration automatique de ArcanX",
-                "message": "ArcanBrain a détecté une dérive de performance d'ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
-                "timestamp": "2025-05-17 09:14:32",
-                "read": False,
-                "priority": "medium"
-            },
-            {
-                "id": 2,
-                "type": "pattern",
-                "title": "Nouveau pattern détecté par ArcanReflex",
-                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
-                "timestamp": "2025-05-16 21:03:47",
-                "read": False,
-                "priority": "high"
-            },
-            {
-                "id": 3,
-                "type": "sentinel",
-                "title": "Analyse en direct PSG vs Lyon",
-                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
-                "timestamp": "2025-05-16 15:37:21",
-                "read": False,
-                "priority": "urgent"
-            },
-            {
-                "id": 4,
-                "type": "module",
-                "title": "Nouveau module recommandé par D-forge",
-                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
-                "timestamp": "2025-05-15 16:42:10",
-                "read": False,
-                "priority": "low"
-            }
-        ]
-    
-    # Filtres de notifications
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        priority_filter = st.multiselect(
-            "Priorité", 
-            ["urgent", "high", "medium", "low"],
-            default=["urgent", "high", "medium", "low"]
-        )
-    with col2:
-        type_filter = st.multiselect(
-            "Type", 
-            ["recalibration", "pattern", "sentinel", "module"],
-            default=["recalibration", "pattern", "sentinel", "module"]
-        )
-    
-    # Affichage des notifications
-    st.markdown("### 📨 Dernières Notifications")
-    
-    # Filtrage des notifications
-    filtered_notifications = [n for n in st.session_state.notifications 
-                             if n["priority"] in priority_filter and n["type"] in type_filter]
-    
     # Créer un tableau d'anomalies de cotes
     anomalies = [
         {
@@ -1607,14 +1097,156 @@ with tabs[7]:  # Notifications
 with tabs[5]:  # Système d'Apprentissage
     st.markdown("## 🧠 Système d'Apprentissage")
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
+
+# Nouvel onglet Notifications
+with tabs[6]:  # Notifications
+    st.markdown("## 📬 Centre de Notifications")
+    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
     
-    # État du système ArcanReflex/ArcanBrain
-    st.markdown("### 🔍 État du système ArcanReflex/ArcanBrain")
+    # Structure pour gérer les notifications
+    if 'notifications' not in st.session_state:
+        st.session_state.notifications = [
+            {
+                "id": 1,
+                "type": "recalibration",
+                "title": "Recalibration automatique de ArcanX",
+                "message": "ArcanBrain a détecté une dérive de performance de 3.7% sur ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
+                "timestamp": "2025-05-17 09:14:32",
+                "read": False,
+                "priority": "medium"
+            },
+            {
+                "id": 2,
+                "type": "pattern",
+                "title": "Nouveau pattern détecté par ArcanReflex",
+                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
+                "timestamp": "2025-05-16 21:03:47",
+                "read": False,
+                "priority": "high"
+            },
+            {
+                "id": 3,
+                "type": "sentinel",
+                "title": "Analyse en direct PSG vs Lyon",
+                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
+                "timestamp": "2025-05-16 15:37:21",
+                "read": False,
+                "priority": "urgent"
+            },
+            {
+                "id": 4,
+                "type": "module",
+                "title": "Nouveau module recommandé par D-forge",
+                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
+                "timestamp": "2025-05-15 18:42:09",
+                "read": True,
+                "priority": "medium"
+            },
+            {
+                "id": 5,
+                "type": "performance",
+                "title": "Synthèse de performance hebdomadaire",
+                "message": "Taux de précision global: 78.3% (+2.1% vs semaine précédente). Modules les plus performants: TarotEcho (83.9%), ArcanX (81.7%), KarmicFlow+ (80.3%).",
+                "timestamp": "2025-05-15 08:00:00", 
+                "read": True,
+                "priority": "medium"
+            }
+        ]
     
-    # Afficher les métriques système
-    col1, col2, col3, col4 = st.columns(4)
+    # Filtres pour les notifications
+    col1, col2 = st.columns([1, 2])
     with col1:
-        st.metric(label="Stabilité", value="98%", delta="+1.7%")
+        filter_option = st.selectbox("Filtrer par", ["Toutes", "Non lues", "Recalibration", "Pattern", "Sentinel", "Module", "Performance"], index=0)
+    with col2:
+        sort_option = st.radio("Trier par", ["Plus récent", "Plus ancien", "Priorité"], horizontal=True)
+    
+    # Appliquer les filtres
+    filtered_notifications = st.session_state.notifications.copy()
+    if filter_option == "Non lues":
+        filtered_notifications = [n for n in filtered_notifications if not n["read"]]
+    elif filter_option != "Toutes":
+        filter_type = filter_option.lower()
+        filtered_notifications = [n for n in filtered_notifications if n["type"] == filter_type]
+    
+    # Appliquer le tri
+    if sort_option == "Plus récent":
+        filtered_notifications.sort(key=lambda x: x["timestamp"], reverse=True)
+    elif sort_option == "Plus ancien":
+        filtered_notifications.sort(key=lambda x: x["timestamp"])
+    elif sort_option == "Priorité":
+        priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
+        filtered_notifications.sort(key=lambda x: (priority_order.get(x["priority"], 4), x["timestamp"]), reverse=True)
+    
+    # Bouton pour marquer toutes les notifications comme lues
+    if st.button("Marquer toutes comme lues"):
+        for notif in st.session_state.notifications:
+            notif["read"] = True
+        st.session_state.notification_count = 0
+        st.rerun()
+    
+    # Affichage des notifications
+    st.markdown("### Notifications récentes")
+    
+    if not filtered_notifications:
+        st.info("Aucune notification ne correspond aux filtres sélectionnés.")
+    
+    for notification in filtered_notifications:
+        # Couleur basée sur le type et la priorité
+        color_map = {
+            "recalibration": "#7000ff",  # Violet
+            "pattern": "#01ff80",  # Vert
+            "sentinel": "#ff3860",  # Rouge
+            "module": "#ffbe41",  # Orange
+            "performance": "#3273dc"  # Bleu
+        }
+        
+        priority_bg = {
+            "urgent": "rgba(255, 56, 96, 0.15)",
+            "high": "rgba(255, 190, 65, 0.15)",
+            "medium": "rgba(112, 0, 255, 0.15)",
+            "low": "rgba(50, 115, 220, 0.15)"
+        }
+        
+        border_color = color_map.get(notification["type"], "#3273dc")
+        bg_color = priority_bg.get(notification["priority"], "rgba(50, 115, 220, 0.15)")
+        read_marker = "" if notification["read"] else "📌 "
+        
+        st.markdown(f"""
+        <div style="border-left: 4px solid {border_color}; background: {bg_color}; 
+                  border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: bold; font-size: 16px; color: white;">
+                    {read_marker}{notification["title"]}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">
+                    {notification["timestamp"]}
+                </div>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 8px 0;">
+                {notification["message"]}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Option pour marquer une notification comme lue
+        if not notification["read"]:
+            if st.button(f"Marquer comme lu #{notification['id']}", key=f"mark_read_{notification['id']}"):
+                for notif in st.session_state.notifications:
+                    if notif["id"] == notification["id"]:
+                        notif["read"] = True
+                        break
+                
+                # Mettre à jour le compteur de notifications
+                st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
+                st.rerun()
+    
+    # Vue d'ensemble du système
+    st.markdown("### 🔄 État du Système ArcanReflex")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(label="Modules Actifs", value="14/16", delta="+1")
     with col2:
         st.metric(label="Apprentissage", value="73%", delta="+5.2%")
     with col3:
@@ -1773,6 +1405,7 @@ with tabs[5]:  # Système d'Apprentissage
     # Interface de recalibration avec structure HTML corrigée
     st.markdown("""
     <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
+        <!-- En-tête avec statut -->
         <div style="margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
@@ -1782,40 +1415,34 @@ with tabs[5]:  # Système d'Apprentissage
                 </div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
-    
-    # Description avec structure HTML séparée
-    st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
-            ArcanBrain surveille en permanence les performances du système et procède automatiquement
-            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
-            Les processus de recalibration sont entièrement gérés par l'intelligence système.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Modes de recalibration avec structure HTML séparée
-    st.markdown("""
-    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-        <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
-            Modes de recalibration automatiques:
+        
+        <!-- Description -->
+        <div style="margin-bottom: 15px;">
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
+                ArcanBrain surveille en permanence les performances du système et procède automatiquement
+                à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+                Les processus de recalibration sont entièrement gérés par l'intelligence système.
+            </p>
         </div>
-        <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
-            • <b>Standard:</b> Recalibration basique sur les dernières données<br>
-            • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
-            • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
-            • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
+        
+        <!-- Modes de recalibration -->
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
+                Modes de recalibration automatiques:
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
+                • <b>Standard:</b> Recalibration basique sur les dernières données<br>
+                • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
+                • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
+                • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Informations système avec structure HTML séparée
-    st.markdown("""
-    <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
-        <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
-        <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
-    </div>
+        
+        <!-- Informations système -->
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
+            <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
+            <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1830,248 +1457,190 @@ with tabs[5]:  # Système d'Apprentissage
     with col3:
         st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
-    # Section d'analyse avancée
-    st.markdown("### 🔬 Analyses Avancées et Métriques")
     
-    st.markdown("""
-    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
-              border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
-        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
-            Analyses profondes du système
-        </div>
-        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
-            Cette section présente des analyses avancées sur les performances et le comportement du système ArcanShadow.
-            Les métriques et visualisations sont mises à jour en temps réel pour offrir un aperçu complet de l'état du système.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Affichage des visualisations avancées
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📈 Performance des modules")
-        
-        # Données de performances simulées
-        module_performance = {
-            "ArcanX": 92.7,
-            "ShadowOdds": 88.5,
-            "TarotEcho": 94.1,
-            "KarmicFlow+": 90.2,
-            "MetaSystems": 85.9
-        }
-        
-        # Visualiser les performances
-        fig = go.Figure()
-        
-        # Ajouter les barres
-        fig.add_trace(go.Bar(
-            x=list(module_performance.keys()),
-            y=list(module_performance.values()),
-            marker_color=['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364'],
-            text=[f"{val}%" for val in module_performance.values()],
-            textposition='auto'
-        ))
-        
-        # Mise en forme du graphique
-        fig.update_layout(
-            title="Précision des modules principaux",
-            yaxis=dict(title="Précision (%)"),
-            template="plotly_dark",
-            plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=10, r=10, b=50, t=40),
-            height=300
-        )
-        
-        # Rendre le graphique statique
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
-    
-    with col2:
-        st.markdown("#### 🔄 Évolution de la performance")
-        
-        # Données d'évolution simulées
-        dates = ["13/05", "14/05", "15/05", "16/05", "17/05", "18/05"]
-        evolution = [78.3, 80.1, 82.5, 85.2, 87.6, 89.4]
-        
-        # Créer le graphique avec plotly
-        fig = go.Figure()
-        
-        # Ajouter la ligne principale
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=evolution,
-            mode='lines+markers',
-            line=dict(color='#01ff80', width=2),
-            marker=dict(size=8, color='#01ff80')
-        ))
-        
-        # Mise en forme du graphique
-        fig.update_layout(
-            title="Évolution de la précision globale",
-            yaxis=dict(title="Précision (%)"),
-            template="plotly_dark",
-            plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=10, r=10, b=50, t=40),
-            height=300
-        )
-        
-        # Rendre le graphique statique
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
-
-# Nouvel onglet Notifications
-with tabs[6]:  # Notifications
-    st.markdown("## 📬 Centre de Notifications")
-    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
-    
-    # Structure pour gérer les notifications
-    if 'notifications' not in st.session_state:
-        st.session_state.notifications = [
-            {
-                "id": 1,
-                "type": "recalibration",
-                "title": "Recalibration automatique de ArcanX",
-                "message": "ArcanBrain a détecté une dérive de performance de 3.7% sur ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
-                "timestamp": "2025-05-17 09:14:32",
-                "read": False,
-                "priority": "medium"
-            },
-            {
-                "id": 2,
-                "type": "pattern",
-                "title": "Nouveau pattern détecté par ArcanReflex",
-                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
-                "timestamp": "2025-05-16 21:03:47",
-                "read": False,
-                "priority": "high"
-            },
-            {
-                "id": 3,
-                "type": "sentinel",
-                "title": "Analyse en direct PSG vs Lyon",
-                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
-                "timestamp": "2025-05-16 15:37:21",
-                "read": False,
-                "priority": "urgent"
-            },
-            {
-                "id": 4,
-                "type": "module",
-                "title": "Nouveau module recommandé par D-forge",
-                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
-                "timestamp": "2025-05-15 18:42:09",
-                "read": True,
-                "priority": "medium"
-            },
-            {
-                "id": 5,
-                "type": "performance",
-                "title": "Synthèse de performance hebdomadaire",
-                "message": "Taux de précision global: 78.3% (+2.1% vs semaine précédente). Modules les plus performants: TarotEcho (83.9%), ArcanX (81.7%), KarmicFlow+ (80.3%).",
-                "timestamp": "2025-05-15 08:00:00", 
-                "read": True,
-                "priority": "medium"
-            }
+    # Structure pour les matchs en direct
+    if 'live_matches' not in st.session_state:
+        st.session_state.live_matches = [
+            {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
+            {"id": 2, "home": "Liverpool", "away": "Arsenal", "league": "Premier League", "time": "17:30", "status": "En direct", "minute": "68'", "score": "2-1"},
+            {"id": 3, "home": "Bayern Munich", "away": "Dortmund", "league": "Bundesliga", "time": "18:30", "status": "En direct", "minute": "52'", "score": "0-0"}
         ]
     
-    # Filtres pour les notifications
-    col1, col2 = st.columns([1, 2])
+    # Structure pour gérer les matchs surveillés en direct
+    if 'sentinel_monitored_live_matches' not in st.session_state:
+        st.session_state.sentinel_monitored_live_matches = []
+    
+    col1, col2 = st.columns([2, 1])
+    
     with col1:
-        filter_option = st.selectbox("Filtrer par", ["Toutes", "Non lues", "Recalibration", "Pattern", "Sentinel", "Module", "Performance"], index=0)
-    with col2:
-        sort_option = st.radio("Trier par", ["Plus récent", "Plus ancien", "Priorité"], horizontal=True)
-    
-    # Appliquer les filtres
-    filtered_notifications = st.session_state.notifications.copy()
-    if filter_option == "Non lues":
-        filtered_notifications = [n for n in filtered_notifications if not n["read"]]
-    elif filter_option != "Toutes":
-        filter_type = filter_option.lower()
-        filtered_notifications = [n for n in filtered_notifications if n["type"] == filter_type]
-    
-    # Appliquer le tri
-    if sort_option == "Plus récent":
-        filtered_notifications.sort(key=lambda x: x["timestamp"], reverse=True)
-    elif sort_option == "Plus ancien":
-        filtered_notifications.sort(key=lambda x: x["timestamp"])
-    elif sort_option == "Priorité":
-        priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
-        filtered_notifications.sort(key=lambda x: (priority_order.get(x["priority"], 4), x["timestamp"]), reverse=True)
-    
-    # Bouton pour marquer toutes les notifications comme lues
-    if st.button("Marquer toutes comme lues"):
-        for notif in st.session_state.notifications:
-            notif["read"] = True
-        st.session_state.notification_count = 0
-        st.rerun()
-    
-    # Affichage des notifications
-    st.markdown("### Notifications récentes")
-    
-    if not filtered_notifications:
-        st.info("Aucune notification ne correspond aux filtres sélectionnés.")
-    
-    for notification in filtered_notifications:
-        # Couleur basée sur le type et la priorité
-        color_map = {
-            "recalibration": "#7000ff",  # Violet
-            "pattern": "#01ff80",  # Vert
-            "sentinel": "#ff3860",  # Rouge
-            "module": "#ffbe41",  # Orange
-            "performance": "#3273dc"  # Bleu
-        }
+        # Tableau des matchs en direct disponibles
+        st.markdown("#### 🔴 Matchs actuellement en direct")
         
-        priority_bg = {
-            "urgent": "rgba(255, 56, 96, 0.15)",
-            "high": "rgba(255, 190, 65, 0.15)",
-            "medium": "rgba(112, 0, 255, 0.15)",
-            "low": "rgba(50, 115, 220, 0.15)"
-        }
-        
-        border_color = color_map.get(notification["type"], "#3273dc")
-        bg_color = priority_bg.get(notification["priority"], "rgba(50, 115, 220, 0.15)")
-        read_marker = "" if notification["read"] else "📌 "
-        
-        st.markdown(f"""
-        <div style="border-left: 4px solid {border_color}; background: {bg_color}; 
-                  border-radius: 5px; padding: 15px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-weight: bold; font-size: 16px; color: white;">
-                    {read_marker}{notification["title"]}
+        for match in st.session_state.live_matches:
+            is_monitored = any(m['id'] == match['id'] for m in st.session_state.sentinel_monitored_live_matches)
+            status_color = "#01ff80" if is_monitored else "rgba(255, 255, 255, 0.8)"
+            status_text = "🟢 Surveillé en direct" if is_monitored else "⚪ Disponible"
+            
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                      padding: 12px; border-radius: 5px; margin-bottom: 15px; 
+                      background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
+                <div>
+                    <div style="font-weight: bold; font-size: 16px; color: white;">
+                        {match['home']} {match['score']} {match['away']}
+                    </div>
+                    <div style="font-size: 13px; color: #ff3364; font-weight: bold; margin-top: 4px;">
+                        {match['minute']} • EN DIRECT
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">
+                        {match['league']}
+                    </div>
                 </div>
-                <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">
-                    {notification["timestamp"]}
+                <div style="font-size: 13px; color: {status_color};">
+                    {status_text}
                 </div>
             </div>
-            <p style="color: rgba(255, 255, 255, 0.8); margin: 8px 0;">
-                {notification["message"]}
+            """, unsafe_allow_html=True)
+            
+            # Pour chaque match, ajouter des boutons d'action
+            col_a, col_b = st.columns([3, 2])
+            with col_a:
+                if not is_monitored:
+                    if st.button(f"Activer surveillance en direct", key=f"activate_live_notif_{match['id']}"):
+                        # Configuration de surveillance
+                        surveillance_config = {
+                            "id": match['id'],
+                            "home": match['home'],
+                            "away": match['away'],
+                            "league": match['league'],
+                            "minute": match['minute'],
+                            "score": match['score'],
+                            "monitoring_level": "Maximum",  # Plus haut niveau pour les matchs en direct
+                            "modules": ["ShadowMomentum", "LineTrap", "KarmicFlow", "MirrorPhase", "BetPulse"],
+                            "activated_at": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
+                            "alert_threshold": 5  # Seuil plus bas pour être plus réactif aux matchs en direct
+                        }
+                        st.session_state.sentinel_monitored_live_matches.append(surveillance_config)
+                        
+                        # Ajouter une notification d'activation
+                        if 'notifications' in st.session_state:
+                            new_notif = {
+                                "id": len(st.session_state.notifications) + 1,
+                                "type": "sentinel",
+                                "title": f"🔴 ArcanSentinel activé en DIRECT: {match['home']} vs {match['away']}",
+                                "message": f"Surveillance instantanée lancée sur le match en direct {match['home']} vs {match['away']} ({match['minute']}). Les analyses seront envoyées en temps réel.",
+                                "timestamp": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
+                                "read": False,
+                                "priority": "urgent"
+                            }
+                            st.session_state.notifications.append(new_notif)
+                            # Mise à jour du compteur
+                            st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
+                        
+                        st.rerun()
+                else:
+                    if st.button(f"Désactiver", key=f"deactivate_live_{match['id']}"):
+                        st.session_state.sentinel_monitored_live_matches = [m for m in st.session_state.sentinel_monitored_live_matches if m['id'] != match['id']]
+                        st.rerun()
+    
+    with col2:
+        st.markdown("#### Configuration pour l'analyse en direct")
+        
+        st.markdown("""
+        <div style="border: 1px solid rgba(255, 51, 100, 0.3); border-radius: 10px; padding: 15px; background: rgba(255, 51, 100, 0.05);">
+            <h4 style="color: #ff3364; margin-top: 0;">Surveillance en Direct</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                ArcanSentinel analyse en temps réel:
             </p>
+            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                <li>Les changements instantanés de dynamique de jeu</li>
+                <li>Les réactions immédiates des cotes en direct</li>
+                <li>Les patterns d'énergie pendant le match</li>
+                <li>Les moments critiques avec forte probabilité de but</li>
+                <li>Les opportunités de paris optimales en live</li>
+            </ul>
         </div>
         """, unsafe_allow_html=True)
         
-        # Option pour marquer une notification comme lue
-        if not notification["read"]:
-            if st.button(f"Marquer comme lu #{notification['id']}", key=f"mark_read_{notification['id']}"):
-                for notif in st.session_state.notifications:
-                    if notif["id"] == notification["id"]:
-                        notif["read"] = True
-                        break
+        # Affichage des matchs surveillés en direct
+        if st.session_state.sentinel_monitored_live_matches:
+            st.markdown("#### Matchs en direct sous surveillance")
+            for match in st.session_state.sentinel_monitored_live_matches:
+                # Simuler une progression du match
+                current_minute = match.get('minute', "??'")
+                if "'" in current_minute:
+                    minute_num = int(current_minute.replace("'", ""))
+                    minute_num += 3  # Avancer de quelques minutes
+                    current_minute = f"{minute_num}'"
                 
-                # Mettre à jour le compteur de notifications
-                st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
-                st.rerun()
+                st.markdown(f"""
+                <div style="background: rgba(255, 51, 100, 0.15); border: 1px solid rgba(255, 51, 100, 0.3); 
+                          border-radius: 5px; padding: 15px; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-weight: bold; color: white;">
+                            {match['home']} {match['score']} {match['away']}
+                        </div>
+                        <div style="color: #ff3364; font-weight: bold; font-size: 14px;">
+                            {current_minute}
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                        <span style="color: #01ff80;">●</span> Analyse en direct active
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 5px;">
+                        5 modules actifs • Seuil d'alerte: {match.get('alert_threshold', 5)}/10
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Information sur le traitement automatique
+            st.markdown("""
+            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); border-left: 2px solid #ff3364; 
+                      padding-left: 10px; margin-top: 15px;">
+                Les insights détectés en direct sont automatiquement envoyés à l'onglet Notifications.
+                <br><br>
+                Les patterns détectés par ArcanSentinel sont transmis à D-forge pour analyse 
+                et développement potentiel de nouveaux modules.
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("Aucun match en direct sous surveillance. Activez ArcanSentinel sur un match en cours pour recevoir des insights en temps réel.")
     
-    # Informations sur le système de notifications
-    st.markdown("""
-    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
-              border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
-        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
-            Système de Notifications ArcanShadow
+    # Affichage des indicateurs en temps réel si au moins un match est surveillé
+    if st.session_state.sentinel_monitored_live_matches:
+        st.markdown("### 🔄 Indicateurs ArcanSentinel en temps réel")
+        
+        # Prendre le premier match surveillé pour afficher des données
+        active_match = st.session_state.sentinel_monitored_live_matches[0]
+        
+        st.markdown(f"""
+        <div style="padding: 12px; border-radius: 8px; margin-bottom: 15px; 
+                    background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
+            <div style="font-weight: bold; font-size: 18px; color: white; margin-bottom: 8px;">
+                {active_match['home']} {active_match['score']} {active_match['away']} • {active_match['minute']}
+            </div>
+            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                <span style="color: #ff3364; font-weight: bold;">ANALYSE EN DIRECT</span> • {active_match['league']}
+            </div>
         </div>
-        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
-            Le système de notifications centralise toutes les alertes importantes générées par les modules ArcanShadow.
-            Les recalibrations automatiques par ArcanBrain, les nouveaux patterns détectés par ArcanReflex, les alertes 
-            d'ArcanSentinel et les suggestions de D-forge sont toutes affichées ici.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
+        """, unsafe_allow_html=True)
+        
+        # Surveillance simulée
+        sentinel_metrics = [
+            {"name": "Momentum", "value": 72, "delta": "+3", "color": "#01ff80"},
+            {"name": "Variance de cote", "value": 0.18, "delta": "-0.05", "color": "#ffbe41"}, 
+            {"name": "Pression collective", "value": 64, "delta": "+8", "color": "#01ff80"},
+            {"name": "Cycle karmique", "value": 88, "delta": "+2", "color": "#01ff80"},
+            {"name": "Anomalie structurelle", "value": 22, "delta": "-4", "color": "#ff3364"}
+        ]
+        
+        cols = st.columns(len(sentinel_metrics))
+        for i, metric in enumerate(sentinel_metrics):
+            with cols[i]:
+                st.markdown(f"""
+                <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">{metric['name']}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: {metric['color']};">{metric['value']}</div>
+                    <div style="font-size: 12px; color: {metric['color']};">{metric['delta']}</div>
+                </div>
+                """, unsafe_allow_html=True)
