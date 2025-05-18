@@ -328,12 +328,11 @@ def analyze_match(match, all_matches):
         }
     }
     
-    # Déterminer la prédiction principale
-    max_prob = max(meta_home, meta_draw, meta_away)
-    if max_prob == meta_home:
+    # Déterminer la prédiction principale en comparant les probabilités
+    if meta_home >= meta_draw and meta_home >= meta_away:
         match_analysis['main_prediction'] = f"Victoire de {home_team}"
         match_analysis['main_odds'] = home_odds
-    elif max_prob == meta_draw:
+    elif meta_draw >= meta_home and meta_draw >= meta_away:
         match_analysis['main_prediction'] = "Match nul"
         match_analysis['main_odds'] = draw_odds
     else:
@@ -391,7 +390,7 @@ def generate_prediction_narrative(analysis):
     else:
         h2h_desc = "Il n'y a pas suffisamment d'historique de confrontations directes entre ces équipes."
     
-    # Module avec l'impact le plus fort
+    # Module avec l'impact le plus fort (utiliser une méthode manuelle pour trouver le max)
     modules_impacts = {
         "ArcanX": analysis['modules']['arcanx']['home_win' if analysis['final_prediction']['home_win'] > analysis['final_prediction']['away_win'] else 'away_win'],
         "ShadowOdds": analysis['modules']['shadowodds']['home_win' if analysis['final_prediction']['home_win'] > analysis['final_prediction']['away_win'] else 'away_win'],
@@ -399,7 +398,14 @@ def generate_prediction_narrative(analysis):
         "NumeriCode": analysis['modules']['numericode']['home_win' if analysis['final_prediction']['home_win'] > analysis['final_prediction']['away_win'] else 'away_win']
     }
     
-    strongest_module = max(modules_impacts, key=modules_impacts.get)
+    # Trouver manuellement le module avec l'impact le plus fort
+    strongest_module = "ArcanX"  # Valeur par défaut
+    max_impact = 0
+    
+    for module_name, impact in modules_impacts.items():
+        if impact > max_impact:
+            max_impact = impact
+            strongest_module = module_name
     
     # Insights spécifiques au module le plus influent
     if strongest_module == "ArcanX":
@@ -407,7 +413,8 @@ def generate_prediction_narrative(analysis):
     elif strongest_module == "ShadowOdds":
         module_insight = f"L'analyse des cotes du marché révèle une anomalie qui suggère une sous-évaluation de la probabilité de notre prédiction principale."
     elif strongest_module == "KarmicFlow+":
-        module_insight = f"L'analyse des cycles temporels indique une phase favorable pour {'l\'équipe à domicile' if analysis['final_prediction']['home_win'] > analysis['final_prediction']['away_win'] else 'l\'équipe à l\'extérieur'}."
+        team_location = "équipe à domicile" if analysis['final_prediction']['home_win'] > analysis['final_prediction']['away_win'] else "équipe à l'extérieur"
+        module_insight = f"L'analyse des cycles temporels indique une phase favorable pour l'{team_location}."
     else:  # NumeriCode
         module_insight = f"L'analyse des patterns numériques révèle une convergence significative qui renforce notre prédiction principale."
     
