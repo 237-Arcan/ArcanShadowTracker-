@@ -1363,8 +1363,10 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     # Affichage des matchs du jour
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
-    # S'assurer que today_matches est bien une liste
-    if isinstance(today_matches, list) and today_matches:
+    # Afficher un message si aucun match n'est disponible
+    if not today_matches or not isinstance(today_matches, list):
+        st.info("Aucun match disponible pour aujourd'hui")
+    else:
         # Créer une grille de matchs pour une meilleure présentation
         cols = st.columns(2)
         for i, match in enumerate(today_matches):

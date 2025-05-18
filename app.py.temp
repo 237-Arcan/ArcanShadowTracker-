@@ -160,7 +160,8 @@ tabs = st.tabs([
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
     "🧠 Système d'Apprentissage",
-    f"📬 Notifications ({st.session_state.notification_count})"
+    f"📬 Notifications ({st.session_state.notification_count})",
+    "🌟 Aperçus & Matchs Spéciaux"
 ])
 
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
@@ -389,44 +390,7 @@ with tabs[0]:  # Live Monitoring (Surveillance en direct)
         for planet in active_planets:
             st.markdown(f"• {planet}")
     
-    # Affichage des matchs à la une
-    st.markdown(f"## 🌟 {t('featured_matches')}")
-    
-    for match in featured_matches:
-        # Classes de probabilité pour le code couleur
-        home_prob = match.get('home_prob', 0.45)
-        draw_prob = match.get('draw_prob', 0.25)
-        away_prob = match.get('away_prob', 0.30)
-        
-        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
-        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
-        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
-        
-        # Code du pays pour les drapeaux
-        country_code = match.get('country_code', 'fr').lower()
-        
-        # Carte de match élégante avec notre nouvelle conception
-        st.markdown(f"""
-        <div class="match-card featured">
-            <div class="match-header">
-                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
-                <div class="match-league">
-                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
-                    <span>{match.get('league', '')}</span>
-                </div>
-            </div>
-            <div class="match-teams">
-                <div class="home-team">{match['home_team']}</div>
-                <div class="versus">VS</div>
-                <div class="away-team">{match['away_team']}</div>
-            </div>
-            <div class="match-odds">
-                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
-                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
-                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # Cette section a été déplacée vers l'onglet "Aperçus & Matchs Spéciaux"
     
     # Affichage des matchs du jour
     st.markdown(f"## 🗓️ {t('todays_matches')}")
@@ -1256,51 +1220,51 @@ with tabs[5]:  # Système d'Apprentissage
     st.code(learning_logs, language="plaintext")
     
     # Section de recalibration automatique
-    st.markdown("### ⚙️ Système de recalibration automatique")
+    st.subheader("⚙️ Système de recalibration automatique")
     
-    # Interface de recalibration avec structure HTML corrigée
-    st.markdown("""
-    <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
-        <!-- En-tête avec statut -->
-        <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
-                <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
-                         border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
-                    Actif
-                </div>
-            </div>
-        </div>
+    # Créer un conteneur avec bordure personnalisée 
+    with st.container():
+        st.write("")  # Espace
+        # En-tête avec titre et statut
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write("#### Processus de recalibration par ArcanBrain")
+        with col2:
+            st.success("Actif")
         
-        <!-- Description -->
-        <div style="margin-bottom: 15px;">
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
-                ArcanBrain surveille en permanence les performances du système et procède automatiquement
-                à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
-                Les processus de recalibration sont entièrement gérés par l'intelligence système.
-            </p>
-        </div>
+        # Description
+        st.write("""
+            ArcanBrain surveille en permanence les performances du système et procède automatiquement
+            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+            Les processus de recalibration sont entièrement gérés par l'intelligence système.
+        """)
         
-        <!-- Modes de recalibration -->
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
-                Modes de recalibration automatiques:
-            </div>
-            <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
-                • <b>Standard:</b> Recalibration basique sur les dernières données<br>
-                • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
-                • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
-                • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
-            </div>
-        </div>
+        # Modes de recalibration dans une boîte info
+        st.info("#### Modes de recalibration automatiques")
         
-        <!-- Informations système -->
-        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
-            <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
-            <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        modes = {
+            "Standard": "Recalibration basique sur les dernières données",
+            "Deep Learning": "Restructuration complète des couches de patterns",
+            "Transfer Learning": "Application des connaissances d'une ligue à une autre",
+            "Pattern Recognition": "Focus sur la détection des motifs récurrents"
+        }
+        
+        for mode, description in modes.items():
+            st.write(f"• **{mode}:** {description}")
+        
+        # Informations système
+        st.write("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Dernier diagnostic système:**")
+        with col2:
+            st.write("Tous les modules fonctionnent dans les paramètres optimaux.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Temps écoulé depuis la dernière recalibration:**")
+        with col2:
+            st.write("3h 17min")
     
     st.markdown("### 📊 Métriques ArcanReflex")
     
@@ -1348,6 +1312,195 @@ with tabs[5]:  # Système d'Apprentissage
     
     # Rendre le graphique statique
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
+
+# Nouvel onglet pour les Aperçus & Matchs Spéciaux
+with tabs[7]:  # Aperçus & Matchs Spéciaux
+    st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
+    st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
+    
+    # Affichage des matchs à la une
+    st.markdown(f"### 🌟 {t('featured_matches')}")
+    
+    for match in featured_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante avec notre nouvelle conception
+        st.markdown(f"""
+        <div class="match-card featured">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Affichage des matchs du jour
+    st.markdown(f"### 🗓️ {t('todays_matches')}")
+    
+    filtered_leagues = st.multiselect(
+        "Filtrer par ligue", 
+        ["Toutes les ligues", "Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"],
+        default=["Toutes les ligues"]
+    )
+    
+    # Filtrer en fonction des ligues sélectionnées si nécessaire
+    filtered_matches = matches
+    if "Toutes les ligues" not in filtered_leagues:
+        filtered_matches = [m for m in matches if m['league'] in filtered_leagues]
+    
+    # Créer une grille de matchs pour une meilleure présentation
+    cols = st.columns(2)
+    for i, match in enumerate(filtered_matches):
+        col = cols[i % 2]  # Alternance entre les colonnes
+        with col:
+            prob_1 = match.get('home_prob', 0.33)
+            prob_x = match.get('draw_prob', 0.33)
+            prob_2 = match.get('away_prob', 0.33)
+            
+            # Déterminer automatiquement la classe CSS basée sur la probabilité
+            home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
+            draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
+            away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
+            
+            country_code = match.get('country_code', 'fr').lower()
+            
+            st.markdown(f"""
+            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                    {match['league']} • {match['time']}
+                </div>
+                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                    {match['home']} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match['away']}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <div class="prob-{home_class}" style="text-align: center; flex: 1;">
+                        <div>1</div>
+                        <div>{int(prob_1 * 100)}%</div>
+                    </div>
+                    <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
+                        <div>X</div>
+                        <div>{int(prob_x * 100)}%</div>
+                    </div>
+                    <div class="prob-{away_class}" style="text-align: center; flex: 1;">
+                        <div>2</div>
+                        <div>{int(prob_2 * 100)}%</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+# Nouvel onglet pour les Aperçus & Matchs Spéciaux
+with tabs[7]:  # Aperçus & Matchs Spéciaux
+    st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
+    st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
+    
+    # Affichage des matchs à la une
+    st.markdown(f"### 🌟 {t('featured_matches')}")
+    
+    for match in featured_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante avec notre nouvelle conception
+        st.markdown(f"""
+        <div class="match-card featured">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Affichage des matchs du jour
+    st.markdown(f"### 🗓️ {t('todays_matches')}")
+    
+    # Créer une grille de matchs pour une meilleure présentation
+    cols = st.columns(2)
+    for i, match in enumerate(today_matches):
+        col = cols[i % 2]  # Alternance entre les colonnes
+        with col:
+            prob_1 = match.get('home_prob', 0.33)
+            prob_x = match.get('draw_prob', 0.33)
+            prob_2 = match.get('away_prob', 0.33)
+            
+            # Déterminer automatiquement la classe CSS basée sur la probabilité
+            home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
+            draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
+            away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
+            
+            country_code = match.get('country_code', 'fr').lower()
+            
+            st.markdown(f"""
+            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                    {match['league']} • {match['time']}
+                </div>
+                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                    {match['home']} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match['away']}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <div class="prob-{home_class}" style="text-align: center; flex: 1;">
+                        <div>1</div>
+                        <div>{int(prob_1 * 100)}%</div>
+                    </div>
+                    <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
+                        <div>X</div>
+                        <div>{int(prob_x * 100)}%</div>
+                    </div>
+                    <div class="prob-{away_class}" style="text-align: center; flex: 1;">
+                        <div>2</div>
+                        <div>{int(prob_2 * 100)}%</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
@@ -1490,7 +1643,13 @@ with tabs[6]:  # Notifications
                 # Mettre à jour le compteur de notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
+
+with tabs[1]:  # Prédictions
+    st.markdown("## 🔮 Prédictions d'ArcanShadow")
+    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
     
+    # Sélection du match à analyser
+    st.markdown("### ⚽ Sélectionner un match")
     
     # Structure pour les matchs en direct
     if 'live_matches' not in st.session_state:
