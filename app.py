@@ -1457,25 +1457,6 @@ with tabs[6]:  # Notifications
     with col3:
         st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
-    # Section d'activation d'ArcanSentinel sur les matchs en direct
-    st.markdown("### 🔍 Activation d'ArcanSentinel pour les Matchs en Direct")
-    
-    st.markdown("""
-    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
-                border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
-        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
-            Mode ArcanSentinel - Analyse en Direct
-        </div>
-        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
-            ArcanSentinel est une version allégée et ultra-réactive d'ArcanShadow spécialement conçue pour l'analyse en direct.
-            L'activation automatique permet une surveillance en temps réel des matchs en cours avec réaction immédiate aux événements
-            et ajustement dynamique des prédictions pendant le déroulement du match.
-            <br><br>
-            Les résultats de l'analyse en direct sont automatiquement intégrés au système d'apprentissage et apparaissent 
-            dans l'onglet Notifications en temps réel.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     
     # Structure pour les matchs en direct
     if 'live_matches' not in st.session_state:
