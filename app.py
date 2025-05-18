@@ -158,23 +158,84 @@ def get_sample_data():
     
     return featured_matches, remaining_matches
 
-# Création de données simulées avec validation
-try:
-    featured_matches, today_matches = get_sample_data()
-    # Vérification supplémentaire que les matchs sont des listes valides
-    if not isinstance(featured_matches, list):
-        featured_matches = []
-    if not isinstance(today_matches, list):
-        today_matches = []
+# Création d'un jeu de données test garanti valide
+def create_dummy_match(league, home_team, away_team, home_prob=0.45, draw_prob=0.25, away_prob=0.30, country_code="fr"):
+    """Crée un match test avec des valeurs par défaut sécurisées"""
+    # Définir les codes pays pour les drapeaux
+    country_codes = {
+        "Ligue 1": "fr", 
+        "Premier League": "gb", 
+        "LaLiga": "es", 
+        "Bundesliga": "de", 
+        "Serie A": "it"
+    }
     
-    # Vérification que chaque élément est un dictionnaire valide
-    featured_matches = [m for m in featured_matches if isinstance(m, dict)]
-    today_matches = [m for m in today_matches if isinstance(m, dict)]
+    # Générer le temps du match
+    match_time = f"{np.random.randint(12, 23)}:{np.random.choice(['00', '15', '30', '45'])}"
+    
+    # Générer des cotes cohérentes avec les probabilités
+    home_odds = round(1 / home_prob, 2)
+    draw_odds = round(1 / draw_prob, 2)
+    away_odds = round(1 / away_prob, 2)
+    
+    # Créer le dictionnaire du match avec tous les champs requis
+    return {
+        "league": league,
+        "country": country_codes.get(league, country_code),
+        "country_code": country_codes.get(league, country_code),
+        "home_team": home_team,
+        "away_team": away_team,
+        "home": home_team,  # Alias
+        "away": away_team,  # Alias
+        "time": match_time,
+        "kickoff_time": match_time,
+        "home_odds": home_odds,
+        "draw_odds": draw_odds,
+        "away_odds": away_odds,
+        "home_prob": home_prob,
+        "draw_prob": draw_prob,
+        "away_prob": away_prob
+    }
+
+# Créer manuellement des données de test fiables
+try:
+    # Données simulées de la fonction d'origine
+    featured_from_func, today_from_func = get_sample_data()
+    
+    # Mais on crée aussi des données de secours garanties valides
+    backup_featured = [
+        create_dummy_match("Ligue 1", "PSG", "Marseille", 0.65, 0.20, 0.15),
+        create_dummy_match("Premier League", "Liverpool", "Arsenal", 0.55, 0.25, 0.20),
+        create_dummy_match("LaLiga", "Real Madrid", "Barcelona", 0.45, 0.30, 0.25)
+    ]
+    
+    backup_today = [
+        create_dummy_match("Ligue 1", "Lyon", "Monaco", 0.40, 0.30, 0.30),
+        create_dummy_match("Ligue 1", "Lille", "Rennes", 0.55, 0.25, 0.20),
+        create_dummy_match("Premier League", "Chelsea", "Tottenham", 0.35, 0.30, 0.35),
+        create_dummy_match("Premier League", "Man City", "Man United", 0.60, 0.25, 0.15),
+        create_dummy_match("LaLiga", "Atletico Madrid", "Sevilla", 0.50, 0.25, 0.25),
+        create_dummy_match("Bundesliga", "Bayern Munich", "Dortmund", 0.70, 0.20, 0.10),
+        create_dummy_match("Serie A", "Juventus", "Napoli", 0.40, 0.30, 0.30)
+    ]
+    
+    # Vérifier si les données de la fonction sont valides
+    if (isinstance(featured_from_func, list) and len(featured_from_func) > 0 and 
+        all(isinstance(m, dict) for m in featured_from_func)):
+        featured_matches = featured_from_func
+    else:
+        featured_matches = backup_featured
+        
+    if (isinstance(today_from_func, list) and len(today_from_func) > 0 and 
+        all(isinstance(m, dict) for m in today_from_func)):
+        today_matches = today_from_func
+    else:
+        today_matches = backup_today
+        
 except Exception as e:
-    import traceback
-    st.error(f"Erreur lors de la génération des données: {str(e)}")
-    st.code(traceback.format_exc())
-    featured_matches, today_matches = [], []
+    # En cas d'erreur, utiliser les données de secours
+    featured_matches = backup_featured
+    today_matches = backup_today
 
 # Interface principale
 st.title(f"🔮 {t('app_title')}")
