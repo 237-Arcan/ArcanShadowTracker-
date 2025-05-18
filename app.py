@@ -1097,6 +1097,212 @@ with tabs[4]:  # Smart Market Recommendations
 with tabs[5]:  # Système d'Apprentissage
     st.markdown("## 🧠 Système d'Apprentissage")
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
+    
+    # Vue d'ensemble du système
+    st.markdown("### 🔄 État du Système ArcanReflex")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(label="Modules Actifs", value="14/16", delta="+1")
+    with col2:
+        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
+    with col3:
+        st.metric(label="Adaptation", value="91%", delta="+2.8%")
+    with col4:
+        st.metric(label="Précision", value="87%", delta="+3.5%")
+    
+    # Visualisation des connexions entre modules
+    st.markdown("### 🌐 Réseau Neural ArcanBrain")
+    
+    # Créer un réseau de modules en apprentissage
+    nodes = [
+        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
+        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
+    ]
+    
+    connections = []
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
+                connections.append((i, j, np.random.uniform(0.1, 1.0)))
+    
+    # Préparer les données pour le graphique
+    edge_x = []
+    edge_y = []
+    edge_weights = []
+    
+    # Créer une disposition circulaire pour les nœuds
+    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    
+    for src, dst, weight in connections:
+        edge_x.extend([node_x[src], node_x[dst], None])
+        edge_y.extend([node_y[src], node_y[dst], None])
+        edge_weights.append(weight)
+    
+    # Créer le graphique
+    fig = go.Figure()
+    
+    # Ajouter les liens
+    for i in range(0, len(edge_x), 3):
+        opacity = min(1, edge_weights[i//3] * 2)
+        width = 1 + 3 * edge_weights[i//3]
+        fig.add_trace(go.Scatter(
+            x=edge_x[i:i+3], y=edge_y[i:i+3],
+            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
+            hoverinfo='none',
+            mode='lines'
+        ))
+    
+    # Ajouter les nœuds
+    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
+                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
+    
+    fig.add_trace(go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        text=nodes,
+        textposition="top center",
+        marker=dict(
+            showscale=False,
+            color=node_colors,
+            size=20,
+            line_width=2,
+            line=dict(color='white')
+        )
+    ))
+    
+    fig.update_layout(
+        title="Réseau de connexions entre modules",
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(b=0, l=0, r=0, t=40),
+        template="plotly_dark",
+        height=500,
+        dragmode=False,
+        hovermode=False
+    )
+    
+    # Rendre le graphique complètement statique
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
+    
+    # Tableau de bord des événements d'apprentissage
+    st.markdown("### 📝 Événements d'apprentissage récents")
+    
+    # Créer des données d'événements simulées
+    events = [
+        {
+            "timestamp": "17/05/2025 18:12",
+            "type": "Pattern Recalibration",
+            "module": "TarotEcho",
+            "description": "Recalibrage des patterns de récurrence La Tour + L'Étoile"
+        },
+        {
+            "timestamp": "17/05/2025 15:47",
+            "type": "Transfer Learning",
+            "module": "ArcanX",
+            "description": "Transfert de connaissance entre contextes Premier League → Ligue 1"
+        },
+        {
+            "timestamp": "17/05/2025 14:33",
+            "type": "Module Activation",
+            "module": "ShadowOdds+",
+            "description": "Activation après seuil de précision atteint (91.3%)"
+        },
+        {
+            "timestamp": "16/05/2025 22:18",
+            "type": "Pattern Recalibration",
+            "module": "NumeriCode",
+            "description": "Ajustement des séquences numériques 3-7-11 → 3-7-12"
+        },
+        {
+            "timestamp": "16/05/2025 17:52",
+            "type": "Architecture Update",
+            "module": "GridSync",
+            "description": "Optimisation de la couche de convergence +8.2% efficacité"
+        }
+    ]
+    
+    # Créer un dataframe
+    events_df = pd.DataFrame(events)
+    st.dataframe(events_df, use_container_width=True)
+    
+    # Système de logs détaillés
+    st.markdown("### 📋 Logs d'apprentissage détaillés")
+    
+    learning_logs = """
+2025-05-17 18:12:23 [INFO] [TarotEcho] Pattern Recalibration initiated
+2025-05-17 18:12:24 [INFO] [TarotEcho] Analyzing historical pattern accuracy for sequence La Tour + L'Étoile
+2025-05-17 18:12:28 [INFO] [TarotEcho] Previous accuracy for pattern: 76.3%
+2025-05-17 18:12:29 [INFO] [TarotEcho] Calculating optimized parameters based on most recent results
+2025-05-17 18:12:34 [INFO] [TarotEcho] Pattern realignment completed, new parameters saved
+2025-05-17 18:12:36 [INFO] [TarotEcho] Post-optimization accuracy estimation: 81.7%
+2025-05-17 15:47:11 [INFO] [ArcanX] Transfer Learning procedure initiated
+2025-05-17 15:47:12 [INFO] [ArcanX] Source context: Premier League, Target context: Ligue 1
+2025-05-17 15:47:15 [INFO] [ArcanX] Analyzing transferable patterns and contextual similarities
+2025-05-17 15:47:22 [INFO] [ArcanX] Context overlap factor calculated: 0.72
+2025-05-17 15:47:29 [INFO] [ArcanX] Transferring 14 pattern adjustments to target context
+2025-05-17 15:47:34 [INFO] [ArcanX] Recalibrating target context parameters with new knowledge
+2025-05-17 15:47:39 [INFO] [ArcanX] Transfer learning complete, performance improvement expected: +4.3%
+2025-05-17 14:33:07 [INFO] [ShadowOdds+] Module activation criteria met
+2025-05-17 14:33:08 [INFO] [ShadowOdds+] Accuracy threshold reached: 91.3%
+2025-05-17 14:33:10 [INFO] [ShadowOdds+] Stability threshold reached: 18 consecutive accurate predictions
+2025-05-17 14:33:12 [INFO] [SystemCore] Integrating ShadowOdds+ module with ArcanBrain network
+2025-05-17 14:33:17 [INFO] [ArcanBrain] New module connection established with ShadowOdds+"""
+    
+    st.code(learning_logs, language="plaintext")
+    
+    # Section de recalibration automatique
+    st.markdown("### ⚙️ Système de recalibration automatique")
+    
+    # Interface de recalibration avec structure HTML corrigée
+    st.markdown("""
+    <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
+        <!-- En-tête avec statut -->
+        <div style="margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
+                <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                         border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                    Actif
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description -->
+        <div style="margin-bottom: 15px;">
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
+                ArcanBrain surveille en permanence les performances du système et procède automatiquement
+                à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+                Les processus de recalibration sont entièrement gérés par l'intelligence système.
+            </p>
+        </div>
+        
+        <!-- Modes de recalibration -->
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
+                Modes de recalibration automatiques:
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
+                • <b>Standard:</b> Recalibration basique sur les dernières données<br>
+                • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
+                • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
+                • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
+            </div>
+        </div>
+        
+        <!-- Informations système -->
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
+            <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
+            <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### 📊 Métriques ArcanReflex")
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
@@ -1239,20 +1445,6 @@ with tabs[6]:  # Notifications
                 # Mettre à jour le compteur de notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
-    
-    # Vue d'ensemble du système
-    st.markdown("### 🔄 État du Système ArcanReflex")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric(label="Modules Actifs", value="14/16", delta="+1")
-    with col2:
-        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
-    with col3:
-        st.metric(label="Adaptation", value="91%", delta="+2.8%")
-    with col4:
-        st.metric(label="Précision", value="87%", delta="+3.5%")
     
     # Visualisation des connexions entre modules
     st.markdown("### 🌐 Réseau Neural ArcanBrain")
