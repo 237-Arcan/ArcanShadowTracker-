@@ -681,9 +681,16 @@ with tabs[1]:  # Prédictions
     # Analyses avancées
     st.markdown("### 🔍 Analyses Avancées")
     
-    tab1, tab2 = st.tabs(["📜 Narratif", "🔢 Analyse Gematria & Prédictions XGBoost"])
+    # Sélection d'analyse avec boutons radio
+    analyse_type = st.radio(
+        "Type d'analyse",
+        ["Narratif", "Analyse Gematria & Prédictions XGBoost"],
+        horizontal=True,
+        key="analyse_type"
+    )
     
-    with tab1:
+    # Narratif
+    if analyse_type == "Narratif":
         st.markdown("""
         <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
                     border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
@@ -704,7 +711,8 @@ with tabs[1]:  # Prédictions
         </div>
         """, unsafe_allow_html=True)
     
-    with tab2:
+    # Analyse Gematria & Prédictions XGBoost
+    elif analyse_type == "Analyse Gematria & Prédictions XGBoost":
         col1, col2 = st.columns(2)
         
         with col1:
@@ -713,7 +721,7 @@ with tabs[1]:  # Prédictions
             # Analyse Gematria
             st.markdown("""
             <div style="padding: 15px; border-radius: 10px; background: rgba(255, 190, 65, 0.05); 
-                        border: 1px solid rgba(255, 190, 65, 0.2); margin-bottom: 20px; height: 100%;">
+                        border: 1px solid rgba(255, 190, 65, 0.2); margin-bottom: 20px;">
                 <h5 style="color: #ffbe41; margin-top: 0;">Résonances Numériques</h5>
                 
                 <table style="width: 100%; color: rgba(255, 255, 255, 0.8);">
@@ -765,7 +773,7 @@ with tabs[1]:  # Prédictions
             # Résultats XGBoost
             st.markdown("""
             <div style="padding: 15px; border-radius: 10px; background: rgba(1, 255, 128, 0.05); 
-                        border: 1px solid rgba(1, 255, 128, 0.2); margin-bottom: 20px; height: 100%;">
+                        border: 1px solid rgba(1, 255, 128, 0.2); margin-bottom: 20px;">
                 <h5 style="color: #01ff80; margin-top: 0;">Prédiction de Résultat</h5>
                 
                 <div style="margin: 15px 0; background: rgba(1, 255, 128, 0.1); padding: 10px; border-radius: 5px;">
