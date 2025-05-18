@@ -1490,8 +1490,9 @@ with tabs[6]:  # Notifications
                 # Mettre à jour le compteur de notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
-
-# Onglet Prédictions
+    
+    
+    # Structure pour les matchs en direct
     if 'live_matches' not in st.session_state:
         st.session_state.live_matches = [
             {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
