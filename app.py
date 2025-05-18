@@ -10,11 +10,22 @@ import sys
 import matplotlib.pyplot as plt
 import random
 
-# Essayer d'importer le module pour l'onglet des données réelles
+# Essayer d'importer les modules pour les données réelles
 try:
+    # Importer le module pour l'onglet des données réelles
     from real_data_tab import display_real_data_tab
+    
+    # Importer les fonctions utilitaires pour les données réelles
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from utils.football_data import get_future_matches, get_team_form, get_head_to_head, get_team_stats
+    from utils.prediction_analysis import get_prediction_data
+    from utils.daily_combo import get_daily_combos, get_daily_combo_analysis
+    from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
 except Exception as e:
-    pass
+    def get_live_matches():
+        return []
+    def get_live_alerts():
+        return []
 
 # Configuration de la page
 st.set_page_config(
