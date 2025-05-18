@@ -805,9 +805,21 @@ with tabs[4]:  # Smart Market Recommendations
         font=dict(color="#01ff80")
     )
     
-    fig_hist.update_layout(template="plotly_dark")
+    fig_hist.update_layout(
+        template="plotly_dark",
+        margin=dict(l=10, r=10, t=30, b=10),
+        height=400
+    )
     
-    st.plotly_chart(fig_hist, use_container_width=True)
+    # Rendre le graphique statique (sans interactions)
+    st.plotly_chart(
+        fig_hist, 
+        use_container_width=True, 
+        config={
+            "staticPlot": True,  # Rend le graphique complètement statique
+            "displayModeBar": False  # Masque la barre d'outils
+        }
+    )
     
     # Analyse ésotérique des influences
     st.markdown("### 🔮 Influences Ésotériques Actives")
