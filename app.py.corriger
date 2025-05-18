@@ -1241,7 +1241,7 @@ with tabs[6]:  # Notifications
                 st.rerun()
     
     # Vue d'ensemble du système
-    st.markdown("### 🔄 État du Système ArcanReflex")
+    st.markdown("### 🔄 État du Système")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -1405,7 +1405,6 @@ with tabs[6]:  # Notifications
     # Interface de recalibration avec structure HTML corrigée
     st.markdown("""
     <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
-        <!-- En-tête avec statut -->
         <div style="margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
@@ -1416,7 +1415,6 @@ with tabs[6]:  # Notifications
             </div>
         </div>
         
-        <!-- Description -->
         <div style="margin-bottom: 15px;">
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
                 ArcanBrain surveille en permanence les performances du système et procède automatiquement
@@ -1425,7 +1423,6 @@ with tabs[6]:  # Notifications
             </p>
         </div>
         
-        <!-- Modes de recalibration -->
         <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
             <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
                 Modes de recalibration automatiques:
@@ -1438,7 +1435,6 @@ with tabs[6]:  # Notifications
             </div>
         </div>
         
-        <!-- Informations système -->
         <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
             <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
             <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
@@ -1446,7 +1442,7 @@ with tabs[6]:  # Notifications
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### 📊 Métriques ArcanReflex")
+    st.markdown("### 📊 Métriques de système")
     
     # Afficher les métriques de santé du système
     col1, col2, col3 = st.columns(3)
@@ -1458,69 +1454,21 @@ with tabs[6]:  # Notifications
         st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
     
-    # Structure pour les matchs en direct
-    if 'live_matches' not in st.session_state:
-        st.session_state.live_matches = [
-            {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
-            {"id": 2, "home": "Liverpool", "away": "Arsenal", "league": "Premier League", "time": "17:30", "status": "En direct", "minute": "68'", "score": "2-1"},
-            {"id": 3, "home": "Bayern Munich", "away": "Dortmund", "league": "Bundesliga", "time": "18:30", "status": "En direct", "minute": "52'", "score": "0-0"}
-        ]
+    # Section spéciale pour les analyses avancées
+    st.markdown("### 🔬 Analyses avancées")
     
-    # Structure pour gérer les matchs surveillés en direct
-    if 'sentinel_monitored_live_matches' not in st.session_state:
-        st.session_state.sentinel_monitored_live_matches = []
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        # Tableau des matchs en direct disponibles
-        st.markdown("#### 🔴 Matchs actuellement en direct")
-        
-        for match in st.session_state.live_matches:
-            is_monitored = any(m['id'] == match['id'] for m in st.session_state.sentinel_monitored_live_matches)
-            status_color = "#01ff80" if is_monitored else "rgba(255, 255, 255, 0.8)"
-            status_text = "🟢 Surveillé en direct" if is_monitored else "⚪ Disponible"
-            
-            st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; align-items: center; 
-                      padding: 12px; border-radius: 5px; margin-bottom: 15px; 
-                      background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
-                <div>
-                    <div style="font-weight: bold; font-size: 16px; color: white;">
-                        {match['home']} {match['score']} {match['away']}
-                    </div>
-                    <div style="font-size: 13px; color: #ff3364; font-weight: bold; margin-top: 4px;">
-                        {match['minute']} • EN DIRECT
-                    </div>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">
-                        {match['league']}
-                    </div>
-                </div>
-                <div style="font-size: 13px; color: {status_color};">
-                    {status_text}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Pour chaque match, ajouter des boutons d'action
-            col_a, col_b = st.columns([3, 2])
-            with col_a:
-                if not is_monitored:
-                    if st.button(f"Activer surveillance en direct", key=f"activate_live_notif_{match['id']}"):
-                        # Configuration de surveillance
-                        surveillance_config = {
-                            "id": match['id'],
-                            "home": match['home'],
-                            "away": match['away'],
-                            "league": match['league'],
-                            "minute": match['minute'],
-                            "score": match['score'],
-                            "monitoring_level": "Maximum",  # Plus haut niveau pour les matchs en direct
-                            "modules": ["ShadowMomentum", "LineTrap", "KarmicFlow", "MirrorPhase", "BetPulse"],
-                            "activated_at": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
-                            "alert_threshold": 5  # Seuil plus bas pour être plus réactif aux matchs en direct
-                        }
-                        st.session_state.sentinel_monitored_live_matches.append(surveillance_config)
+    st.markdown("""
+    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
+               border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
+        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
+            Analyses profondes du système
+        </div>
+        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
+            Cette section présente des analyses avancées sur les performances et le comportement du système ArcanShadow.
+            Les métriques et visualisations sont mises à jour en temps réel pour offrir un aperçu complet de l'état du système.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
                         
                         # Ajouter une notification d'activation
                         if 'notifications' in st.session_state:
