@@ -1,0 +1,141 @@
+with tabs[6]:  # Notifications
+    st.markdown("## 📬 Centre de Notifications")
+    st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
+    
+    # Structure pour gérer les notifications
+    if 'notifications' not in st.session_state:
+        st.session_state.notifications = [
+            {
+                "id": 1,
+                "type": "recalibration",
+                "title": "Recalibration automatique de ArcanX",
+                "message": "ArcanBrain a détecté une dérive de performance de 3.7% sur ArcanX et a procédé à une recalibration Deep Learning. Performance améliorée de +5.2%.",
+                "timestamp": "2025-05-17 09:14:32",
+                "read": False,
+                "priority": "medium"
+            },
+            {
+                "id": 2,
+                "type": "pattern",
+                "title": "Nouveau pattern détecté par ArcanReflex",
+                "message": "Un pattern cyclique de type Fibonacci a été identifié dans les résultats de la Premier League. Ce motif a été intégré au module KarmicFlow+.",
+                "timestamp": "2025-05-16 21:03:47",
+                "read": False,
+                "priority": "high"
+            },
+            {
+                "id": 3,
+                "type": "sentinel",
+                "title": "Analyse en direct PSG vs Lyon",
+                "message": "ArcanSentinel a détecté une augmentation de l'énergie offensive de Lyon à la 37e minute, suggérant une probabilité accrue de but avant la mi-temps.",
+                "timestamp": "2025-05-16 15:37:21",
+                "read": False,
+                "priority": "urgent"
+            },
+            {
+                "id": 4,
+                "type": "module",
+                "title": "Nouveau module recommandé par D-forge",
+                "message": "D-forge a identifié le besoin d'un nouveau module 'ResilienceCore' pour analyser la capacité des équipes à rebondir après un but encaissé. Requête envoyée à ArcanConceptor.",
+                "timestamp": "2025-05-15 18:42:09",
+                "read": True,
+                "priority": "medium"
+            },
+            {
+                "id": 5,
+                "type": "performance",
+                "title": "Synthèse de performance hebdomadaire",
+                "message": "Taux de précision global: 78.3% (+2.1% vs semaine précédente). Modules les plus performants: TarotEcho (83.9%), ArcanX (81.7%), KarmicFlow+ (80.3%).",
+                "timestamp": "2025-05-15 08:00:00", 
+                "read": True,
+                "priority": "medium"
+            }
+        ]
+    
+    # Filtres pour les notifications
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        filter_option = st.selectbox("Filtrer par", ["Toutes", "Non lues", "Recalibration", "Pattern", "Sentinel", "Module", "Performance"], index=0)
+    with col2:
+        sort_option = st.radio("Trier par", ["Plus récent", "Plus ancien", "Priorité"], horizontal=True)
+    
+    # Appliquer les filtres
+    filtered_notifications = st.session_state.notifications.copy()
+    if filter_option == "Non lues":
+        filtered_notifications = [n for n in filtered_notifications if not n["read"]]
+    elif filter_option != "Toutes":
+        filter_type = filter_option.lower()
+        filtered_notifications = [n for n in filtered_notifications if n["type"] == filter_type]
+    
+    # Appliquer le tri
+    if sort_option == "Plus récent":
+        filtered_notifications.sort(key=lambda x: x["timestamp"], reverse=True)
+    elif sort_option == "Plus ancien":
+        filtered_notifications.sort(key=lambda x: x["timestamp"])
+    elif sort_option == "Priorité":
+        priority_order = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
+        filtered_notifications.sort(key=lambda x: (priority_order.get(x["priority"], 4), x["timestamp"]), reverse=True)
+    
+    # Bouton pour marquer toutes les notifications comme lues
+    if st.button("Marquer toutes comme lues"):
+        for notif in st.session_state.notifications:
+            notif["read"] = True
+        st.session_state.notification_count = 0
+        st.rerun()
+    
+    # Affichage des notifications
+    st.markdown("### Notifications récentes")
+    
+    if not filtered_notifications:
+        st.info("Aucune notification ne correspond aux filtres sélectionnés.")
+    
+    for notification in filtered_notifications:
+        # Couleur basée sur le type et la priorité
+        color_map = {
+            "recalibration": "#7000ff",  # Violet
+            "pattern": "#01ff80",  # Vert
+            "sentinel": "#ff3860",  # Rouge
+            "module": "#ffbe41",  # Orange
+            "performance": "#3273dc"  # Bleu
+        }
+        
+        priority_bg = {
+            "urgent": "rgba(255, 56, 96, 0.15)",
+            "high": "rgba(255, 190, 65, 0.15)",
+            "medium": "rgba(112, 0, 255, 0.15)",
+            "low": "rgba(50, 115, 220, 0.15)"
+        }
+        
+        border_color = color_map.get(notification["type"], "#3273dc")
+        bg_color = priority_bg.get(notification["priority"], "rgba(50, 115, 220, 0.15)")
+        read_marker = "" if notification["read"] else "📌 "
+        
+        st.markdown(f"""
+        <div style="border-left: 4px solid {border_color}; background: {bg_color}; 
+                  border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: bold; font-size: 16px; color: white;">
+                    {read_marker}{notification["title"]}
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">
+                    {notification["timestamp"]}
+                </div>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 8px 0;">
+                {notification["message"]}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Option pour marquer une notification comme lue
+        if not notification["read"]:
+            if st.button(f"Marquer comme lu #{notification['id']}", key=f"mark_read_{notification['id']}"):
+                for notif in st.session_state.notifications:
+                    if notif["id"] == notification["id"]:
+                        notif["read"] = True
+                        break
+                
+                # Mettre à jour le compteur de notifications
+                st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
+                st.rerun()
+

@@ -1,0 +1,21 @@
+with tabs[1]:  # Prédictions
+    st.markdown("## 🔮 Prédictions d'ArcanShadow")
+    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
+    
+    # Sélection du match à analyser
+    st.markdown("### ⚽ Sélectionner un match")
+    
+    # Créer des données fictives de matchs à venir pour la sélection
+    upcoming_matches = [
+        "PSG vs Lyon (Ligue 1) - 20:45",
+        "Real Madrid vs Barcelona (La Liga) - 21:00",
+        "Liverpool vs Arsenal (Premier League) - 17:30",
+        "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
+        "Inter vs Milan (Serie A) - 20:45"
+    ]
+    
+    selected_match = st.selectbox("Match à analyser:", upcoming_matches)
+    
+    # Extraire les équipes et la ligue du match sélectionné
+    match_parts = selected_match.split(" (")
+    teams = match_parts[0].split(" vs ")

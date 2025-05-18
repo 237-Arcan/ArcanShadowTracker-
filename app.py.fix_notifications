@@ -1491,14 +1491,7 @@ with tabs[6]:  # Notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
 
-with tabs[1]:  # Prédictions
-    st.markdown("## 🔮 Prédictions d'ArcanShadow")
-    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
-    
-    # Sélection du match à analyser
-    st.markdown("### ⚽ Sélectionner un match")
-    
-    # Structure pour les matchs en direct
+# Onglet Prédictions
     if 'live_matches' not in st.session_state:
         st.session_state.live_matches = [
             {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
