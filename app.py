@@ -1414,31 +1414,40 @@ with tabs[6]:  # Notifications
                 </div>
             </div>
         </div>
-        
-        <div style="margin-bottom: 15px;">
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
-                ArcanBrain surveille en permanence les performances du système et procède automatiquement
-                à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
-                Les processus de recalibration sont entièrement gérés par l'intelligence système.
-            </p>
+    """, unsafe_allow_html=True)
+    
+    # Description avec structure HTML séparée
+    st.markdown("""
+    <div style="margin-bottom: 15px;">
+        <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
+            ArcanBrain surveille en permanence les performances du système et procède automatiquement
+            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+            Les processus de recalibration sont entièrement gérés par l'intelligence système.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Modes de recalibration avec structure HTML séparée
+    st.markdown("""
+    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+        <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
+            Modes de recalibration automatiques:
         </div>
-        
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
-                Modes de recalibration automatiques:
-            </div>
-            <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
-                • <b>Standard:</b> Recalibration basique sur les dernières données<br>
-                • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
-                • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
-                • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
-            </div>
+        <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
+            • <b>Standard:</b> Recalibration basique sur les dernières données<br>
+            • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
+            • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
+            • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
         </div>
-        
-        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
-            <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
-            <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
-        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Informations système avec structure HTML séparée
+    st.markdown("""
+    <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
+        <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
+        <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
+    </div>
     </div>
     """, unsafe_allow_html=True)
     
