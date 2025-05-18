@@ -1360,20 +1360,9 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     # Affichage des matchs du jour
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
-    filtered_leagues = st.multiselect(
-        "Filtrer par ligue", 
-        ["Toutes les ligues", "Ligue 1", "Premier League", "La Liga", "Serie A", "Bundesliga"],
-        default=["Toutes les ligues"]
-    )
-    
-    # Filtrer en fonction des ligues sélectionnées
-    filtered_matches = today_matches
-    if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
-        filtered_matches = [m for m in today_matches if m.get('league') in filtered_leagues]
-    
     # Créer une grille de matchs pour une meilleure présentation
     cols = st.columns(2)
-    for i, match in enumerate(filtered_matches):
+    for i, match in enumerate(today_matches):
         col = cols[i % 2]  # Alternance entre les colonnes
         with col:
             prob_1 = match.get('home_prob', 0.33)
