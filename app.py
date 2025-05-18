@@ -594,32 +594,105 @@ with tabs[0]:  # Live Monitoring (Surveillance en direct)
     # Cette section a été déplacée vers l'onglet "Aperçus & Matchs Spéciaux"
 
 with tabs[1]:  # Prédictions
+    # Importer le module d'analyse de prédictions
+    from utils.prediction_analysis import get_prediction_data
+    from utils.football_data import get_future_matches
+    
+    # Récupérer toutes les données de matchs pour les analyses
+    try:
+        # Obtenir les données complètes des ligues principales
+        main_leagues = ['en.1', 'es.1', 'it.1', 'de.1', 'fr.1', 'uefa.cl']
+        all_featured, all_matches = get_future_matches(
+            days_ahead=60,  # Utiliser une plage plus large pour les analyses
+            league_ids=main_leagues,
+            season="2024-25"
+        )
+        
+        # Combiner toutes les données de matchs pour l'analyse
+        all_match_data = all_featured + all_matches
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données pour les prédictions: {str(e)}")
+        all_match_data = []
+    
     st.markdown("## 🔮 Prédictions d'ArcanShadow")
     st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
     
     # Sélection du match à analyser
     st.markdown("### ⚽ Sélectionner un match")
     
-    # Créer des données fictives de matchs à venir pour la sélection
-    upcoming_matches = [
-        "PSG vs Lyon (Ligue 1) - 20:45",
-        "Real Madrid vs Barcelona (La Liga) - 21:00",
-        "Liverpool vs Arsenal (Premier League) - 17:30",
-        "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
-        "Inter vs Milan (Serie A) - 20:45"
-    ]
+    # Préparer la liste des matchs à venir pour la sélection
+    match_options = []
+    for match in all_match_data:
+        if isinstance(match, dict):
+            home = match.get('home_team', match.get('home', '?'))
+            away = match.get('away_team', match.get('away', '?'))
+            league = match.get('league', '?')
+            time = match.get('time', '??:??')
+            date = match.get('formatted_date', match.get('date', ''))
+            
+            # Clé unique pour retrouver le match sélectionné
+            match['selection_key'] = f"{home} vs {away} ({league}) - {date} {time}"
+            match_options.append(match['selection_key'])
     
-    selected_match = st.selectbox("Match à analyser:", upcoming_matches)
+    # Si aucun match n'est disponible, afficher des options par défaut
+    if not match_options:
+        match_options = [
+            "PSG vs Lyon (Ligue 1) - 20:45",
+            "Real Madrid vs Barcelona (LaLiga) - 21:00",
+            "Liverpool vs Arsenal (Premier League) - 17:30",
+            "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
+            "Inter vs Milan (Serie A) - 20:45"
+        ]
     
-    # Extraire les équipes et la ligue du match sélectionné
-    match_parts = selected_match.split(" (")
-    teams = match_parts[0].split(" vs ")
-    home_team = teams[0]
-    away_team = teams[1]
-    league = match_parts[1].split(")")[0]
+    # Tri par date pour avoir les matchs les plus proches en premier
+    match_options.sort()
+    
+    # Widget de sélection du match
+    selected_match_key = st.selectbox("Match à analyser:", match_options)
+    
+    # Trouver le match sélectionné
+    selected_match = None
+    for match in all_match_data:
+        if isinstance(match, dict) and match.get('selection_key') == selected_match_key:
+            selected_match = match
+            break
+    
+    # Si match non trouvé, créer un match factice
+    if not selected_match:
+        # Extraire les informations du match sélectionné
+        try:
+            match_parts = selected_match_key.split(" (")
+            teams = match_parts[0].split(" vs ")
+            home_team = teams[0]
+            away_team = teams[1]
+            league_parts = match_parts[1].split(") - ")
+            league = league_parts[0]
+            time_parts = league_parts[1].split(" ") if len(league_parts) > 1 else ["??:??"]
+            
+            selected_match = {
+                "home_team": home_team,
+                "away_team": away_team,
+                "league": league,
+                "time": time_parts[-1] if len(time_parts) > 0 else "??:??",
+                "home": home_team,
+                "away": away_team
+            }
+        except Exception:
+            # En cas d'erreur, créer un match par défaut
+            selected_match = {
+                "home_team": "Liverpool",
+                "away_team": "Arsenal",
+                "league": "Premier League",
+                "time": "17:30",
+                "home": "Liverpool",
+                "away": "Arsenal"
+            }
+    
+    # Analyser le match sélectionné
+    prediction_data = get_prediction_data(selected_match, all_match_data)
     
     # Afficher le résumé de la prédiction
-    st.markdown(f"### 📊 Prédiction pour {home_team} vs {away_team}")
+    st.markdown(f"### 📊 Prédiction pour {prediction_data['match_info']['home_team']} vs {prediction_data['match_info']['away_team']}")
     
     # En-tête de la prédiction avec conteneur principal
     with st.container():
@@ -627,11 +700,13 @@ with tabs[1]:  # Prédictions
         with col_header1:
             st.subheader("Prédiction principale")
         with col_header2:
+            confidence = prediction_data['main_prediction']['confidence']
+            confidence_color = "#01ff80" if confidence >= 85 else "#ffbe41" if confidence >= 75 else "#ff3364"
             st.markdown(
-                """
+                f"""
                 <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
-                        border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold; text-align: center;">
-                    Confiance: 87%
+                        border: 1px solid rgba(1, 255, 128, 0.3); color: {confidence_color}; font-weight: bold; text-align: center;">
+                    Confiance: {confidence}%
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -639,17 +714,17 @@ with tabs[1]:  # Prédictions
     
     # Résultat le plus probable
     st.markdown(
-        """
+        f"""
         <div style="background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
                 border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td>
                         <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
-                        <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #7000ff;">{prediction_data['main_prediction']['outcome']}</div>
                     </td>
                     <td align="right">
-                        <div style="font-size: 24px; font-weight: bold; color: white;">1.85</div>
+                        <div style="font-size: 24px; font-weight: bold; color: white;">{prediction_data['main_prediction']['odds']}</div>
                     </td>
                 </tr>
             </table>
@@ -664,83 +739,52 @@ with tabs[1]:  # Prédictions
     # Les scénarios en 2 colonnes (premier arrangement)
     col1, col2 = st.columns(2)
     
-    with col1:
-        st.markdown(
-            """
-            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
-                <table width="100%" style="border-collapse: collapse;">
-                    <tr>
-                        <td><div style="color: white;">Match nul</div></td>
-                        <td align="right"><div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div></td>
-                    </tr>
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    with col2:
-        st.markdown(
-            """
-            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
-                <table width="100%" style="border-collapse: collapse;">
-                    <tr>
-                        <td><div style="color: white;">Victoire d'Arsenal</div></td>
-                        <td align="right"><div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div></td>
-                    </tr>
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # Premier groupe de deux scénarios
+    for i, scenario in enumerate(prediction_data['other_scenarios'][:2]):
+        col = col1 if i == 0 else col2
+        with col:
+            scenario_color = "#01ff80" if scenario['probability'] >= 80 else "#ffbe41" if scenario['probability'] >= 50 else "#ff3364"
+            st.markdown(
+                f"""
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td><div style="color: white;">{scenario['name']}</div></td>
+                            <td align="right"><div style="color: {scenario_color};">{scenario['odds']} <span style="opacity: 0.7; font-size: 0.9em;">({scenario['probability']}%)</span></div></td>
+                        </tr>
+                    </table>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
     
     # Les scénarios en 2 colonnes (deuxième arrangement)
     col3, col4 = st.columns(2)
     
-    with col3:
-        st.markdown(
-            """
-            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                <table width="100%" style="border-collapse: collapse;">
-                    <tr>
-                        <td><div style="color: white;">Plus de 2.5 buts</div></td>
-                        <td align="right"><div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div></td>
-                    </tr>
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    with col4:
-        st.markdown(
-            """
-            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                <table width="100%" style="border-collapse: collapse;">
-                    <tr>
-                        <td><div style="color: white;">Les deux équipes marquent</div></td>
-                        <td align="right"><div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div></td>
-                    </tr>
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # Deuxième groupe de deux scénarios
+    for i, scenario in enumerate(prediction_data['other_scenarios'][2:]):
+        col = col3 if i == 0 else col4
+        with col:
+            scenario_color = "#01ff80" if scenario['probability'] >= 80 else "#ffbe41" if scenario['probability'] >= 50 else "#ff3364"
+            st.markdown(
+                f"""
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td><div style="color: white;">{scenario['name']}</div></td>
+                            <td align="right"><div style="color: {scenario_color};">{scenario['odds']} <span style="opacity: 0.7; font-size: 0.9em;">({scenario['probability']}%)</span></div></td>
+                        </tr>
+                    </table>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
     
     # Modules contributeurs et leur impact
     st.markdown("### 🧠 Modules contributeurs")
     
-    # Créer des statistiques pour les modules qui ont contribué à la prédiction
-    contributing_modules = [
-        {"name": "ArcanX", "confidence": 0.92, "weight": 0.35, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
-        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.25, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
-        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.15, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
-        {"name": "NumeriCode", "confidence": 0.87, "weight": 0.10, "key_insights": "Concordance numérique: date du match (17) + patron tactique (4-3-3)"},
-        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.15, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
-    ]
-    
     # Créer un dataframe pour les modules contributeurs
-    df_modules_contrib = pd.DataFrame(contributing_modules)
+    df_modules_contrib = pd.DataFrame(prediction_data['contributing_modules'])
     
     # Calculer l'impact de chaque module (confiance × poids)
     df_modules_contrib["impact"] = df_modules_contrib["confidence"] * df_modules_contrib["weight"]
@@ -811,25 +855,37 @@ with tabs[1]:  # Prédictions
     # Narratif de la prédiction
     st.markdown("### 📜 Narratif de la prédiction")
     
-    st.markdown("""
+    # Utiliser un style défini séparément
+    narrative_style = """
     <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
                 border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
         <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
-            L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
-            après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
-            avec Jupiter en transit dans la maison de la victoire.
-            <br><br>
-            L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
-            créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
-            <br><br>
-            Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
-            de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
-            <br><br>
-            <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
-            suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
+    """
+    
+    narrative_end = """
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    
+    # Préparer le narratif avec des paragraphes HTML
+    narrative_text = prediction_data['narrative']
+    narrative_paragraphs = narrative_text.split('\n\n')
+    
+    # Commencer le narratif avec le style
+    html_narrative = narrative_style
+    
+    # Ajouter chaque paragraphe
+    for i, paragraph in enumerate(narrative_paragraphs):
+        if paragraph.strip():
+            if i > 0:
+                html_narrative += "<br><br>"
+            html_narrative += paragraph.strip()
+    
+    # Terminer le narratif
+    html_narrative += narrative_end
+    
+    # Afficher le narratif formaté
+    st.markdown(html_narrative, unsafe_allow_html=True)
     
 with tabs[2]:  # Performance Notifications
     st.markdown("## 🔔 Notifications de Performance")
