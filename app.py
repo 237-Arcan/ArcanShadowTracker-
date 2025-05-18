@@ -135,12 +135,26 @@ def get_sample_data():
             }
             matches.append(match)
     
+    # S'assurer qu'il y a des matchs à afficher
+    if not matches:
+        return [], []
+        
     # Marquer certains matchs comme importants
-    featured_indices = np.random.choice(range(len(matches)), 3, replace=False)
+    num_featured = min(3, len(matches))
+    featured_indices = np.random.choice(range(len(matches)), num_featured, replace=False)
     featured_matches = [matches[i] for i in featured_indices]
     
     # Retirer les matchs à la une de la liste principale pour éviter les doublons
     remaining_matches = [match for i, match in enumerate(matches) if i not in featured_indices]
+    
+    # Ajouter les clés nécessaires s'il en manque
+    for match in featured_matches + remaining_matches:
+        if 'time' not in match and 'kickoff_time' in match:
+            match['time'] = match['kickoff_time']
+        if 'home' not in match and 'home_team' in match:
+            match['home'] = match['home_team']
+        if 'away' not in match and 'away_team' in match:
+            match['away'] = match['away_team']
     
     return featured_matches, remaining_matches
 
@@ -1324,13 +1338,27 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     # Affichage des matchs du jour
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
+    # Filtrer par ligue si nécessaire
+    all_leagues = ["Toutes les ligues"] + list(set([m.get('league', '') for m in today_matches if isinstance(m, dict) and 'league' in m]))
+    filtered_leagues = st.multiselect(
+        "Filtrer par ligue", 
+        all_leagues,
+        default=["Toutes les ligues"]
+    )
+    
+    # Filtrer les matchs selon les ligues sélectionnées
+    if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
+        filtered_matches = [m for m in today_matches if m.get('league', '') in filtered_leagues]
+    else:
+        filtered_matches = today_matches
+    
     # Affichage sécurisé des matchs du jour
-    if not today_matches or not isinstance(today_matches, list):
+    if not filtered_matches or not isinstance(filtered_matches, list):
         st.info("Aucun match disponible pour aujourd'hui")
     else:
         # Créer une grille de matchs pour une meilleure présentation
         cols = st.columns(2)
-        for i, match in enumerate(today_matches):
+        for i, match in enumerate(filtered_matches):
             try:
                 col = cols[i % 2]  # Alternance entre les colonnes
                 with col:
