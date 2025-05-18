@@ -131,10 +131,16 @@ def get_matches_for_date(date=None, days_range=3, league_ids=None, season="2024-
                 draw_prob = round(draw_prob, 2)
                 away_prob = round(away_prob, 2)
                 
-                # Calculer les cotes
-                home_odds = round(1 / home_prob, 2)
-                draw_odds = round(1 / draw_prob, 2)
-                away_odds = round(1 / away_prob, 2)
+                # Calculer les cotes (éviter les divisions par zéro)
+                home_odds = round(1 / max(home_prob, 0.01), 2)
+                draw_odds = round(1 / max(draw_prob, 0.01), 2)
+                away_odds = round(1 / max(away_prob, 0.01), 2)
+                
+                # Obtenir et formater l'heure du match
+                match_time = match.get('time', '??:??')
+                
+                # Formater la date et l'heure pour un affichage clair et fiable
+                formatted_date = datetime.strptime(match_date, "%Y-%m-%d").strftime("%d/%m/%Y")
                 
                 # Créer l'objet match compatible avec ArcanShadow
                 arcan_match = {
@@ -144,9 +150,11 @@ def get_matches_for_date(date=None, days_range=3, league_ids=None, season="2024-
                     "away_team": away_team,
                     "home": home_team,  # Alias pour compatibilité
                     "away": away_team,  # Alias pour compatibilité
-                    "time": match.get('time', '??:??'),
-                    "kickoff_time": match.get('time', '??:??'),
+                    "time": match_time,
+                    "kickoff_time": match_time,
                     "date": match_date,
+                    "formatted_date": formatted_date,
+                    "full_date_time": f"{formatted_date} à {match_time}",
                     "home_odds": home_odds,
                     "draw_odds": draw_odds,
                     "away_odds": away_odds,

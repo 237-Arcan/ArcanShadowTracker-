@@ -1639,7 +1639,7 @@ with tabs[7]:
                             <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
                                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
                                     <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                                    {league_name} • {match_time}
+                                    {league_name} • {match.get('full_date_time', f"{match.get('formatted_date', '')} à {match_time}")}
                                 </div>
                                 <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
                                     {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
