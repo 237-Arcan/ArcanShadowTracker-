@@ -1313,153 +1313,190 @@ with tabs[5]:  # Système d'Apprentissage
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
 
 # Nouvel onglet pour les Aperçus & Matchs Spéciaux
-with tabs[7]:  # Aperçus & Matchs Spéciaux
-    st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
-    st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
-    
-    # Affichage des matchs à la une
-    st.markdown(f"### 🌟 {t('featured_matches')}")
-    
-    for match in featured_matches:
-        # Classes de probabilité pour le code couleur
-        home_prob = match.get('home_prob', 0.45)
-        draw_prob = match.get('draw_prob', 0.25)
-        away_prob = match.get('away_prob', 0.30)
+with tabs[7]:
+    try:  # Utiliser un bloc try/except global pour éviter que tout l'onglet ne plante
+        st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
+        st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
         
-        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
-        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
-        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        # SECTION 1: MATCHS À LA UNE
+        st.markdown("### ⭐ Matchs à la une")
         
-        # Code du pays pour les drapeaux
-        country_code = match.get('country_code', 'fr').lower()
+        # Validation des données featured_matches
+        valid_featured = []
+        if isinstance(featured_matches, list):
+            for m in featured_matches:
+                if isinstance(m, dict):
+                    valid_featured.append(m)
         
-        # Carte de match élégante avec notre nouvelle conception
-        st.markdown(f"""
-        <div class="match-card featured">
-            <div class="match-header">
-                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
-                <div class="match-league">
-                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
-                    <span>{match.get('league', '')}</span>
-                </div>
-            </div>
-            <div class="match-teams">
-                <div class="home-team">{match.get('home_team', match.get('home', '?'))}</div>
-                <div class="versus">VS</div>
-                <div class="away-team">{match.get('away_team', match.get('away', '?'))}</div>
-            </div>
-            <div class="match-odds">
-                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
-                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
-                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Affichage des matchs du jour
-    st.markdown(f"### 🗓️ {t('todays_matches')}")
-    
-    # Garantir que today_matches est bien une liste
-    if not isinstance(today_matches, list):
-        today_matches = []
-    
-    # Affichage sécurisé des matchs du jour
-    if not today_matches:
-        st.info("Aucun match disponible pour aujourd'hui")
-    else:
-        # Collecter toutes les ligues disponibles
-        all_leagues_set = set()
-        for match in today_matches:
-            if isinstance(match, dict) and 'league' in match:
-                all_leagues_set.add(match.get('league', ''))
-        
-        # Créer la liste des options de filtre
-        all_leagues = ["Toutes les ligues"] + sorted(list(all_leagues_set))
-        
-        # Widget de sélection de ligue
-        filtered_leagues = st.multiselect(
-            "Filtrer par ligue", 
-            all_leagues,
-            default=["Toutes les ligues"]
-        )
-        
-        # Appliquer le filtre avec sécurité supplémentaire
-        filtered_matches = []
-        
-        # Vérifier d'abord si on filtre par ligue
-        if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
-            # Filtre avec validation stricte des types
-            for m in today_matches:
-                if isinstance(m, dict) and m.get('league', '') in filtered_leagues:
-                    filtered_matches.append(m)
+        if not valid_featured:
+            st.info("Aucun match à la une aujourd'hui")
         else:
-            # Copier uniquement les matchs qui sont des dictionnaires
-            filtered_matches = [m for m in today_matches if isinstance(m, dict)]
-        
-        # Vérifier si nous avons des matchs après filtrage
-        if not filtered_matches:
-            st.info("Aucun match ne correspond aux critères de filtre")
-        else:
-            # Créer une grille de matchs pour une meilleure présentation
-            cols = st.columns(2)
-            for i, match in enumerate(filtered_matches):
+            # Afficher les matchs à la une dans un format simplifié
+            for i, match in enumerate(valid_featured):
                 try:
-                    # Vérifier que match est bien un dictionnaire 
-                    if not isinstance(match, dict):
-                        continue
+                    # Extraire toutes les données avec validation
+                    try:
+                        home_prob = float(match.get('home_prob', 0.45))
+                    except (TypeError, ValueError):
+                        home_prob = 0.45
                         
-                    col = cols[i % 2]  # Alternance entre les colonnes
-                    with col:
-                        # Récupérer les probabilités avec des valeurs par défaut
-                        prob_1 = float(match.get('home_prob', 0.33))
-                        prob_x = float(match.get('draw_prob', 0.33))
-                        prob_2 = float(match.get('away_prob', 0.33))
+                    try:
+                        draw_prob = float(match.get('draw_prob', 0.25))
+                    except (TypeError, ValueError):
+                        draw_prob = 0.25
                         
-                        # Déterminer automatiquement la classe CSS basée sur la probabilité
-                        home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
-                        draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
-                        away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
-                        
-                        # Garantir que le code pays est valide
-                        country_code = str(match.get('country_code', 'fr')).lower()
-                        
-                        # Récupérer l'heure du match de façon sécurisée
-                        match_time = match.get('time', match.get('kickoff_time', '??:??'))
-                        
-                        # Récupérer les noms d'équipe de façon sécurisée
-                        home_team = match.get('home', match.get('home_team', '?'))
-                        away_team = match.get('away', match.get('away_team', '?'))
-                        
-                        # Récupérer le nom de la ligue de façon sécurisée
-                        league_name = match.get('league', '')
-                        
-                        st.markdown(f"""
-                        <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
-                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
-                                <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                                {league_name} • {match_time}
+                    try:
+                        away_prob = float(match.get('away_prob', 0.30))
+                    except (TypeError, ValueError):
+                        away_prob = 0.30
+                    
+                    # Classes de probabilité pour les couleurs
+                    home_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+                    draw_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+                    away_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+                    
+                    # Autres informations du match
+                    country_code = str(match.get('country_code', 'fr')).lower()
+                    home_team = match.get('home', match.get('home_team', '?'))
+                    away_team = match.get('away', match.get('away_team', '?'))
+                    league = match.get('league', '')
+                    
+                    # Heure du match (avec plusieurs options de fallback)
+                    match_time = match.get('time', match.get('kickoff_time', '??:??'))
+                    
+                    # Utiliser des éléments Streamlit standard au lieu du HTML complexe
+                    st.markdown(f"""
+                    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
+                               border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+                        <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                            <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                            {league} • {match_time}
+                        </div>
+                        <div style="font-size: 20px; font-weight: bold; color: white; margin: 10px 0;">
+                            {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">
+                            <div style="text-align: center; flex: 1;">
+                                <div style="color: white;">1</div>
+                                <div style="color: #01ff80;">{int(home_prob * 100)}%</div>
                             </div>
-                            <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
-                                {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
+                            <div style="text-align: center; flex: 1;">
+                                <div style="color: white;">X</div>
+                                <div style="color: #ffbe41;">{int(draw_prob * 100)}%</div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                                <div class="prob-{home_class}" style="text-align: center; flex: 1;">
-                                    <div>1</div>
-                                    <div>{int(prob_1 * 100)}%</div>
-                                </div>
-                                <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
-                                    <div>X</div>
-                                    <div>{int(prob_x * 100)}%</div>
-                                </div>
-                                <div class="prob-{away_class}" style="text-align: center; flex: 1;">
-                                    <div>2</div>
-                                    <div>{int(prob_2 * 100)}%</div>
-                                </div>
+                            <div style="text-align: center; flex: 1;">
+                                <div style="color: white;">2</div>
+                                <div style="color: #ff3364;">{int(away_prob * 100)}%</div>
                             </div>
                         </div>
-                        """, unsafe_allow_html=True)
+                    </div>
+                    """, unsafe_allow_html=True)
                 except Exception as e:
-                    st.error(f"Erreur lors de l'affichage d'un match: {str(e)}")
+                    # Ignorer silencieusement les erreurs individuelles pour ne pas bloquer l'interface
+                    pass
+        
+        # SECTION 2: MATCHS DU JOUR
+        st.markdown("### 🗓️ Matchs du jour")
+        
+        # Validation des données today_matches
+        valid_matches = []
+        if isinstance(today_matches, list):
+            for m in today_matches:
+                if isinstance(m, dict):
+                    valid_matches.append(m)
+        
+        if not valid_matches:
+            st.info("Aucun match disponible pour aujourd'hui")
+        else:
+            # Extraction des ligues pour le filtre
+            leagues = set()
+            for match in valid_matches:
+                if 'league' in match:
+                    leagues.add(match['league'])
+            
+            # Widget de filtre amélioré
+            filter_options = ["Toutes les ligues"] + sorted(list(leagues))
+            selected_filters = st.multiselect(
+                "Filtrer par ligue",
+                filter_options,
+                default=["Toutes les ligues"]
+            )
+            
+            # Application du filtre
+            filtered_matches = valid_matches
+            if selected_filters and "Toutes les ligues" not in selected_filters:
+                filtered_matches = [m for m in valid_matches if m.get('league', '') in selected_filters]
+            
+            if not filtered_matches:
+                st.info("Aucun match ne correspond aux critères de filtre")
+            else:
+                # Afficher les matchs en deux colonnes
+                col1, col2 = st.columns(2)
+                
+                for i, match in enumerate(filtered_matches):
+                    try:
+                        col = col1 if i % 2 == 0 else col2
+                        with col:
+                            # Extraire et valider les données
+                            try:
+                                home_prob = float(match.get('home_prob', 0.33))
+                            except (TypeError, ValueError):
+                                home_prob = 0.33
+                                
+                            try:
+                                draw_prob = float(match.get('draw_prob', 0.33))
+                            except (TypeError, ValueError):
+                                draw_prob = 0.33
+                                
+                            try:
+                                away_prob = float(match.get('away_prob', 0.33))
+                            except (TypeError, ValueError):
+                                away_prob = 0.33
+                            
+                            # Informations du match
+                            home_team = match.get('home', match.get('home_team', '?'))
+                            away_team = match.get('away', match.get('away_team', '?'))
+                            match_time = match.get('time', match.get('kickoff_time', '??:??'))
+                            league_name = match.get('league', '')
+                            country_code = str(match.get('country_code', 'fr')).lower()
+                            
+                            # Classes pour le code couleur
+                            home_class = "green" if home_prob >= 0.6 else ("orange" if home_prob >= 0.4 else "red")
+                            draw_class = "green" if draw_prob >= 0.6 else ("orange" if draw_prob >= 0.4 else "red")
+                            away_class = "green" if away_prob >= 0.6 else ("orange" if away_prob >= 0.4 else "red")
+                            
+                            # Carte de match simplifiée
+                            st.markdown(f"""
+                            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                                    {league_name} • {match_time}
+                                </div>
+                                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                                    {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                    <div style="text-align: center; flex: 1;">
+                                        <div>1</div>
+                                        <div>{int(home_prob * 100)}%</div>
+                                    </div>
+                                    <div style="text-align: center; flex: 1;">
+                                        <div>X</div>
+                                        <div>{int(draw_prob * 100)}%</div>
+                                    </div>
+                                    <div style="text-align: center; flex: 1;">
+                                        <div>2</div>
+                                        <div>{int(away_prob * 100)}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    except Exception as e:
+                        # Ignorer silencieusement pour ne pas bloquer l'interface
+                        pass
+    except Exception as main_error:
+        # Gestion globale des erreurs
+        st.error("Impossible d'afficher les matchs. Veuillez réessayer plus tard.")
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
