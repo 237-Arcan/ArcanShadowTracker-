@@ -1373,7 +1373,7 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     
     # Créer une grille de matchs pour une meilleure présentation
     cols = st.columns(2)
-    for i, match in enumerate(filtered_matches):
+    for i, match in enumerate(today_matches):
         col = cols[i % 2]  # Alternance entre les colonnes
         with col:
             prob_1 = match.get('home_prob', 0.33)
