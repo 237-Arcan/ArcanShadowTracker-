@@ -122,7 +122,10 @@ def get_sample_data():
                 "country_code": countries[league],
                 "home_team": home_team,
                 "away_team": away_team,
+                "home": home_team,  # Alias pour compatibilité
+                "away": away_team,  # Alias pour compatibilité
                 "kickoff_time": match_time,
+                "time": match_time,  # Ajout de la clé 'time' pour maintenir la compatibilité
                 "home_odds": home_odds,
                 "draw_odds": draw_odds,
                 "away_odds": away_odds,
