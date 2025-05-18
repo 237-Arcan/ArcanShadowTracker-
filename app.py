@@ -774,8 +774,8 @@ with tabs[4]:  # Smart Market Recommendations
             return 'color: #01ff80; font-weight: bold'
         return ''
     
-    # Afficher le tableau avec style
-    st.dataframe(anomalies_df.style.applymap(highlight_value, subset=['value']), use_container_width=True)
+    # Afficher le tableau avec style - using style.map instead of style.applymap (which is deprecated)
+    st.dataframe(anomalies_df.style.map(highlight_value, subset=['value']), use_container_width=True)
     
     # Graphique de distribution des valeurs
     st.markdown("### 📊 Distribution des Valeurs sur le Marché")
