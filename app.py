@@ -154,7 +154,7 @@ if 'notification_count' not in st.session_state:
 
 # Créer les onglets spécifiques au système ArcanShadow
 tabs = st.tabs([
-    "🔍 Live Monitoring", 
+    "🔍 Surveillance en direct", 
     "🔮 Prédictions",
     "🔔 Performance Notifications", 
     "🎯 Daily Combo", 
