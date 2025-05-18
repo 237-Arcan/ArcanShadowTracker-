@@ -158,84 +158,192 @@ def get_sample_data():
     
     return featured_matches, remaining_matches
 
-# Création d'un jeu de données test garanti valide
-def create_dummy_match(league, home_team, away_team, home_prob=0.45, draw_prob=0.25, away_prob=0.30, country_code="fr"):
-    """Crée un match test avec des valeurs par défaut sécurisées"""
-    # Définir les codes pays pour les drapeaux
-    country_codes = {
-        "Ligue 1": "fr", 
-        "Premier League": "gb", 
-        "LaLiga": "es", 
-        "Bundesliga": "de", 
-        "Serie A": "it"
-    }
-    
-    # Générer le temps du match
-    match_time = f"{np.random.randint(12, 23)}:{np.random.choice(['00', '15', '30', '45'])}"
-    
-    # Générer des cotes cohérentes avec les probabilités
-    home_odds = round(1 / home_prob, 2)
-    draw_odds = round(1 / draw_prob, 2)
-    away_odds = round(1 / away_prob, 2)
-    
-    # Créer le dictionnaire du match avec tous les champs requis
-    return {
-        "league": league,
-        "country": country_codes.get(league, country_code),
-        "country_code": country_codes.get(league, country_code),
-        "home_team": home_team,
-        "away_team": away_team,
-        "home": home_team,  # Alias
-        "away": away_team,  # Alias
-        "time": match_time,
-        "kickoff_time": match_time,
-        "home_odds": home_odds,
-        "draw_odds": draw_odds,
-        "away_odds": away_odds,
-        "home_prob": home_prob,
-        "draw_prob": draw_prob,
-        "away_prob": away_prob
-    }
+# Importer le module de données de football réelles
+import sys
+import os
 
-# Créer manuellement des données de test fiables
+# Ajouter le répertoire utils au chemin pour pouvoir importer les modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.football_data import get_future_matches
+
+# Charger les données de matchs réels depuis le dépôt football.json
 try:
-    # Données simulées de la fonction d'origine
-    featured_from_func, today_from_func = get_sample_data()
+    # Définir les ligues principales à charger
+    main_leagues = ['en.1', 'es.1', 'it.1', 'de.1', 'fr.1', 'uefa.cl']
     
-    # Mais on crée aussi des données de secours garanties valides
-    backup_featured = [
-        create_dummy_match("Ligue 1", "PSG", "Marseille", 0.65, 0.20, 0.15),
-        create_dummy_match("Premier League", "Liverpool", "Arsenal", 0.55, 0.25, 0.20),
-        create_dummy_match("LaLiga", "Real Madrid", "Barcelona", 0.45, 0.30, 0.25)
-    ]
+    # Obtenir les matchs réels à venir dans les 10 prochains jours
+    featured_matches, today_matches = get_future_matches(
+        days_ahead=10,
+        league_ids=main_leagues,
+        season="2024-25"  # Utiliser la saison actuelle
+    )
     
-    backup_today = [
-        create_dummy_match("Ligue 1", "Lyon", "Monaco", 0.40, 0.30, 0.30),
-        create_dummy_match("Ligue 1", "Lille", "Rennes", 0.55, 0.25, 0.20),
-        create_dummy_match("Premier League", "Chelsea", "Tottenham", 0.35, 0.30, 0.35),
-        create_dummy_match("Premier League", "Man City", "Man United", 0.60, 0.25, 0.15),
-        create_dummy_match("LaLiga", "Atletico Madrid", "Sevilla", 0.50, 0.25, 0.25),
-        create_dummy_match("Bundesliga", "Bayern Munich", "Dortmund", 0.70, 0.20, 0.10),
-        create_dummy_match("Serie A", "Juventus", "Napoli", 0.40, 0.30, 0.30)
-    ]
+    # Si les données réelles sont insuffisantes, utiliser des données de secours
+    if not featured_matches or len(featured_matches) < 3:
+        featured_matches = [
+            {
+                "league": "Ligue 1",
+                "country_code": "fr",
+                "home_team": "PSG",
+                "away_team": "Marseille",
+                "home": "PSG",
+                "away": "Marseille",
+                "time": "20:45",
+                "kickoff_time": "20:45",
+                "date": "2025-05-24",
+                "home_odds": 1.54,
+                "draw_odds": 4.00,
+                "away_odds": 6.67,
+                "home_prob": 0.65,
+                "draw_prob": 0.20,
+                "away_prob": 0.15
+            },
+            {
+                "league": "Premier League",
+                "country_code": "gb",
+                "home_team": "Liverpool",
+                "away_team": "Arsenal",
+                "home": "Liverpool",
+                "away": "Arsenal",
+                "time": "17:30",
+                "kickoff_time": "17:30",
+                "date": "2025-05-20",
+                "home_odds": 1.82,
+                "draw_odds": 4.00,
+                "away_odds": 5.00,
+                "home_prob": 0.55,
+                "draw_prob": 0.25,
+                "away_prob": 0.20
+            },
+            {
+                "league": "LaLiga",
+                "country_code": "es",
+                "home_team": "Real Madrid",
+                "away_team": "Barcelona",
+                "home": "Real Madrid",
+                "away": "Barcelona",
+                "time": "21:00",
+                "kickoff_time": "21:00",
+                "date": "2025-05-25",
+                "home_odds": 2.22,
+                "draw_odds": 3.33,
+                "away_odds": 4.00,
+                "home_prob": 0.45,
+                "draw_prob": 0.30,
+                "away_prob": 0.25
+            }
+        ]
     
-    # Vérifier si les données de la fonction sont valides
-    if (isinstance(featured_from_func, list) and len(featured_from_func) > 0 and 
-        all(isinstance(m, dict) for m in featured_from_func)):
-        featured_matches = featured_from_func
-    else:
-        featured_matches = backup_featured
-        
-    if (isinstance(today_from_func, list) and len(today_from_func) > 0 and 
-        all(isinstance(m, dict) for m in today_from_func)):
-        today_matches = today_from_func
-    else:
-        today_matches = backup_today
-        
+    # Si aucun match du jour n'est trouvé, utiliser des matchs de secours
+    if not today_matches:
+        today_matches = [
+            {
+                "league": "Ligue 1",
+                "country_code": "fr",
+                "home_team": "Lyon",
+                "away_team": "Monaco",
+                "home": "Lyon",
+                "away": "Monaco",
+                "time": "19:00",
+                "kickoff_time": "19:00",
+                "date": "2025-05-20",
+                "home_odds": 2.50,
+                "draw_odds": 3.33,
+                "away_odds": 3.33,
+                "home_prob": 0.40,
+                "draw_prob": 0.30,
+                "away_prob": 0.30
+            },
+            {
+                "league": "Bundesliga",
+                "country_code": "de",
+                "home_team": "Bayern Munich",
+                "away_team": "Dortmund",
+                "home": "Bayern Munich",
+                "away": "Dortmund",
+                "time": "18:30",
+                "kickoff_time": "18:30",
+                "date": "2025-05-23",
+                "home_odds": 1.43,
+                "draw_odds": 5.00,
+                "away_odds": 10.00,
+                "home_prob": 0.70,
+                "draw_prob": 0.20,
+                "away_prob": 0.10
+            },
+            {
+                "league": "Serie A",
+                "country_code": "it",
+                "home_team": "Juventus",
+                "away_team": "Napoli",
+                "home": "Juventus",
+                "away": "Napoli",
+                "time": "20:45",
+                "kickoff_time": "20:45",
+                "date": "2025-05-21",
+                "home_odds": 2.50,
+                "draw_odds": 3.33,
+                "away_odds": 3.33,
+                "home_prob": 0.40,
+                "draw_prob": 0.30,
+                "away_prob": 0.30
+            }
+        ]
+    
+    # Assurer que les matchs ont tous les champs requis
+    for match in featured_matches + today_matches:
+        # Garantir que les alias sont présents
+        if 'home_team' in match and 'home' not in match:
+            match['home'] = match['home_team']
+        if 'away_team' in match and 'away' not in match:
+            match['away'] = match['away_team']
+        # Garantir que les temps sont présents
+        if 'kickoff_time' in match and 'time' not in match:
+            match['time'] = match['kickoff_time']
+        elif 'time' in match and 'kickoff_time' not in match:
+            match['kickoff_time'] = match['time']
+    
 except Exception as e:
-    # En cas d'erreur, utiliser les données de secours
-    featured_matches = backup_featured
-    today_matches = backup_today
+    print(f"Erreur lors du chargement des données de football: {e}")
+    # Créer des données de secours en cas d'erreur
+    featured_matches = [
+        {
+            "league": "Champions League",
+            "country_code": "eu",
+            "home_team": "Manchester City",
+            "away_team": "Real Madrid",
+            "home": "Manchester City",
+            "away": "Real Madrid",
+            "time": "21:00",
+            "kickoff_time": "21:00",
+            "date": "2025-05-25",
+            "home_odds": 2.00,
+            "draw_odds": 3.50,
+            "away_odds": 4.00,
+            "home_prob": 0.50,
+            "draw_prob": 0.28,
+            "away_prob": 0.22
+        }
+    ]
+    today_matches = [
+        {
+            "league": "Premier League",
+            "country_code": "gb",
+            "home_team": "Liverpool",
+            "away_team": "Manchester United",
+            "home": "Liverpool",
+            "away": "Manchester United",
+            "time": "17:30",
+            "kickoff_time": "17:30",
+            "date": "2025-05-18",
+            "home_odds": 1.67,
+            "draw_odds": 4.00,
+            "away_odds": 5.00,
+            "home_prob": 0.60,
+            "draw_prob": 0.25,
+            "away_prob": 0.15
+        }
+    ]
 
 # Interface principale
 st.title(f"🔮 {t('app_title')}")
