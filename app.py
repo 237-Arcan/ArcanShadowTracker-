@@ -1380,10 +1380,10 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
             <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
                     <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                    {match['league']} • {match['time']}
+                    {match.get('league', '')} • {match.get('time', match.get('kickoff_time', '??:??'))}
                 </div>
                 <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
-                    {match['home']} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match['away']}
+                    {match.get('home', match.get('home_team', '?'))} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match.get('away', match.get('away_team', '?'))}
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 13px;">
                     <div class="prob-{home_class}" style="text-align: center; flex: 1;">
