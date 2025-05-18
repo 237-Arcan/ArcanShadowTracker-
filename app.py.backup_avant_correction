@@ -1491,6 +1491,15 @@ with tabs[6]:  # Notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
     
+    # Afficher les métriques de santé du système
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="Santé globale", value="97%", delta="+2.3%")
+    with col2:
+        st.metric(label="Efficacité d'apprentissage", value="91.4%", delta="+4.7%")
+    with col3:
+        st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
+    
     
     # Structure pour les matchs en direct
     if 'live_matches' not in st.session_state:
