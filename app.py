@@ -510,17 +510,10 @@ with tabs[2]:  # Performance Notifications
         yaxis_title="Module Prédictif",
         template="plotly_dark",
         dragmode=False,
-        clickmode=False,
-        hoverlabel=dict(enabled=False),
-        hovermode=False,
-        fixedrange=True
+        hovermode=False
     )
     
-    # Désactiver toutes les interactions possibles
-    fig.update_xaxes(fixedrange=True, showspikes=False, spikethickness=0)
-    fig.update_yaxes(fixedrange=True, showspikes=False, spikethickness=0)
-    
-    # Afficher le graphique de manière statique
+    # Afficher le graphique de manière statique (sans interaction)
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
     # Alertes et recommandations de calibration
@@ -581,8 +574,6 @@ with tabs[3]:  # Daily Combo
     # Désactiver toutes les interactions possibles
     fig_modules.update_layout(
         dragmode=False,
-        clickmode=False,
-        hoverlabel=dict(enabled=False),
         hovermode=False
     )
     
@@ -1039,15 +1030,13 @@ with tabs[6]:  # Notifications
     fig.update_layout(
         title="Réseau de connexions entre modules",
         showlegend=False,
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(b=0, l=0, r=0, t=40),
         template="plotly_dark",
         height=500,
         dragmode=False,
-        clickmode=False,
-        hoverlabel=dict(enabled=False),
         hovermode=False
     )
     
