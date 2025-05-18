@@ -173,6 +173,23 @@ with tabs[0]:  # Live Monitoring (Surveillance en direct)
     st.markdown("## 🔍 Suivi des Matchs en Direct")
     st.markdown("Visualisez les dynamiques de match en temps réel avec nos capteurs énergétiques avancés.")
     
+    # Ajout d'un bouton pour charger les données réelles
+    if st.button("🔄 Charger les matchs en direct depuis l'API Football"):
+        try:
+            # Récupération des matchs en direct depuis l'API Football
+            real_matches = get_football_api_matches()
+            
+            # Si nous avons des matchs en direct
+            if real_matches:
+                st.session_state.live_matches = real_matches
+                st.success(f"Données réelles récupérées avec succès: {len(real_matches)} matchs en direct")
+            else:
+                # Si aucun match n'est disponible
+                st.warning("Aucun match en direct n'est disponible actuellement via l'API Football.")
+        except Exception as e:
+            # En cas d'erreur lors de la récupération
+            st.error(f"Erreur lors de la récupération des matchs en direct: {str(e)}")
+    
     # Section d'activation d'ArcanSentinel sur les matchs en direct
     st.markdown("### 🔍 Activation d'ArcanSentinel pour les Matchs en Direct")
     
