@@ -158,8 +158,23 @@ def get_sample_data():
     
     return featured_matches, remaining_matches
 
-# Création de données simulées
-featured_matches, today_matches = get_sample_data()
+# Création de données simulées avec validation
+try:
+    featured_matches, today_matches = get_sample_data()
+    # Vérification supplémentaire que les matchs sont des listes valides
+    if not isinstance(featured_matches, list):
+        featured_matches = []
+    if not isinstance(today_matches, list):
+        today_matches = []
+    
+    # Vérification que chaque élément est un dictionnaire valide
+    featured_matches = [m for m in featured_matches if isinstance(m, dict)]
+    today_matches = [m for m in today_matches if isinstance(m, dict)]
+except Exception as e:
+    import traceback
+    st.error(f"Erreur lors de la génération des données: {str(e)}")
+    st.code(traceback.format_exc())
+    featured_matches, today_matches = [], []
 
 # Interface principale
 st.title(f"🔮 {t('app_title')}")
@@ -1368,11 +1383,18 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
             default=["Toutes les ligues"]
         )
         
-        # Appliquer le filtre
+        # Appliquer le filtre avec sécurité supplémentaire
+        filtered_matches = []
+        
+        # Vérifier d'abord si on filtre par ligue
         if "Toutes les ligues" not in filtered_leagues and filtered_leagues:
-            filtered_matches = [m for m in today_matches if isinstance(m, dict) and m.get('league', '') in filtered_leagues]
+            # Filtre avec validation stricte des types
+            for m in today_matches:
+                if isinstance(m, dict) and m.get('league', '') in filtered_leagues:
+                    filtered_matches.append(m)
         else:
-            filtered_matches = today_matches
+            # Copier uniquement les matchs qui sont des dictionnaires
+            filtered_matches = [m for m in today_matches if isinstance(m, dict)]
         
         # Vérifier si nous avons des matchs après filtrage
         if not filtered_matches:
@@ -1382,7 +1404,7 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
             cols = st.columns(2)
             for i, match in enumerate(filtered_matches):
                 try:
-                    # Vérifier que match est bien un dictionnaire
+                    # Vérifier que match est bien un dictionnaire 
                     if not isinstance(match, dict):
                         continue
                         
