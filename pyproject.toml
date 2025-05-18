@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "anthropic>=0.51.0",
     "beautifulsoup4>=4.13.4",
     "matplotlib>=3.10.3",
     "numpy>=2.2.5",
@@ -11,7 +12,9 @@ dependencies = [
     "pandas>=2.2.3",
     "plotly>=6.0.1",
     "requests>=2.32.3",
+    "scikit-learn>=1.6.1",
     "sqlalchemy>=2.0.40",
     "streamlit>=1.45.0",
     "trafilatura>=2.0.0",
+    "xgboost>=3.0.1",
 ]
