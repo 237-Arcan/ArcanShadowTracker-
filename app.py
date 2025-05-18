@@ -7,6 +7,12 @@ from datetime import datetime, timedelta
 import time
 import os
 import matplotlib.pyplot as plt
+import sys
+import requests
+import random
+
+# Importer notre fonction pour obtenir des matchs réels
+from get_real_matches import get_football_api_matches
 
 # Configuration de la page
 st.set_page_config(
