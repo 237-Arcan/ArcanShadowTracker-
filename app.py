@@ -432,8 +432,28 @@ with tabs[1]:  # Prédictions
         height=400
     )
     
-    fig.update_layout(template="plotly_dark", yaxis=dict(autorange="reversed"))
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(
+        template="plotly_dark", 
+        yaxis=dict(autorange="reversed"),
+        dragmode=False,
+        xaxis=dict(fixedrange=True),  # Désactive le zoom sur l'axe X
+        yaxis_fixedrange=True         # Désactive le zoom sur l'axe Y
+    )
+    
+    # Rendre le graphique complètement statique
+    st.plotly_chart(
+        fig, 
+        use_container_width=True, 
+        config={
+            'staticPlot': True,               # Force un plot statique
+            'displayModeBar': False,          # Masque la barre d'outils
+            'showTips': False,                # Désactive les astuces
+            'doubleClick': False,             # Désactive le double-clic
+            'showAxisDragHandles': False,     # Désactive les poignées d'axe
+            'showAxisRangeEntryBoxes': False, # Désactive les boîtes de plage d'axe
+            'displaylogo': False              # Désactive le logo Plotly
+        }
+    )
     
     # Afficher les insights clés de chaque module
     st.markdown("### 🔑 Insights clés par module")
