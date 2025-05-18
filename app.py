@@ -1416,6 +1416,7 @@ with tabs[6]:  # Notifications
             </div>
         </div>
         
+        <!-- Description -->
         <div style="margin-bottom: 15px;">
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
                 ArcanBrain surveille en permanence les performances du système et procède automatiquement
@@ -1424,6 +1425,7 @@ with tabs[6]:  # Notifications
             </p>
         </div>
         
+        <!-- Modes de recalibration -->
         <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
             <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
                 Modes de recalibration automatiques:
@@ -1436,6 +1438,7 @@ with tabs[6]:  # Notifications
             </div>
         </div>
         
+        <!-- Informations système -->
         <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
             <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
             <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
