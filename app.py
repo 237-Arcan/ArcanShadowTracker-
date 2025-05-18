@@ -830,76 +830,65 @@ with tabs[2]:  # Performance Notifications
     
     selected_match = st.selectbox("Sélectionner un match pour l'analyse comparative:", match_options)
     
-    # Contenu du tableau d'analyse comparative
-    st.markdown("""
-    <div style="padding: 20px; border-radius: 10px; background: rgba(8, 15, 40, 0.5); margin-bottom: 15px;">
-        <h4 style="color: #05d9e8; margin-top: 0;">Analyse Comparative : Liverpool vs Arsenal</h4>
-        
-        <table style="width: 100%; margin-top: 15px; border-collapse: collapse; color: rgba(255, 255, 255, 0.9);">
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.3); text-align: left;">
-                <th style="padding: 8px 12px; width: 25%;">Métrique</th>
-                <th style="padding: 8px 12px; width: 25%;">Prédiction Pré-Match</th>
-                <th style="padding: 8px 12px; width: 25%;">Analyse ArcanSentinel</th>
-                <th style="padding: 8px 12px; width: 25%;">Résultat Officiel</th>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Résultat</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Victoire Liverpool</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Victoire Liverpool</td>
-                <td style="padding: 10px 12px;">Victoire Liverpool</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Score</td>
-                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 2-0</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 2-1</td>
-                <td style="padding: 10px 12px;">2-1</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Possession</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Liverpool 58%</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Liverpool 62%</td>
-                <td style="padding: 10px 12px;">Liverpool 61%</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Tirs cadrés</td>
-                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 7-3</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 8-4</td>
-                <td style="padding: 10px 12px;">8-4</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Corners</td>
-                <td style="padding: 10px 12px;"><span style="color: #ff3364;">✗</span> 4-2</td>
-                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 5-4</td>
-                <td style="padding: 10px 12px;">7-3</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(81, 99, 149, 0.1);">
-                <td style="padding: 10px 12px; font-weight: bold;">Cartons jaunes</td>
-                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> 2-3</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> 3-2</td>
-                <td style="padding: 10px 12px;">3-2</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px 12px; font-weight: bold;">Buteurs</td>
-                <td style="padding: 10px 12px;"><span style="color: #ffbe41;">△</span> Salah, Jota</td>
-                <td style="padding: 10px 12px;"><span style="color: #01ff80;">✓</span> Salah, Diaz | Saka</td>
-                <td style="padding: 10px 12px;">Salah, Diaz | Saka</td>
-            </tr>
-        </table>
-        
-        <div style="margin-top: 20px; background: rgba(1, 255, 128, 0.05); padding: 12px; border-radius: 5px; border-left: 4px solid #01ff80;">
-            <h5 style="color: #01ff80; margin-top: 0; margin-bottom: 5px;">Synthèse de l'Analyse Comparative</h5>
-            <p style="color: rgba(255, 255, 255, 0.8); margin: 0;">
-                <span style="font-weight: bold;">Précision de la prédiction pré-match:</span> 71% (5/7 métriques correctes ou partiellement correctes)<br>
-                <span style="font-weight: bold;">Précision d'ArcanSentinel en direct:</span> 93% (6/7 métriques correctes, 1 partiellement correcte)<br>
-                <span style="font-weight: bold;">Modules les plus précis:</span> GematriaOracle (prédiction de victoire), PredictiveForge (tendances statistiques), ArcanSentinel (analyse en temps réel)
-            </p>
-        </div>
-        
-        <div style="margin-top: 15px; font-size: 12px; color: rgba(255, 255, 255, 0.6); text-align: right;">
-            Match terminé | Dernière mise à jour: 17/05/2025 22:15
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Affichage de l'analyse comparative avec des composants Streamlit natifs
+    st.subheader("Analyse Comparative : Liverpool vs Arsenal")
+    
+    # Créer un DataFrame pour les données d'analyse comparative
+    metrics = ["Résultat", "Score", "Possession", "Tirs cadrés", "Corners", "Cartons jaunes", "Buteurs"]
+    
+    pre_match = [
+        "✅ Victoire Liverpool", 
+        "🟨 2-0", 
+        "✅ Liverpool 58%", 
+        "🟨 7-3", 
+        "❌ 4-2", 
+        "🟨 2-3", 
+        "🟨 Salah, Jota"
+    ]
+    
+    sentinel = [
+        "✅ Victoire Liverpool", 
+        "✅ 2-1", 
+        "✅ Liverpool 62%", 
+        "✅ 8-4", 
+        "🟨 5-4", 
+        "✅ 3-2", 
+        "✅ Salah, Diaz | Saka"
+    ]
+    
+    official = [
+        "Victoire Liverpool", 
+        "2-1", 
+        "Liverpool 61%", 
+        "8-4", 
+        "7-3", 
+        "3-2", 
+        "Salah, Diaz | Saka"
+    ]
+    
+    # Créer le DataFrame
+    df_match = pd.DataFrame({
+        "Métrique": metrics,
+        "Prédiction Pré-Match": pre_match,
+        "Analyse ArcanSentinel": sentinel,
+        "Résultat Officiel": official
+    })
+    
+    # Afficher le tableau stylisé
+    st.dataframe(df_match, hide_index=True, use_container_width=True)
+    
+    # Synthèse de l'analyse comparative
+    st.success("""
+    ### Synthèse de l'Analyse Comparative
+    
+    **Précision de la prédiction pré-match:** 71% (5/7 métriques correctes ou partiellement correctes)
+    
+    **Précision d'ArcanSentinel en direct:** 93% (6/7 métriques correctes, 1 partiellement correcte)
+    
+    **Modules les plus précis:** GematriaOracle (prédiction de victoire), PredictiveForge (tendances statistiques), ArcanSentinel (analyse en temps réel)
+    """)
+    
+    st.caption("Match terminé | Dernière mise à jour: 17/05/2025 22:15")
     
     # Insights d'amélioration
     st.markdown("### 🔍 Insights d'Amélioration")
