@@ -1525,7 +1525,7 @@ with tabs[6]:  # Notifications
             col_a, col_b = st.columns([3, 2])
             with col_a:
                 if not is_monitored:
-                    if st.button(f"Activer surveillance en direct", key=f"activate_live_notif_{match['id']}"):
+                    if st.button(f"Activer surveillance en direct", key=f"activate_live_{match['id']}"):
                         # Configuration de surveillance
                         surveillance_config = {
                             "id": match['id'],
