@@ -10,13 +10,9 @@ import sys
 import matplotlib.pyplot as plt
 import random
 
-# Import des modules pour les données réelles
+# Essayer d'importer le module pour l'onglet des données réelles
 try:
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from utils.football_data import get_future_matches, get_team_form, get_head_to_head, get_team_stats
-    from utils.prediction_analysis import get_prediction_data
-    from utils.daily_combo import get_daily_combos, get_daily_combo_analysis
-    from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
+    from real_data_tab import display_real_data_tab
 except Exception as e:
     pass
 
@@ -1969,6 +1965,33 @@ with tabs[7]:
     except Exception as main_error:
         # Gestion globale des erreurs
         st.error("Impossible d'afficher les matchs. Veuillez réessayer plus tard.")
+
+# Onglet Données Réelles 
+with tabs[8]:  # Données Réelles
+    st.markdown("## 🌍 Données Réelles de Football")
+    
+    try:
+        # Essayer d'importer et d'afficher l'onglet de données réelles
+        display_real_data_tab()
+    except Exception as e:
+        st.error(f"Une erreur s'est produite lors du chargement des données réelles : {str(e)}")
+        st.info("Cet onglet vous permet d'analyser les données réelles des principales ligues de football européennes.")
+        
+        # Afficher une interface simple en cas d'erreur
+        st.markdown("""
+        ### Fonctionnalités disponibles
+        
+        Cet onglet intègre les données réelles de football et offre:
+        - Visualisation des matchs à venir dans les principales ligues
+        - Analyses prédictives basées sur des statistiques réelles
+        - Recommandations de paris avec évaluation des probabilités
+        - Historique des confrontations entre équipes
+        - Analyses de forme et tendances des équipes
+        """)
+        
+        # Bouton pour réessayer
+        if st.button("Réessayer"):
+            st.rerun()
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
