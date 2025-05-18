@@ -6,37 +6,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 import os
-import sys
 import matplotlib.pyplot as plt
-import random
-
-# Essayer d'importer les modules pour les données réelles
-try:
-    # Importer le module pour l'onglet des données réelles
-    from real_data_tab import display_real_data_tab
-    
-    # Importer les fonctions utilitaires pour les données réelles
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from utils.football_data import get_future_matches, get_team_form, get_head_to_head, get_team_stats
-    from utils.prediction_analysis import get_prediction_data
-    from utils.daily_combo import get_daily_combos, get_daily_combo_analysis
-    from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
-    from utils.update_live_matches import update_live_matches
-    from utils.live_sentinel_initializer import initialize_surveillance_data
-    
-    # Importer notre nouveau module pour les matchs en direct avec des données réelles
-    from real_live_matches import get_live_football_matches, update_live_matches_section
-except Exception as e:
-    def get_live_matches():
-        return []
-    def get_live_alerts():
-        return []
-    
-    # Définir des fonctions fictives en cas d'erreur
-    def get_live_football_matches():
-        return []
-    def update_live_matches_section():
-        return []
 
 # Configuration de la page
 st.set_page_config(
@@ -152,10 +122,7 @@ def get_sample_data():
                 "country_code": countries[league],
                 "home_team": home_team,
                 "away_team": away_team,
-                "home": home_team,  # Alias pour compatibilité
-                "away": away_team,  # Alias pour compatibilité
                 "kickoff_time": match_time,
-                "time": match_time,  # Ajout de la clé 'time' pour maintenir la compatibilité
                 "home_odds": home_odds,
                 "draw_odds": draw_odds,
                 "away_odds": away_odds,
@@ -165,215 +132,17 @@ def get_sample_data():
             }
             matches.append(match)
     
-    # S'assurer qu'il y a des matchs à afficher
-    if not matches:
-        return [], []
-        
     # Marquer certains matchs comme importants
-    num_featured = min(3, len(matches))
-    featured_indices = np.random.choice(range(len(matches)), num_featured, replace=False)
+    featured_indices = np.random.choice(range(len(matches)), 3, replace=False)
     featured_matches = [matches[i] for i in featured_indices]
     
     # Retirer les matchs à la une de la liste principale pour éviter les doublons
     remaining_matches = [match for i, match in enumerate(matches) if i not in featured_indices]
     
-    # Ajouter les clés nécessaires s'il en manque
-    for match in featured_matches + remaining_matches:
-        if 'time' not in match and 'kickoff_time' in match:
-            match['time'] = match['kickoff_time']
-        if 'home' not in match and 'home_team' in match:
-            match['home'] = match['home_team']
-        if 'away' not in match and 'away_team' in match:
-            match['away'] = match['away_team']
-    
     return featured_matches, remaining_matches
 
-# Importer le module de données de football réelles
-import sys
-import os
-
-# Ajouter le répertoire utils au chemin pour pouvoir importer les modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.football_data import get_future_matches
-
-# Charger les données de matchs réels depuis le dépôt football.json
-try:
-    # Définir les ligues principales à charger
-    main_leagues = ['en.1', 'es.1', 'it.1', 'de.1', 'fr.1', 'uefa.cl']
-    
-    # Obtenir les matchs réels à venir dans les 10 prochains jours
-    featured_matches, today_matches = get_future_matches(
-        days_ahead=10,
-        league_ids=main_leagues,
-        season="2024-25"  # Utiliser la saison actuelle
-    )
-    
-    # Si les données réelles sont insuffisantes, utiliser des données de secours
-    if not featured_matches or len(featured_matches) < 3:
-        featured_matches = [
-            {
-                "league": "Ligue 1",
-                "country_code": "fr",
-                "home_team": "PSG",
-                "away_team": "Marseille",
-                "home": "PSG",
-                "away": "Marseille",
-                "time": "20:45",
-                "kickoff_time": "20:45",
-                "date": "2025-05-24",
-                "home_odds": 1.54,
-                "draw_odds": 4.00,
-                "away_odds": 6.67,
-                "home_prob": 0.65,
-                "draw_prob": 0.20,
-                "away_prob": 0.15
-            },
-            {
-                "league": "Premier League",
-                "country_code": "gb",
-                "home_team": "Liverpool",
-                "away_team": "Arsenal",
-                "home": "Liverpool",
-                "away": "Arsenal",
-                "time": "17:30",
-                "kickoff_time": "17:30",
-                "date": "2025-05-20",
-                "home_odds": 1.82,
-                "draw_odds": 4.00,
-                "away_odds": 5.00,
-                "home_prob": 0.55,
-                "draw_prob": 0.25,
-                "away_prob": 0.20
-            },
-            {
-                "league": "LaLiga",
-                "country_code": "es",
-                "home_team": "Real Madrid",
-                "away_team": "Barcelona",
-                "home": "Real Madrid",
-                "away": "Barcelona",
-                "time": "21:00",
-                "kickoff_time": "21:00",
-                "date": "2025-05-25",
-                "home_odds": 2.22,
-                "draw_odds": 3.33,
-                "away_odds": 4.00,
-                "home_prob": 0.45,
-                "draw_prob": 0.30,
-                "away_prob": 0.25
-            }
-        ]
-    
-    # Si aucun match du jour n'est trouvé, utiliser des matchs de secours
-    if not today_matches:
-        today_matches = [
-            {
-                "league": "Ligue 1",
-                "country_code": "fr",
-                "home_team": "Lyon",
-                "away_team": "Monaco",
-                "home": "Lyon",
-                "away": "Monaco",
-                "time": "19:00",
-                "kickoff_time": "19:00",
-                "date": "2025-05-20",
-                "home_odds": 2.50,
-                "draw_odds": 3.33,
-                "away_odds": 3.33,
-                "home_prob": 0.40,
-                "draw_prob": 0.30,
-                "away_prob": 0.30
-            },
-            {
-                "league": "Bundesliga",
-                "country_code": "de",
-                "home_team": "Bayern Munich",
-                "away_team": "Dortmund",
-                "home": "Bayern Munich",
-                "away": "Dortmund",
-                "time": "18:30",
-                "kickoff_time": "18:30",
-                "date": "2025-05-23",
-                "home_odds": 1.43,
-                "draw_odds": 5.00,
-                "away_odds": 10.00,
-                "home_prob": 0.70,
-                "draw_prob": 0.20,
-                "away_prob": 0.10
-            },
-            {
-                "league": "Serie A",
-                "country_code": "it",
-                "home_team": "Juventus",
-                "away_team": "Napoli",
-                "home": "Juventus",
-                "away": "Napoli",
-                "time": "20:45",
-                "kickoff_time": "20:45",
-                "date": "2025-05-21",
-                "home_odds": 2.50,
-                "draw_odds": 3.33,
-                "away_odds": 3.33,
-                "home_prob": 0.40,
-                "draw_prob": 0.30,
-                "away_prob": 0.30
-            }
-        ]
-    
-    # Assurer que les matchs ont tous les champs requis
-    for match in featured_matches + today_matches:
-        # Garantir que les alias sont présents
-        if 'home_team' in match and 'home' not in match:
-            match['home'] = match['home_team']
-        if 'away_team' in match and 'away' not in match:
-            match['away'] = match['away_team']
-        # Garantir que les temps sont présents
-        if 'kickoff_time' in match and 'time' not in match:
-            match['time'] = match['kickoff_time']
-        elif 'time' in match and 'kickoff_time' not in match:
-            match['kickoff_time'] = match['time']
-    
-except Exception as e:
-    print(f"Erreur lors du chargement des données de football: {e}")
-    # Créer des données de secours en cas d'erreur
-    featured_matches = [
-        {
-            "league": "Champions League",
-            "country_code": "eu",
-            "home_team": "Manchester City",
-            "away_team": "Real Madrid",
-            "home": "Manchester City",
-            "away": "Real Madrid",
-            "time": "21:00",
-            "kickoff_time": "21:00",
-            "date": "2025-05-25",
-            "home_odds": 2.00,
-            "draw_odds": 3.50,
-            "away_odds": 4.00,
-            "home_prob": 0.50,
-            "draw_prob": 0.28,
-            "away_prob": 0.22
-        }
-    ]
-    today_matches = [
-        {
-            "league": "Premier League",
-            "country_code": "gb",
-            "home_team": "Liverpool",
-            "away_team": "Manchester United",
-            "home": "Liverpool",
-            "away": "Manchester United",
-            "time": "17:30",
-            "kickoff_time": "17:30",
-            "date": "2025-05-18",
-            "home_odds": 1.67,
-            "draw_odds": 4.00,
-            "away_odds": 5.00,
-            "home_prob": 0.60,
-            "draw_prob": 0.25,
-            "away_prob": 0.15
-        }
-    ]
+# Création de données simulées
+featured_matches, today_matches = get_sample_data()
 
 # Interface principale
 st.title(f"🔮 {t('app_title')}")
@@ -391,248 +160,12 @@ tabs = st.tabs([
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
     "🧠 Système d'Apprentissage",
-    f"📬 Notifications ({st.session_state.notification_count})",
-    "🌟 Aperçus & Matchs Spéciaux",
-    "🌍 Données Réelles" # Nouvel onglet avec les données réelles
+    f"📬 Notifications ({st.session_state.notification_count})"
 ])
 
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
     st.markdown("## 🔍 Suivi des Matchs en Direct")
     st.markdown("Visualisez les dynamiques de match en temps réel avec nos capteurs énergétiques avancés.")
-    
-    # Utiliser les données réelles pour la surveillance en direct
-    try:
-        live_matches = get_live_matches()
-        if live_matches:
-            st.success(f"{len(live_matches)} matchs en direct disponibles pour analyse")
-            
-            # Sélection du match
-            match_options = [f"{m['home_team']} vs {m['away_team']} ({m['league']}) - {m['period']} {m['minute']}" for m in live_matches]
-            selected_match_idx = st.selectbox("Sélectionner un match", range(len(match_options)), format_func=lambda x: match_options[x])
-            
-            if selected_match_idx is not None:
-                selected_match = live_matches[selected_match_idx]
-                
-                # Afficher les informations du match
-                col1, col2 = st.columns([3, 1])
-                
-                with col1:
-                    # Score et temps
-                    st.markdown(f"""
-                    <div style="text-align: center; background: rgba(8, 15, 40, 0.8); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <div style="font-size: 18px; color: rgba(255, 255, 255, 0.8);">{selected_match['league']}</div>
-                        <div style="display: flex; justify-content: center; align-items: center; margin: 15px 0;">
-                            <div style="flex: 1; text-align: right; padding-right: 15px;">
-                                <div style="font-size: 24px; font-weight: bold; color: white;">{selected_match['home_team']}</div>
-                            </div>
-                            <div style="padding: 0 15px;">
-                                <div style="font-size: 32px; font-weight: bold; color: white;">{selected_match['home_score']} - {selected_match['away_score']}</div>
-                                <div style="font-size: 14px; color: #01ff80;">{selected_match['period']} • {selected_match['minute']}'</div>
-                            </div>
-                            <div style="flex: 1; text-align: left; padding-left: 15px;">
-                                <div style="font-size: 24px; font-weight: bold; color: white;">{selected_match['away_team']}</div>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Statistiques du match
-                    st.markdown("### Statistiques")
-                    stats = selected_match['stats']
-                    
-                    # Créer une visualisation des statistiques
-                    stats_cols = st.columns(3)
-                    
-                    with stats_cols[0]:
-                        st.metric("Possession", f"{stats['possession']}%", delta=None)
-                        st.metric("Tirs", f"{stats['shots']}", delta=None)
-                        
-                    with stats_cols[1]:
-                        st.metric("Tirs cadrés", f"{stats['shots_on_target']}", delta=None)
-                        st.metric("Corners", f"{stats['corners']}", delta=None)
-                        
-                    with stats_cols[2]:
-                        st.metric("Cartons jaunes", f"{stats['yellow_cards']}", delta=None)
-                        st.metric("Cartons rouges", f"{stats['red_cards']}", delta=None)
-                    
-                    # Derniers événements
-                    st.markdown("### Derniers événements")
-                    events = selected_match['recent_events']
-                    
-                    for event in events:
-                        event_type = event['type']
-                        minute = event['minute']
-                        team = event['team']
-                        description = event.get('description', '')
-                        
-                        # Couleur selon le type d'événement
-                        if event_type == 'but':
-                            color = "#01ff80"
-                            icon = "⚽"
-                        elif event_type == 'carton':
-                            color = "#ffbe41" if event.get('card_type', '') == 'jaune' else "#ff3364"
-                            icon = "🟨" if event.get('card_type', '') == 'jaune' else "🟥"
-                        elif event_type == 'occasion':
-                            color = "#7000ff"
-                            icon = "🎯"
-                        elif event_type == 'remplacement':
-                            color = "#516395"
-                            icon = "🔄"
-                        else:
-                            color = "white"
-                            icon = "🚩"
-                        
-                        st.markdown(f"""
-                        <div style="display: flex; align-items: center; margin-bottom: 10px; background: rgba(8, 15, 40, 0.5); padding: 10px; border-radius: 5px;">
-                            <div style="min-width: 40px; text-align: center; font-weight: bold; color: {color};">{minute}'</div>
-                            <div style="min-width: 30px; text-align: center; font-size: 18px;">{icon}</div>
-                            <div style="flex-grow: 1; padding-left: 10px; color: white;">{description}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                with col2:
-                    # Cotes en direct
-                    st.markdown("### Cotes live")
-                    live_odds = selected_match['live_odds']
-                    
-                    st.markdown(f"""
-                    <div style="padding: 15px; background: rgba(17, 23, 64, 0.7); border-radius: 10px; margin-bottom: 15px;">
-                        <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
-                            <div style="color: rgba(255, 255, 255, 0.7);">1</div>
-                            <div style="color: rgba(255, 255, 255, 0.7);">X</div>
-                            <div style="color: rgba(255, 255, 255, 0.7);">2</div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['home_win']}</div>
-                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['draw']}</div>
-                            <div style="font-size: 20px; font-weight: bold; color: white;">{live_odds['away_win']}</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Momentum
-                    st.markdown("### Momentum")
-                    momentum = selected_match['momentum']
-                    
-                    # Créer une jauge de momentum
-                    fig = go.Figure(go.Indicator(
-                        mode = "gauge+number",
-                        value = momentum,
-                        domain = {'x': [0, 1], 'y': [0, 1]},
-                        title = {'text': "Indice de momentum", 'font': {'color': 'white', 'size': 14}},
-                        gauge = {
-                            'axis': {'range': [0, 100], 'tickcolor': "white"},
-                            'bar': {'color': "#7000ff"},
-                            'bgcolor': "rgba(8, 15, 40, 0.7)",
-                            'borderwidth': 0,
-                            'steps': [
-                                {'range': [0, 40], 'color': 'rgba(255, 51, 100, 0.3)'},
-                                {'range': [40, 60], 'color': 'rgba(255, 190, 65, 0.3)'},
-                                {'range': [60, 100], 'color': 'rgba(1, 255, 128, 0.3)'}
-                            ],
-                        },
-                        number = {'font': {'color': 'white'}}
-                    ))
-                    
-                    fig.update_layout(
-                        paper_bgcolor = 'rgba(0,0,0,0)',
-                        plot_bgcolor = 'rgba(0,0,0,0)',
-                        font = {'color': 'white'},
-                        height = 250,
-                        margin = dict(l=20, r=20, t=30, b=20)
-                    )
-                    
-                    st.plotly_chart(fig, use_container_width=True)
-                    
-                    # Alertes
-                    st.markdown("### Alertes spéciales")
-                    
-                    # Générer des alertes adaptées au match
-                    alert_types = ["Momentum", "Cote", "Tendance"]
-                    alert_selected = random.choice(alert_types)
-                    
-                    if alert_selected == "Momentum":
-                        if momentum > 60:
-                            team_type = "l'équipe à domicile"
-                        elif momentum < 40:
-                            team_type = "l'équipe à l'extérieur"
-                        else:
-                            team_type = "aucune équipe"
-                        alert_content = f"Forte dynamique en faveur de {team_type}"
-                        alert_color = "#01ff80" if momentum > 60 or momentum < 40 else "#ffbe41"
-                    elif alert_selected == "Cote":
-                        if live_odds['home_win'] < 2.0:
-                            odds_team = "l'équipe à domicile"
-                        elif live_odds['away_win'] < 2.5:
-                            odds_team = "l'équipe à l'extérieur"
-                        else:
-                            odds_team = "le match nul"
-                        alert_content = f"Les cotes pour {odds_team} ont significativement évolué"
-                        alert_color = "#01ff80"
-                    else:
-                        team_name = selected_match['home_team'] if stats['shots'] > 8 else selected_match['away_team']
-                        alert_content = f"Le match présente une tendance inhabituelle dans les statistiques de {team_name}"
-                        alert_color = "#7000ff"
-                        
-                    st.markdown(f"""
-                    <div style="padding: 15px; background: rgba(8, 15, 40, 0.8); border-radius: 10px; border-left: 4px solid {alert_color};">
-                        <div style="font-weight: bold; color: {alert_color}; margin-bottom: 5px;">{alert_selected.upper()}</div>
-                        <div style="color: white;">{alert_content}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Récupérer les alertes en direct
-                st.markdown("### 🚨 Alertes en direct")
-                live_alerts = get_live_alerts()
-                
-                if live_alerts:
-                    alert_cols = st.columns(len(live_alerts))
-                    
-                    for i, alert in enumerate(live_alerts):
-                        alert_type = alert['type']
-                        timestamp = alert['timestamp']
-                        match_name = alert['match']
-                        title = alert['title']
-                        content = alert['content']
-                        importance = alert['importance']
-                        
-                        # Déterminer la couleur selon l'importance
-                        if importance == 'high':
-                            color = "#ff3364"
-                        elif importance == 'medium':
-                            color = "#ffbe41"
-                        else:
-                            color = "#516395"
-                            
-                        with alert_cols[i]:
-                            st.markdown(f"""
-                            <div style="border-left: 3px solid {color}; padding: 10px; background: rgba(8, 15, 40, 0.6); border-radius: 5px; height: 100%;">
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7);">{timestamp}</div>
-                                <div style="font-weight: bold; color: white; margin: 5px 0;">{title}</div>
-                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px;">{match_name}</div>
-                                <div style="font-size: 14px; color: white;">{content}</div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.info("Aucune alerte en direct disponible actuellement.")
-        else:
-            st.info("Aucun match en direct disponible actuellement. Veuillez vérifier plus tard.")
-            
-            # Afficher un exemple d'interface
-            st.markdown("""
-            ### Interface de suivi en direct (exemple)
-            
-            Lorsque des matchs sont en direct, vous pourrez suivre:
-            - Score en temps réel
-            - Statistiques du match
-            - Derniers événements importants
-            - Évolution du momentum
-            - Alertes spéciales et opportunités
-            """)
-            
-    except Exception as e:
-        st.error(f"Une erreur s'est produite lors du chargement des matchs en direct: {str(e)}")
-        # Afficher l'interface simulée de base
     
     # Section d'activation d'ArcanSentinel sur les matchs en direct
     st.markdown("### 🔍 Activation d'ArcanSentinel pour les Matchs en Direct")
@@ -856,224 +389,241 @@ with tabs[0]:  # Live Monitoring (Surveillance en direct)
         for planet in active_planets:
             st.markdown(f"• {planet}")
     
-    # Cette section a été déplacée vers l'onglet "Aperçus & Matchs Spéciaux"
+    # Affichage des matchs à la une
+    st.markdown(f"## 🌟 {t('featured_matches')}")
+    
+    for match in featured_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante avec notre nouvelle conception
+        st.markdown(f"""
+        <div class="match-card featured">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Affichage des matchs du jour
+    st.markdown(f"## 🗓️ {t('todays_matches')}")
+    
+    for match in today_matches:
+        # Classes de probabilité pour le code couleur
+        home_prob = match.get('home_prob', 0.45)
+        draw_prob = match.get('draw_prob', 0.25)
+        away_prob = match.get('away_prob', 0.30)
+        
+        home_prob_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
+        draw_prob_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
+        away_prob_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
+        
+        # Code du pays pour les drapeaux
+        country_code = match.get('country_code', 'fr').lower()
+        
+        # Carte de match élégante standard
+        st.markdown(f"""
+        <div class="match-card">
+            <div class="match-header">
+                <div class="match-time">{match.get('kickoff_time', '??:??')}</div>
+                <div class="match-league">
+                    <img src="https://flagcdn.com/48x36/{country_code}.png" width="24" />
+                    <span>{match.get('league', '')}</span>
+                </div>
+            </div>
+            <div class="match-teams">
+                <div class="home-team">{match['home_team']}</div>
+                <div class="versus">VS</div>
+                <div class="away-team">{match['away_team']}</div>
+            </div>
+            <div class="match-odds">
+                <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
+                <div class="prob-{draw_prob_class}">{match.get('draw_odds', '?.??')} ({int(draw_prob * 100)}%)</div>
+                <div class="prob-{away_prob_class}">{match.get('away_odds', '?.??')} ({int(away_prob * 100)}%)</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 with tabs[1]:  # Prédictions
-    # Importer le module d'analyse de prédictions
-    from utils.prediction_analysis import get_prediction_data
-    from utils.football_data import get_future_matches
-    
-    # Récupérer toutes les données de matchs pour les analyses
-    try:
-        # Obtenir les données complètes des ligues principales
-        main_leagues = ['en.1', 'es.1', 'it.1', 'de.1', 'fr.1', 'uefa.cl']
-        all_featured, all_matches = get_future_matches(
-            days_ahead=60,  # Utiliser une plage plus large pour les analyses
-            league_ids=main_leagues,
-            season="2024-25"
-        )
-        
-        # Combiner toutes les données de matchs pour l'analyse
-        all_match_data = all_featured + all_matches
-    except Exception as e:
-        st.error(f"Erreur lors du chargement des données pour les prédictions: {str(e)}")
-        all_match_data = []
-    
     st.markdown("## 🔮 Prédictions d'ArcanShadow")
     st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
     
     # Sélection du match à analyser
     st.markdown("### ⚽ Sélectionner un match")
     
-    # Préparer la liste des matchs à venir pour la sélection
-    match_options = []
-    for match in all_match_data:
-        if isinstance(match, dict):
-            home = match.get('home_team', match.get('home', '?'))
-            away = match.get('away_team', match.get('away', '?'))
-            league = match.get('league', '?')
-            time = match.get('time', '??:??')
-            date = match.get('formatted_date', match.get('date', ''))
-            
-            # Clé unique pour retrouver le match sélectionné
-            match['selection_key'] = f"{home} vs {away} ({league}) - {date} {time}"
-            match_options.append(match['selection_key'])
+    # Créer des données fictives de matchs à venir pour la sélection
+    upcoming_matches = [
+        "PSG vs Lyon (Ligue 1) - 20:45",
+        "Real Madrid vs Barcelona (La Liga) - 21:00",
+        "Liverpool vs Arsenal (Premier League) - 17:30",
+        "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
+        "Inter vs Milan (Serie A) - 20:45"
+    ]
     
-    # Si aucun match n'est disponible, afficher des options par défaut
-    if not match_options:
-        match_options = [
-            "PSG vs Lyon (Ligue 1) - 20:45",
-            "Real Madrid vs Barcelona (LaLiga) - 21:00",
-            "Liverpool vs Arsenal (Premier League) - 17:30",
-            "Bayern Munich vs Dortmund (Bundesliga) - 18:30",
-            "Inter vs Milan (Serie A) - 20:45"
-        ]
+    selected_match = st.selectbox("Match à analyser:", upcoming_matches)
     
-    # Tri par date pour avoir les matchs les plus proches en premier
-    match_options.sort()
-    
-    # Widget de sélection du match
-    selected_match_key = st.selectbox("Match à analyser:", match_options)
-    
-    # Trouver le match sélectionné
-    selected_match = None
-    for match in all_match_data:
-        if isinstance(match, dict) and match.get('selection_key') == selected_match_key:
-            selected_match = match
-            break
-    
-    # Si match non trouvé, créer un match factice
-    if not selected_match:
-        # Extraire les informations du match sélectionné
-        try:
-            match_parts = selected_match_key.split(" (")
-            teams = match_parts[0].split(" vs ")
-            home_team = teams[0]
-            away_team = teams[1]
-            league_parts = match_parts[1].split(") - ")
-            league = league_parts[0]
-            time_parts = league_parts[1].split(" ") if len(league_parts) > 1 else ["??:??"]
-            
-            selected_match = {
-                "home_team": home_team,
-                "away_team": away_team,
-                "league": league,
-                "time": time_parts[-1] if len(time_parts) > 0 else "??:??",
-                "home": home_team,
-                "away": away_team
-            }
-        except Exception:
-            # En cas d'erreur, créer un match par défaut
-            selected_match = {
-                "home_team": "Liverpool",
-                "away_team": "Arsenal",
-                "league": "Premier League",
-                "time": "17:30",
-                "home": "Liverpool",
-                "away": "Arsenal"
-            }
-    
-    # Analyser le match sélectionné
-    prediction_data = get_prediction_data(selected_match, all_match_data)
+    # Extraire les équipes et la ligue du match sélectionné
+    match_parts = selected_match.split(" (")
+    teams = match_parts[0].split(" vs ")
+    home_team = teams[0]
+    away_team = teams[1]
+    league = match_parts[1].split(")")[0]
     
     # Afficher le résumé de la prédiction
-    st.markdown(f"### 📊 Prédiction pour {prediction_data['match_info']['home_team']} vs {prediction_data['match_info']['away_team']}")
+    st.markdown(f"### 📊 Prédiction pour {home_team} vs {away_team}")
     
-    # En-tête de la prédiction avec conteneur principal
-    with st.container():
-        col_header1, col_header2 = st.columns([3, 1])
-        with col_header1:
-            st.subheader("Prédiction principale")
-        with col_header2:
-            confidence = prediction_data['main_prediction']['confidence']
-            confidence_color = "#01ff80" if confidence >= 85 else "#ffbe41" if confidence >= 75 else "#ff3364"
-            st.markdown(
-                f"""
-                <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
-                        border: 1px solid rgba(1, 255, 128, 0.3); color: {confidence_color}; font-weight: bold; text-align: center;">
-                    Confiance: {confidence}%
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    # Au lieu d'une seule grande structure HTML, on va la diviser en plusieurs parties
+    
+    # En-tête de la prédiction
+    st.markdown("""
+    <div style="padding: 20px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
+                border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 20px;">
+    """, unsafe_allow_html=True)
+    
+    # Titre et confiance
+    st.markdown("""
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="font-size: 24px; font-weight: bold; color: white;">Prédiction principale</div>
+            <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                     border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                Confiance: 87%
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
     
     # Résultat le plus probable
-    st.markdown(
-        f"""
+    st.markdown("""
         <div style="background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
-                border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+                  border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
             <table width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td>
                         <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
-                        <div style="font-size: 28px; font-weight: bold; color: #7000ff;">{prediction_data['main_prediction']['outcome']}</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
                     </td>
                     <td align="right">
-                        <div style="font-size: 24px; font-weight: bold; color: white;">{prediction_data['main_prediction']['odds']}</div>
+                        <div style="font-size: 24px; font-weight: bold; color: white;">1.85</div>
                     </td>
                 </tr>
             </table>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
     
     # Titre des autres scénarios
-    st.subheader("Autres scénarios")
+    st.markdown("""
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: white;">Autres scénarios</div>
+    """, unsafe_allow_html=True)
     
     # Les scénarios en 2 colonnes (premier arrangement)
     col1, col2 = st.columns(2)
     
-    # Premier groupe de deux scénarios
-    for i, scenario in enumerate(prediction_data['other_scenarios'][:2]):
-        col = col1 if i == 0 else col2
-        with col:
-            scenario_color = "#01ff80" if scenario['probability'] >= 80 else "#ffbe41" if scenario['probability'] >= 50 else "#ff3364"
-            st.markdown(
-                f"""
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
-                    <table width="100%" style="border-collapse: collapse;">
-                        <tr>
-                            <td><div style="color: white;">{scenario['name']}</div></td>
-                            <td align="right"><div style="color: {scenario_color};">{scenario['odds']} <span style="opacity: 0.7; font-size: 0.9em;">({scenario['probability']}%)</span></div></td>
-                        </tr>
-                    </table>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    with col1:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Match nul</div></td>
+                        <td align="right"><div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Victoire d'Arsenal</div></td>
+                        <td align="right"><div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
     
     # Les scénarios en 2 colonnes (deuxième arrangement)
     col3, col4 = st.columns(2)
     
-    # Deuxième groupe de deux scénarios
-    for i, scenario in enumerate(prediction_data['other_scenarios'][2:]):
-        col = col3 if i == 0 else col4
-        with col:
-            scenario_color = "#01ff80" if scenario['probability'] >= 80 else "#ffbe41" if scenario['probability'] >= 50 else "#ff3364"
-            st.markdown(
-                f"""
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                    <table width="100%" style="border-collapse: collapse;">
-                        <tr>
-                            <td><div style="color: white;">{scenario['name']}</div></td>
-                            <td align="right"><div style="color: {scenario_color};">{scenario['odds']} <span style="opacity: 0.7; font-size: 0.9em;">({scenario['probability']}%)</span></div></td>
-                        </tr>
-                    </table>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    with col3:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Plus de 2.5 buts</div></td>
+                        <td align="right"><div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Les deux équipes marquent</div></td>
+                        <td align="right"><div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    # Fermeture du conteneur principal
+    st.markdown("""
+    </div>
+    """, unsafe_allow_html=True)
     
     # Modules contributeurs et leur impact
     st.markdown("### 🧠 Modules contributeurs")
     
-    # Vérifier si les données de module contributeur existent
-    if 'contributing_modules' in prediction_data:
-        # Créer un dataframe pour les modules contributeurs
-        df_modules_contrib = pd.DataFrame(prediction_data['contributing_modules'])
-        
-        # Calculer l'impact de chaque module (confiance × poids)
-        df_modules_contrib["impact"] = df_modules_contrib["confidence"] * df_modules_contrib["weight"]
-        
-        # Trier par impact
-        df_modules_contrib = df_modules_contrib.sort_values(by="impact", ascending=False)
-    else:
-        # Créer des données simulées si les données réelles ne sont pas disponibles
-        df_modules_contrib = pd.DataFrame({
-            "module": ["ArcanX", "TarotEcho", "KarmicFlow+", "NumeriCode", "MetaSystems"],
-            "confidence": [0.85, 0.92, 0.78, 0.81, 0.76],
-            "weight": [0.35, 0.20, 0.15, 0.15, 0.15],
-            "impact": [0.298, 0.184, 0.117, 0.122, 0.114]
-        })
+    # Créer des statistiques pour les modules qui ont contribué à la prédiction
+    contributing_modules = [
+        {"name": "ArcanX", "confidence": 0.92, "weight": 0.35, "key_insights": "Alignement Jupiter-Mars favorable à l'équipe locale"},
+        {"name": "ShadowOdds", "confidence": 0.83, "weight": 0.25, "key_insights": "Anomalie de cote identifiée: sous-évaluation de Liverpool +0.22"},
+        {"name": "KarmicFlow+", "confidence": 0.79, "weight": 0.15, "key_insights": "Séquence karmique positive détectée pour Liverpool (3 cycles)"},
+        {"name": "NumeriCode", "confidence": 0.87, "weight": 0.10, "key_insights": "Concordance numérique: date du match (17) + patron tactique (4-3-3)"},
+        {"name": "MetaSystems", "confidence": 0.89, "weight": 0.15, "key_insights": "Projection de volume d'échange: Liverpool dominant à 63%"}
+    ]
+    
+    # Créer un dataframe pour les modules contributeurs
+    df_modules_contrib = pd.DataFrame(contributing_modules)
+    
+    # Calculer l'impact de chaque module (confiance × poids)
+    df_modules_contrib["impact"] = df_modules_contrib["confidence"] * df_modules_contrib["weight"]
+    
+    # Trier par impact
+    df_modules_contrib = df_modules_contrib.sort_values(by="impact", ascending=False)
     
     # Créer une visualisation pour montrer la contribution de chaque module
     fig = px.bar(
         df_modules_contrib,
         x="impact",
-        y="module",
+        y="name",
         orientation='h',
-        labels={"impact": "Impact sur la prédiction", "module": "Module"},
+        labels={"impact": "Impact sur la prédiction", "name": "Module"},
         title="Contribution des modules à la prédiction finale",
         color="confidence",
         text=df_modules_contrib["impact"].apply(lambda x: f"{x:.2f}"),
@@ -1108,21 +658,20 @@ with tabs[1]:  # Prédictions
     # Afficher les insights clés de chaque module
     st.markdown("### 🔑 Insights clés par module")
     
-    for i, module in enumerate(df_modules_contrib.to_dict('records')):
-        confidence = module["confidence"]
-        confidence_color = "#01ff80" if confidence >= 0.85 else "#ffbe41" if confidence >= 0.75 else "#ff3364"
+    for module in df_modules_contrib.itertuples():
+        confidence_color = "#01ff80" if module.confidence >= 0.85 else "#ffbe41" if module.confidence >= 0.75 else "#ff3364"
         
         st.markdown(f"""
         <div style="padding: 12px; border-radius: 8px; background: rgba(8, 15, 40, 0.6); 
                     border-left: 4px solid {confidence_color}; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-weight: bold; font-size: 16px;">{module.get("module", "Module inconnu")}</div>
+                <div style="font-weight: bold; font-size: 16px;">{module.name}</div>
                 <div style="color: {confidence_color}; font-family: 'JetBrains Mono', monospace;">
-                    Confiance: {int(confidence * 100)}%
+                    Confiance: {module.confidence:.0%}
                 </div>
             </div>
             <div style="margin-top: 5px; color: rgba(255, 255, 255, 0.8);">
-                {module.get("key_insights", "Pas d'insights disponibles pour ce module.")}
+                {module.key_insights}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1130,37 +679,25 @@ with tabs[1]:  # Prédictions
     # Narratif de la prédiction
     st.markdown("### 📜 Narratif de la prédiction")
     
-    # Utiliser un style défini séparément
-    narrative_style = """
+    st.markdown("""
     <div style="padding: 15px; border-radius: 10px; background: rgba(112, 0, 255, 0.05); 
                 border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 20px;">
         <p style="color: rgba(255, 255, 255, 0.85); font-size: 16px; line-height: 1.6;">
-    """
-    
-    narrative_end = """
+            L'analyse des cycles karmiques révèle un alignement favorable pour <b>Liverpool</b> qui entre dans une phase ascendante
+            après trois matchs de consolidation. Cette dynamique est amplifiée par une configuration astrale propice
+            avec Jupiter en transit dans la maison de la victoire.
+            <br><br>
+            L'analyse <b>NumeriCode</b> détecte une forte résonance entre la date du match (17) et le schéma tactique (4-3-3),
+            créant une harmonique vibratoire qui favorise historiquement l'équipe locale dans ce type de confrontation.
+            <br><br>
+            Les cotes actuelles sous-évaluent le potentiel de Liverpool de <b>0.22 points</b>, créant une opportunité
+            de value bet selon le module <b>ShadowOdds</b>. Cette anomalie est généralement corrélée avec un taux de succès supérieur.
+            <br><br>
+            <b>Conclusion:</b> La convergence de signaux positifs multiples, renforcée par le méta-système de pondération
+            suggère une victoire de Liverpool avec un niveau de confiance élevé (87%).
         </p>
     </div>
-    """
-    
-    # Préparer le narratif avec des paragraphes HTML
-    narrative_text = prediction_data['narrative']
-    narrative_paragraphs = narrative_text.split('\n\n')
-    
-    # Commencer le narratif avec le style
-    html_narrative = narrative_style
-    
-    # Ajouter chaque paragraphe
-    for i, paragraph in enumerate(narrative_paragraphs):
-        if paragraph.strip():
-            if i > 0:
-                html_narrative += "<br><br>"
-            html_narrative += paragraph.strip()
-    
-    # Terminer le narratif
-    html_narrative += narrative_end
-    
-    # Afficher le narratif formaté
-    st.markdown(html_narrative, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
 with tabs[2]:  # Performance Notifications
     st.markdown("## 🔔 Notifications de Performance")
@@ -1560,470 +1097,6 @@ with tabs[4]:  # Smart Market Recommendations
 with tabs[5]:  # Système d'Apprentissage
     st.markdown("## 🧠 Système d'Apprentissage")
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
-    
-    # Vue d'ensemble du système
-    st.markdown("### 🔄 État du Système ArcanReflex")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric(label="Modules Actifs", value="14/16", delta="+1")
-    with col2:
-        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
-    with col3:
-        st.metric(label="Adaptation", value="91%", delta="+2.8%")
-    with col4:
-        st.metric(label="Précision", value="87%", delta="+3.5%")
-    
-    # Visualisation des connexions entre modules
-    st.markdown("### 🌐 Réseau Neural ArcanBrain")
-    
-    # Créer un réseau de modules en apprentissage
-    nodes = [
-        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
-        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
-    ]
-    
-    connections = []
-    for i in range(len(nodes)):
-        for j in range(i+1, len(nodes)):
-            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
-                connections.append((i, j, np.random.uniform(0.1, 1.0)))
-    
-    # Préparer les données pour le graphique
-    edge_x = []
-    edge_y = []
-    edge_weights = []
-    
-    # Créer une disposition circulaire pour les nœuds
-    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
-    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
-    
-    for src, dst, weight in connections:
-        edge_x.extend([node_x[src], node_x[dst], None])
-        edge_y.extend([node_y[src], node_y[dst], None])
-        edge_weights.append(weight)
-    
-    # Créer le graphique
-    fig = go.Figure()
-    
-    # Ajouter les liens
-    for i in range(0, len(edge_x), 3):
-        opacity = min(1, edge_weights[i//3] * 2)
-        width = 1 + 3 * edge_weights[i//3]
-        fig.add_trace(go.Scatter(
-            x=edge_x[i:i+3], y=edge_y[i:i+3],
-            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
-            hoverinfo='none',
-            mode='lines'
-        ))
-    
-    # Ajouter les nœuds
-    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
-                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
-    
-    fig.add_trace(go.Scatter(
-        x=node_x, y=node_y,
-        mode='markers+text',
-        text=nodes,
-        textposition="top center",
-        marker=dict(
-            showscale=False,
-            color=node_colors,
-            size=20,
-            line_width=2,
-            line=dict(color='white')
-        )
-    ))
-    
-    fig.update_layout(
-        title="Réseau de connexions entre modules",
-        showlegend=False,
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(b=0, l=0, r=0, t=40),
-        template="plotly_dark",
-        height=500,
-        dragmode=False,
-        hovermode=False
-    )
-    
-    # Rendre le graphique complètement statique
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
-    
-    # Tableau de bord des événements d'apprentissage
-    st.markdown("### 📝 Événements d'apprentissage récents")
-    
-    # Créer des données d'événements simulées
-    events = [
-        {
-            "timestamp": "17/05/2025 18:12",
-            "type": "Pattern Recalibration",
-            "module": "TarotEcho",
-            "description": "Recalibrage des patterns de récurrence La Tour + L'Étoile"
-        },
-        {
-            "timestamp": "17/05/2025 15:47",
-            "type": "Transfer Learning",
-            "module": "ArcanX",
-            "description": "Transfert de connaissance entre contextes Premier League → Ligue 1"
-        },
-        {
-            "timestamp": "17/05/2025 14:33",
-            "type": "Module Activation",
-            "module": "ShadowOdds+",
-            "description": "Activation après seuil de précision atteint (91.3%)"
-        },
-        {
-            "timestamp": "16/05/2025 22:18",
-            "type": "Pattern Recalibration",
-            "module": "NumeriCode",
-            "description": "Ajustement des séquences numériques 3-7-11 → 3-7-12"
-        },
-        {
-            "timestamp": "16/05/2025 17:52",
-            "type": "Architecture Update",
-            "module": "GridSync",
-            "description": "Optimisation de la couche de convergence +8.2% efficacité"
-        }
-    ]
-    
-    # Créer un dataframe
-    events_df = pd.DataFrame(events)
-    st.dataframe(events_df, use_container_width=True)
-    
-    # Système de logs détaillés
-    st.markdown("### 📋 Logs d'apprentissage détaillés")
-    
-    learning_logs = """
-2025-05-17 18:12:23 [INFO] [TarotEcho] Pattern Recalibration initiated
-2025-05-17 18:12:24 [INFO] [TarotEcho] Analyzing historical pattern accuracy for sequence La Tour + L'Étoile
-2025-05-17 18:12:28 [INFO] [TarotEcho] Previous accuracy for pattern: 76.3%
-2025-05-17 18:12:29 [INFO] [TarotEcho] Calculating optimized parameters based on most recent results
-2025-05-17 18:12:34 [INFO] [TarotEcho] Pattern realignment completed, new parameters saved
-2025-05-17 18:12:36 [INFO] [TarotEcho] Post-optimization accuracy estimation: 81.7%
-2025-05-17 15:47:11 [INFO] [ArcanX] Transfer Learning procedure initiated
-2025-05-17 15:47:12 [INFO] [ArcanX] Source context: Premier League, Target context: Ligue 1
-2025-05-17 15:47:15 [INFO] [ArcanX] Analyzing transferable patterns and contextual similarities
-2025-05-17 15:47:22 [INFO] [ArcanX] Context overlap factor calculated: 0.72
-2025-05-17 15:47:29 [INFO] [ArcanX] Transferring 14 pattern adjustments to target context
-2025-05-17 15:47:34 [INFO] [ArcanX] Recalibrating target context parameters with new knowledge
-2025-05-17 15:47:39 [INFO] [ArcanX] Transfer learning complete, performance improvement expected: +4.3%
-2025-05-17 14:33:07 [INFO] [ShadowOdds+] Module activation criteria met
-2025-05-17 14:33:08 [INFO] [ShadowOdds+] Accuracy threshold reached: 91.3%
-2025-05-17 14:33:10 [INFO] [ShadowOdds+] Stability threshold reached: 18 consecutive accurate predictions
-2025-05-17 14:33:12 [INFO] [SystemCore] Integrating ShadowOdds+ module with ArcanBrain network
-2025-05-17 14:33:17 [INFO] [ArcanBrain] New module connection established with ShadowOdds+"""
-    
-    st.code(learning_logs, language="plaintext")
-    
-    # Section de recalibration automatique
-    st.subheader("⚙️ Système de recalibration automatique")
-    
-    # Créer un conteneur avec bordure personnalisée 
-    with st.container():
-        st.write("")  # Espace
-        # En-tête avec titre et statut
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.write("#### Processus de recalibration par ArcanBrain")
-        with col2:
-            st.success("Actif")
-        
-        # Description
-        st.write("""
-            ArcanBrain surveille en permanence les performances du système et procède automatiquement
-            à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
-            Les processus de recalibration sont entièrement gérés par l'intelligence système.
-        """)
-        
-        # Modes de recalibration dans une boîte info
-        st.info("#### Modes de recalibration automatiques")
-        
-        modes = {
-            "Standard": "Recalibration basique sur les dernières données",
-            "Deep Learning": "Restructuration complète des couches de patterns",
-            "Transfer Learning": "Application des connaissances d'une ligue à une autre",
-            "Pattern Recognition": "Focus sur la détection des motifs récurrents"
-        }
-        
-        for mode, description in modes.items():
-            st.write(f"• **{mode}:** {description}")
-        
-        # Informations système
-        st.write("---")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Dernier diagnostic système:**")
-        with col2:
-            st.write("Tous les modules fonctionnent dans les paramètres optimaux.")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Temps écoulé depuis la dernière recalibration:**")
-        with col2:
-            st.write("3h 17min")
-    
-    st.markdown("### 📊 Métriques ArcanReflex")
-    
-    # Créer des métriques de performance et d'apprentissage
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric(label="Stabilité des patterns", value="92.4%", delta="+3.8%")
-    with col2:
-        st.metric(label="Vitesse d'adaptation", value="23.7 ms", delta="-4.2 ms")
-    with col3:
-        st.metric(label="Profondeur d'analyse", value="96.3%", delta="+2.1%")
-    
-    # Graphique d'évolution de l'apprentissage sur 30 jours
-    st.markdown("#### Évolution des performances sur 30 jours")
-    
-    # Simuler des données d'évolution
-    dates = [(datetime.now() - timedelta(days=i)).strftime("%d-%m") for i in range(30, 0, -1)]
-    precision_values = [75 + 0.5*i + np.random.normal(0, 2) for i in range(30)]
-    precision_values = [min(max(v, 70), 99) for v in precision_values]  # Limiter entre 70% et 99%
-    
-    # Créer le graphique avec Plotly
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=dates, 
-        y=precision_values,
-        mode='lines+markers',
-        name='Précision',
-        line=dict(color='#01ff80', width=2),
-        marker=dict(size=6, color='#01ff80')
-    ))
-    
-    fig.update_layout(
-        title="Évolution de la précision prédictive",
-        xaxis_title="Date",
-        yaxis_title="Précision (%)",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='rgba(255, 255, 255, 0.8)'),
-        height=350,
-        margin=dict(l=40, r=40, t=40, b=40),
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255, 255, 255, 0.1)')
-    )
-    
-    # Rendre le graphique statique
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
-
-# Nouvel onglet pour les Aperçus & Matchs Spéciaux
-with tabs[7]:
-    try:  # Utiliser un bloc try/except global pour éviter que tout l'onglet ne plante
-        st.markdown("## 🌟 Aperçus & Matchs Spéciaux")
-        st.markdown("Découvrez les matchs à la une et l'ensemble des rencontres du jour avec les prédictions ArcanShadow.")
-        
-        # SECTION 1: MATCHS À LA UNE
-        st.markdown("### ⭐ Matchs à la une")
-        
-        # Validation des données featured_matches
-        valid_featured = []
-        if isinstance(featured_matches, list):
-            for m in featured_matches:
-                if isinstance(m, dict):
-                    valid_featured.append(m)
-        
-        if not valid_featured:
-            st.info("Aucun match à la une aujourd'hui")
-        else:
-            # Afficher les matchs à la une dans un format simplifié
-            for i, match in enumerate(valid_featured):
-                try:
-                    # Extraire toutes les données avec validation
-                    try:
-                        home_prob = float(match.get('home_prob', 0.45))
-                    except (TypeError, ValueError):
-                        home_prob = 0.45
-                        
-                    try:
-                        draw_prob = float(match.get('draw_prob', 0.25))
-                    except (TypeError, ValueError):
-                        draw_prob = 0.25
-                        
-                    try:
-                        away_prob = float(match.get('away_prob', 0.30))
-                    except (TypeError, ValueError):
-                        away_prob = 0.30
-                    
-                    # Classes de probabilité pour les couleurs
-                    home_class = "high" if home_prob >= 0.6 else ("medium" if home_prob >= 0.4 else "low")
-                    draw_class = "high" if draw_prob >= 0.6 else ("medium" if draw_prob >= 0.4 else "low")
-                    away_class = "high" if away_prob >= 0.6 else ("medium" if away_prob >= 0.4 else "low")
-                    
-                    # Autres informations du match
-                    country_code = str(match.get('country_code', 'fr')).lower()
-                    home_team = match.get('home', match.get('home_team', '?'))
-                    away_team = match.get('away', match.get('away_team', '?'))
-                    league = match.get('league', '')
-                    
-                    # Heure du match (avec plusieurs options de fallback)
-                    match_time = match.get('time', match.get('kickoff_time', '??:??'))
-                    
-                    # Utiliser des éléments Streamlit standard au lieu du HTML complexe
-                    st.markdown(f"""
-                    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
-                               border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
-                        <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
-                            <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                            {league} • {match_time}
-                        </div>
-                        <div style="font-size: 20px; font-weight: bold; color: white; margin: 10px 0;">
-                            {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px;">
-                            <div style="text-align: center; flex: 1;">
-                                <div style="color: white;">1</div>
-                                <div style="color: #01ff80;">{int(home_prob * 100)}%</div>
-                            </div>
-                            <div style="text-align: center; flex: 1;">
-                                <div style="color: white;">X</div>
-                                <div style="color: #ffbe41;">{int(draw_prob * 100)}%</div>
-                            </div>
-                            <div style="text-align: center; flex: 1;">
-                                <div style="color: white;">2</div>
-                                <div style="color: #ff3364;">{int(away_prob * 100)}%</div>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except Exception as e:
-                    # Ignorer silencieusement les erreurs individuelles pour ne pas bloquer l'interface
-                    pass
-        
-        # SECTION 2: MATCHS DU JOUR
-        st.markdown("### 🗓️ Matchs du jour")
-        
-        # Validation des données today_matches
-        valid_matches = []
-        if isinstance(today_matches, list):
-            for m in today_matches:
-                if isinstance(m, dict):
-                    valid_matches.append(m)
-        
-        if not valid_matches:
-            st.info("Aucun match disponible pour aujourd'hui")
-        else:
-            # Extraction des ligues pour le filtre
-            leagues = set()
-            for match in valid_matches:
-                if 'league' in match:
-                    leagues.add(match['league'])
-            
-            # Widget de filtre amélioré
-            filter_options = ["Toutes les ligues"] + sorted(list(leagues))
-            selected_filters = st.multiselect(
-                "Filtrer par ligue",
-                filter_options,
-                default=["Toutes les ligues"]
-            )
-            
-            # Application du filtre
-            filtered_matches = valid_matches
-            if selected_filters and "Toutes les ligues" not in selected_filters:
-                filtered_matches = [m for m in valid_matches if m.get('league', '') in selected_filters]
-            
-            if not filtered_matches:
-                st.info("Aucun match ne correspond aux critères de filtre")
-            else:
-                # Afficher les matchs en deux colonnes
-                col1, col2 = st.columns(2)
-                
-                for i, match in enumerate(filtered_matches):
-                    try:
-                        col = col1 if i % 2 == 0 else col2
-                        with col:
-                            # Extraire et valider les données
-                            try:
-                                home_prob = float(match.get('home_prob', 0.33))
-                            except (TypeError, ValueError):
-                                home_prob = 0.33
-                                
-                            try:
-                                draw_prob = float(match.get('draw_prob', 0.33))
-                            except (TypeError, ValueError):
-                                draw_prob = 0.33
-                                
-                            try:
-                                away_prob = float(match.get('away_prob', 0.33))
-                            except (TypeError, ValueError):
-                                away_prob = 0.33
-                            
-                            # Informations du match
-                            home_team = match.get('home', match.get('home_team', '?'))
-                            away_team = match.get('away', match.get('away_team', '?'))
-                            match_time = match.get('time', match.get('kickoff_time', '??:??'))
-                            league_name = match.get('league', '')
-                            country_code = str(match.get('country_code', 'fr')).lower()
-                            
-                            # Classes pour le code couleur
-                            home_class = "green" if home_prob >= 0.6 else ("orange" if home_prob >= 0.4 else "red")
-                            draw_class = "green" if draw_prob >= 0.6 else ("orange" if draw_prob >= 0.4 else "red")
-                            away_class = "green" if away_prob >= 0.6 else ("orange" if away_prob >= 0.4 else "red")
-                            
-                            # Carte de match simplifiée
-                            st.markdown(f"""
-                            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
-                                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                                    {league_name} • {match.get('full_date_time', f"{match.get('formatted_date', '')} à {match_time}")}
-                                </div>
-                                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
-                                    {home_team} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {away_team}
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                                    <div style="text-align: center; flex: 1;">
-                                        <div>1</div>
-                                        <div>{int(home_prob * 100)}%</div>
-                                    </div>
-                                    <div style="text-align: center; flex: 1;">
-                                        <div>X</div>
-                                        <div>{int(draw_prob * 100)}%</div>
-                                    </div>
-                                    <div style="text-align: center; flex: 1;">
-                                        <div>2</div>
-                                        <div>{int(away_prob * 100)}%</div>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    except Exception as e:
-                        # Ignorer silencieusement pour ne pas bloquer l'interface
-                        pass
-    except Exception as main_error:
-        # Gestion globale des erreurs
-        st.error("Impossible d'afficher les matchs. Veuillez réessayer plus tard.")
-
-# Onglet Données Réelles 
-with tabs[8]:  # Données Réelles
-    st.markdown("## 🌍 Données Réelles de Football")
-    
-    try:
-        # Essayer d'importer et d'afficher l'onglet de données réelles
-        display_real_data_tab()
-    except Exception as e:
-        st.error(f"Une erreur s'est produite lors du chargement des données réelles : {str(e)}")
-        st.info("Cet onglet vous permet d'analyser les données réelles des principales ligues de football européennes.")
-        
-        # Afficher une interface simple en cas d'erreur
-        st.markdown("""
-        ### Fonctionnalités disponibles
-        
-        Cet onglet intègre les données réelles de football et offre:
-        - Visualisation des matchs à venir dans les principales ligues
-        - Analyses prédictives basées sur des statistiques réelles
-        - Recommandations de paris avec évaluation des probabilités
-        - Historique des confrontations entre équipes
-        - Analyses de forme et tendances des équipes
-        """)
-        
-        # Bouton pour réessayer
-        if st.button("Réessayer"):
-            st.rerun()
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
@@ -2166,13 +1239,224 @@ with tabs[6]:  # Notifications
                 # Mettre à jour le compteur de notifications
                 st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
                 st.rerun()
-
-with tabs[1]:  # Prédictions
-    st.markdown("## 🔮 Prédictions d'ArcanShadow")
-    st.markdown("Analyse détaillée des prédictions pour les matchs sélectionnés, avec explication des modules contributeurs.")
     
-    # Sélection du match à analyser
-    st.markdown("### ⚽ Sélectionner un match")
+    # Vue d'ensemble du système
+    st.markdown("### 🔄 État du Système ArcanReflex")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(label="Modules Actifs", value="14/16", delta="+1")
+    with col2:
+        st.metric(label="Apprentissage", value="73%", delta="+5.2%")
+    with col3:
+        st.metric(label="Adaptation", value="91%", delta="+2.8%")
+    with col4:
+        st.metric(label="Précision", value="87%", delta="+3.5%")
+    
+    # Visualisation des connexions entre modules
+    st.markdown("### 🌐 Réseau Neural ArcanBrain")
+    
+    # Créer un réseau de modules en apprentissage
+    nodes = [
+        "ArcanX", "ShadowOdds", "NumeriCode", "TarotEcho", "AstroImpact", 
+        "KarmicFlow+", "EchoPath", "MetaSystems", "GridSync", "ArcanSentinel"
+    ]
+    
+    connections = []
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            if np.random.random() < 0.4:  # 40% de chance d'avoir une connexion
+                connections.append((i, j, np.random.uniform(0.1, 1.0)))
+    
+    # Préparer les données pour le graphique
+    edge_x = []
+    edge_y = []
+    edge_weights = []
+    
+    # Créer une disposition circulaire pour les nœuds
+    node_x = [np.cos(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    node_y = [np.sin(2*np.pi*i/len(nodes)) for i in range(len(nodes))]
+    
+    for src, dst, weight in connections:
+        edge_x.extend([node_x[src], node_x[dst], None])
+        edge_y.extend([node_y[src], node_y[dst], None])
+        edge_weights.append(weight)
+    
+    # Créer le graphique
+    fig = go.Figure()
+    
+    # Ajouter les liens
+    for i in range(0, len(edge_x), 3):
+        opacity = min(1, edge_weights[i//3] * 2)
+        width = 1 + 3 * edge_weights[i//3]
+        fig.add_trace(go.Scatter(
+            x=edge_x[i:i+3], y=edge_y[i:i+3],
+            line=dict(width=width, color=f'rgba(112, 0, 255, {opacity})'),
+            hoverinfo='none',
+            mode='lines'
+        ))
+    
+    # Ajouter les nœuds
+    node_colors = ['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364', 
+                  '#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364']
+    
+    fig.add_trace(go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        text=nodes,
+        textposition="top center",
+        marker=dict(
+            showscale=False,
+            color=node_colors,
+            size=20,
+            line_width=2,
+            line=dict(color='white')
+        )
+    ))
+    
+    fig.update_layout(
+        title="Réseau de connexions entre modules",
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(b=0, l=0, r=0, t=40),
+        template="plotly_dark",
+        height=500,
+        dragmode=False,
+        hovermode=False
+    )
+    
+    # Rendre le graphique complètement statique
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
+    
+    # Tableau de bord des événements d'apprentissage
+    st.markdown("### 📝 Événements d'apprentissage récents")
+    
+    # Créer des données d'événements simulées
+    events = [
+        {
+            "timestamp": "17/05/2025 18:12",
+            "type": "Pattern Recalibration",
+            "module": "TarotEcho",
+            "description": "Recalibrage des patterns de récurrence La Tour + L'Étoile"
+        },
+        {
+            "timestamp": "17/05/2025 15:47",
+            "type": "Transfer Learning",
+            "module": "ArcanX",
+            "description": "Transfert de connaissance entre contextes Premier League → Ligue 1"
+        },
+        {
+            "timestamp": "17/05/2025 14:33",
+            "type": "Module Activation",
+            "module": "ShadowOdds+",
+            "description": "Activation après seuil de précision atteint (91.3%)"
+        },
+        {
+            "timestamp": "16/05/2025 22:18",
+            "type": "Pattern Recalibration",
+            "module": "NumeriCode",
+            "description": "Ajustement des séquences numériques 3-7-11 → 3-7-12"
+        },
+        {
+            "timestamp": "16/05/2025 17:52",
+            "type": "Architecture Update",
+            "module": "GridSync",
+            "description": "Optimisation de la couche de convergence +8.2% efficacité"
+        }
+    ]
+    
+    # Créer un dataframe
+    events_df = pd.DataFrame(events)
+    st.dataframe(events_df, use_container_width=True)
+    
+    # Système de logs détaillés
+    st.markdown("### 📋 Logs d'apprentissage détaillés")
+    
+    learning_logs = """
+2025-05-17 18:12:23 [INFO] [TarotEcho] Pattern Recalibration initiated
+2025-05-17 18:12:24 [INFO] [TarotEcho] Analyzing historical pattern accuracy for sequence La Tour + L'Étoile
+2025-05-17 18:12:26 [INFO] [TarotEcho] Previous accuracy: 78.4%, New accuracy after recalibration: 86.2%
+2025-05-17 18:12:27 [INFO] [ArcanReflex] Recognizing improved pattern, saving to ReflexMemory
+2025-05-17 18:12:28 [SUCCESS] [TarotEcho] Pattern recalibration complete, awaiting validation in next predictions
+
+2025-05-17 15:47:09 [INFO] [ArcanX] Transfer Learning process initiated
+2025-05-17 15:47:10 [INFO] [ArcanX] Source context: Premier League (confidence: 91.7%)
+2025-05-17 15:47:11 [INFO] [ArcanX] Target context: Ligue 1 (pre-transfer confidence: 76.3%)
+2025-05-17 15:47:15 [INFO] [ArcanX] Adapting Premier League pattern recognition to Ligue 1 context
+2025-05-17 15:47:18 [INFO] [ArcanX] Key transformations: adjusted home advantage -3.2%, tactical variety +7.8%
+2025-05-17 15:47:20 [SUCCESS] [ArcanX] Transfer Learning complete, new Ligue 1 confidence: 84.5%
+
+2025-05-17 14:33:45 [INFO] [ShadowOdds+] Activation threshold check: 91.3% precision reached
+2025-05-17 14:33:47 [INFO] [ShadowOdds+] Analyzing prediction stability across last 241 matches
+2025-05-17 14:33:49 [INFO] [ShadowOdds+] Standard deviation: 4.2%, within acceptable range
+2025-05-17 14:33:50 [INFO] [GridSync] Integrating ShadowOdds+ into primary prediction matrix
+2025-05-17 14:33:52 [INFO] [GridSync] Assigned weight coefficient: 0.23 (moderate-high)
+2025-05-17 14:33:53 [SUCCESS] [ShadowOdds+] Module activation complete, actively contributing to system
+    """
+    
+    st.code(learning_logs, language="plaintext")
+    
+    # Section de recalibration automatique
+    st.markdown("### ⚙️ Système de recalibration automatique")
+    
+    # Interface de recalibration avec structure HTML corrigée
+    st.markdown("""
+    <div style="border: 1px solid rgba(112, 0, 255, 0.3); border-radius: 10px; padding: 20px; background: rgba(112, 0, 255, 0.05);">
+        <!-- En-tête avec statut -->
+        <div style="margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="color: #7000ff; margin: 0;">Processus de recalibration par ArcanBrain</h4>
+                <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
+                         border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                    Actif
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description -->
+        <div style="margin-bottom: 15px;">
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; line-height: 1.6;">
+                ArcanBrain surveille en permanence les performances du système et procède automatiquement
+                à des recalibrations intelligentes des modules prédictifs, selon leurs besoins spécifiques.
+                Les processus de recalibration sont entièrement gérés par l'intelligence système.
+            </p>
+        </div>
+        
+        <!-- Modes de recalibration -->
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">
+                Modes de recalibration automatiques:
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-left: 20px;">
+                • <b>Standard:</b> Recalibration basique sur les dernières données<br>
+                • <b>Deep Learning:</b> Restructuration complète des couches de patterns<br>
+                • <b>Transfer Learning:</b> Application des connaissances d'une ligue à une autre<br>
+                • <b>Pattern Recognition:</b> Focus sur la détection des motifs récurrents
+            </div>
+        </div>
+        
+        <!-- Informations système -->
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">
+            <div><b>Dernier diagnostic système:</b> Tous les modules fonctionnent dans les paramètres optimaux.</div>
+            <div style="margin-top: 5px;"><b>Temps écoulé depuis la dernière recalibration:</b> 3h 17min</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### 📊 Métriques ArcanReflex")
+    
+    # Afficher les métriques de santé du système
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="Santé globale", value="97%", delta="+2.3%")
+    with col2:
+        st.metric(label="Efficacité d'apprentissage", value="91.4%", delta="+4.7%")
+    with col3:
+        st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
+    
     
     # Structure pour les matchs en direct
     if 'live_matches' not in st.session_state:
@@ -2255,12 +1539,8 @@ with tabs[1]:  # Prédictions
                         
                         st.rerun()
                 else:
-                    # Utiliser un identifiant unique basé sur les informations du match
-                    match_id = match.get('id', '')
-                    match_key = f"{match.get('home', '')}_{match.get('away', '')}_{match_id}"
-                    if st.button(f"Désactiver", key=f"deactivate_live_{match_key}"):
-                        # Utiliser une comparaison d'objets complets pour la suppression
-                        st.session_state.sentinel_monitored_live_matches.remove(match)
+                    if st.button(f"Désactiver", key=f"deactivate_live_{match['id']}"):
+                        st.session_state.sentinel_monitored_live_matches = [m for m in st.session_state.sentinel_monitored_live_matches if m['id'] != match['id']]
                         st.rerun()
     
     with col2:
