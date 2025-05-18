@@ -22,7 +22,6 @@ try:
     from utils.daily_combo import get_daily_combos, get_daily_combo_analysis
     from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
     from utils.update_live_matches import update_live_matches
-    from utils.live_sentinel_initializer import initialize_surveillance_data
 except Exception as e:
     def get_live_matches():
         return []
