@@ -306,15 +306,14 @@ with tabs[1]:  # Prédictions
             </div>
         </div>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; 
-                    background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
+        <div style="background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
                     border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
-            <div>
-                <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
-                <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
-            </div>
-            <div style="font-size: 24px; font-weight: bold; font-family: 'JetBrains Mono', monospace;">
-                1.85
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
+                    <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
+                </div>
+                <div style="font-size: 24px; font-weight: bold; color: white;">1.85</div>
             </div>
         </div>
         
@@ -482,7 +481,7 @@ with tabs[2]:  # Performance Notifications
         "Échantillon": sorted_sample
     })
     
-    # Créer un graphique à barres horizontal
+    # Créer un graphique à barres horizontal statique
     fig = px.bar(
         df_modules, y="Module", x="Précision", 
         orientation='h',
@@ -498,15 +497,19 @@ with tabs[2]:  # Performance Notifications
         xaxis_title="Précision (%)",
         yaxis_title="Module Prédictif",
         template="plotly_dark",
-        dragmode=False,  # Désactiver le mode glisser
-        fixedrange=True  # Fixer la plage de l'axe
+        dragmode=False,
+        clickmode=False,
+        hoverlabel=dict(enabled=False),
+        hovermode=False,
+        fixedrange=True
     )
     
-    # Désactiver le zoom et les interactions
-    fig.update_xaxes(fixedrange=True)
-    fig.update_yaxes(fixedrange=True)
+    # Désactiver toutes les interactions possibles
+    fig.update_xaxes(fixedrange=True, showspikes=False, spikethickness=0)
+    fig.update_yaxes(fixedrange=True, showspikes=False, spikethickness=0)
     
-    st.plotly_chart(fig, use_container_width=True)
+    # Afficher le graphique de manière statique
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
     # Alertes et recommandations de calibration
     st.markdown("### ⚠️ Alertes et Recommandations")
@@ -555,7 +558,7 @@ with tabs[3]:  # Daily Combo
     modules_used = ["ArcanX", "ShadowOdds+", "KarmicFlow+", "MetaSystems"]
     module_weights = [0.35, 0.25, 0.22, 0.18]
     
-    # Créer un graphique camembert
+    # Créer un graphique camembert statique
     fig_modules = px.pie(
         values=module_weights, 
         names=modules_used,
@@ -563,13 +566,16 @@ with tabs[3]:  # Daily Combo
         color_discrete_sequence=["#7000ff", "#01ff80", "#ffbe41", "#05d9e8"]
     )
     
-    # Désactiver les interactions
+    # Désactiver toutes les interactions possibles
     fig_modules.update_layout(
         dragmode=False,
-        fixedrange=True
+        clickmode=False,
+        hoverlabel=dict(enabled=False),
+        hovermode=False
     )
     
-    st.plotly_chart(fig_modules, use_container_width=True)
+    # Afficher le graphique de manière complètement statique
+    st.plotly_chart(fig_modules, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
     # Sélections du jour
     st.markdown("### 📊 Sélections du Combiné")
@@ -1027,10 +1033,14 @@ with tabs[6]:  # Notifications
         margin=dict(b=0, l=0, r=0, t=40),
         template="plotly_dark",
         height=500,
-        dragmode=False
+        dragmode=False,
+        clickmode=False,
+        hoverlabel=dict(enabled=False),
+        hovermode=False
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    # Rendre le graphique complètement statique
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
     # Tableau de bord des événements d'apprentissage
     st.markdown("### 📝 Événements d'apprentissage récents")
