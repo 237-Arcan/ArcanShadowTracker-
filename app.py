@@ -23,10 +23,19 @@ try:
     from utils.live_monitoring import get_live_matches, get_match_timeline, get_match_momentum, get_live_alerts
     from utils.update_live_matches import update_live_matches
     from utils.live_sentinel_initializer import initialize_surveillance_data
+    
+    # Importer notre nouveau module pour les matchs en direct avec des données réelles
+    from real_live_matches import get_live_football_matches, update_live_matches_section
 except Exception as e:
     def get_live_matches():
         return []
     def get_live_alerts():
+        return []
+    
+    # Définir des fonctions fictives en cas d'erreur
+    def get_live_football_matches():
+        return []
+    def update_live_matches_section():
         return []
 
 # Configuration de la page
