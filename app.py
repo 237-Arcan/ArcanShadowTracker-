@@ -294,62 +294,104 @@ with tabs[1]:  # Prédictions
     # Afficher le résumé de la prédiction
     st.markdown(f"### 📊 Prédiction pour {home_team} vs {away_team}")
     
-    # Créer une carte de prédiction détaillée
+    # Au lieu d'une seule grande structure HTML, on va la diviser en plusieurs parties
+    
+    # En-tête de la prédiction
     st.markdown("""
     <div style="padding: 20px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.8), rgba(17, 23, 64, 0.7)); 
                 border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 20px;">
+    """, unsafe_allow_html=True)
+    
+    # Titre et confiance
+    st.markdown("""
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold;">Prédiction principale</div>
+            <div style="font-size: 24px; font-weight: bold; color: white;">Prédiction principale</div>
             <div style="background: rgba(1, 255, 128, 0.1); padding: 5px 10px; border-radius: 5px; 
-                        border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
+                     border: 1px solid rgba(1, 255, 128, 0.3); color: #01ff80; font-weight: bold;">
                 Confiance: 87%
             </div>
         </div>
-        
+    """, unsafe_allow_html=True)
+    
+    # Résultat le plus probable
+    st.markdown("""
         <div style="background: rgba(112, 0, 255, 0.1); padding: 15px; border-radius: 8px; 
-                    border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
-                    <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
-                </div>
-                <div style="font-size: 24px; font-weight: bold; color: white;">1.85</div>
-            </div>
+                  border: 1px solid rgba(112, 0, 255, 0.2); margin-bottom: 15px;">
+            <table width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td>
+                        <div style="font-size: 18px; color: rgba(255, 255, 255, 0.9);">Résultat le plus probable</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #7000ff;">Victoire de Liverpool</div>
+                    </td>
+                    <td align="right">
+                        <div style="font-size: 24px; font-weight: bold; color: white;">1.85</div>
+                    </td>
+                </tr>
+            </table>
         </div>
-        
-        <div style="margin-bottom: 20px;">
-            <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Autres scénarios</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <!-- Scénario 1 -->
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="color: white;">Match nul</div>
-                        <div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div>
-                    </div>
-                </div>
-                <!-- Scénario 2 -->
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="color: white;">Victoire d'Arsenal</div>
-                        <div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div>
-                    </div>
-                </div>
-                <!-- Scénario 3 -->
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="color: white;">Plus de 2.5 buts</div>
-                        <div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div>
-                    </div>
-                </div>
-                <!-- Scénario 4 -->
-                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="color: white;">Les deux équipes marquent</div>
-                        <div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div>
-                    </div>
-                </div>
+    """, unsafe_allow_html=True)
+    
+    # Titre des autres scénarios
+    st.markdown("""
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: white;">Autres scénarios</div>
+    """, unsafe_allow_html=True)
+    
+    # Les scénarios en 2 colonnes (premier arrangement)
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Match nul</div></td>
+                        <td align="right"><div style="color: #ffbe41;">3.40 <span style="opacity: 0.7; font-size: 0.9em;">(24%)</span></div></td>
+                    </tr>
+                </table>
             </div>
-        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; margin-bottom: 10px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Victoire d'Arsenal</div></td>
+                        <td align="right"><div style="color: #ff3364;">4.50 <span style="opacity: 0.7; font-size: 0.9em;">(19%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    # Les scénarios en 2 colonnes (deuxième arrangement)
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Plus de 2.5 buts</div></td>
+                        <td align="right"><div style="color: #01ff80;">1.72 <span style="opacity: 0.7; font-size: 0.9em;">(82%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+            <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px;">
+                <table width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td><div style="color: white;">Les deux équipes marquent</div></td>
+                        <td align="right"><div style="color: #01ff80;">1.65 <span style="opacity: 0.7; font-size: 0.9em;">(85%)</span></div></td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    # Fermeture du conteneur principal
+    st.markdown("""
     </div>
     """, unsafe_allow_html=True)
     
