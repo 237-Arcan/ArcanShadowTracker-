@@ -1102,7 +1102,7 @@ with tabs[5]:  # Système d'Apprentissage
     st.markdown("Visualisation de l'évolution du système ArcanShadow et des processus d'apprentissage de ses modules.")
 
 # Nouvel onglet Notifications
-with tabs[6]:  # Notifications
+with tabs[5]:  # Notifications
     st.markdown("## 📬 Centre de Notifications")
     st.markdown("Toutes les informations importantes du système ArcanShadow sont centralisées ici.")
     
