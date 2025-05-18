@@ -1345,9 +1345,9 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
                 </div>
             </div>
             <div class="match-teams">
-                <div class="home-team">{match['home_team']}</div>
+                <div class="home-team">{match.get('home_team', match.get('home', '?'))}</div>
                 <div class="versus">VS</div>
-                <div class="away-team">{match['away_team']}</div>
+                <div class="away-team">{match.get('away_team', match.get('away', '?'))}</div>
             </div>
             <div class="match-odds">
                 <div class="prob-{home_prob_class}">{match.get('home_odds', '?.??')} ({int(home_prob * 100)}%)</div>
@@ -1360,47 +1360,49 @@ with tabs[7]:  # Aperçus & Matchs Spéciaux
     # Affichage des matchs du jour
     st.markdown(f"### 🗓️ {t('todays_matches')}")
     
-    # Créer une grille de matchs pour une meilleure présentation
-    cols = st.columns(2)
-    for i, match in enumerate(today_matches):
-        col = cols[i % 2]  # Alternance entre les colonnes
-        with col:
-            prob_1 = match.get('home_prob', 0.33)
-            prob_x = match.get('draw_prob', 0.33)
-            prob_2 = match.get('away_prob', 0.33)
-            
-            # Déterminer automatiquement la classe CSS basée sur la probabilité
-            home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
-            draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
-            away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
-            
-            country_code = match.get('country_code', 'fr').lower()
-            
-            st.markdown(f"""
-            <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
-                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
-                    <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
-                    {match.get('league', '')} • {match.get('time', match.get('kickoff_time', '??:??'))}
-                </div>
-                <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
-                    {match.get('home', match.get('home_team', '?'))} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match.get('away', match.get('away_team', '?'))}
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                    <div class="prob-{home_class}" style="text-align: center; flex: 1;">
-                        <div>1</div>
-                        <div>{int(prob_1 * 100)}%</div>
+    # S'assurer que today_matches est bien une liste
+    if isinstance(today_matches, list) and today_matches:
+        # Créer une grille de matchs pour une meilleure présentation
+        cols = st.columns(2)
+        for i, match in enumerate(today_matches):
+            col = cols[i % 2]  # Alternance entre les colonnes
+            with col:
+                prob_1 = match.get('home_prob', 0.33)
+                prob_x = match.get('draw_prob', 0.33)
+                prob_2 = match.get('away_prob', 0.33)
+                
+                # Déterminer automatiquement la classe CSS basée sur la probabilité
+                home_class = "high" if prob_1 >= 0.6 else ("medium" if prob_1 >= 0.4 else "low")
+                draw_class = "high" if prob_x >= 0.6 else ("medium" if prob_x >= 0.4 else "low")
+                away_class = "high" if prob_2 >= 0.6 else ("medium" if prob_2 >= 0.4 else "low")
+                
+                country_code = match.get('country_code', 'fr').lower()
+                
+                st.markdown(f"""
+                <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: rgba(17, 23, 64, 0.7);">
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">
+                        <img src="https://flagcdn.com/16x12/{country_code}.png" width="16" height="12" style="vertical-align: middle; margin-right: 5px;">
+                        {match.get('league', '')} • {match.get('time', match.get('kickoff_time', '??:??'))}
                     </div>
-                    <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
-                        <div>X</div>
-                        <div>{int(prob_x * 100)}%</div>
+                    <div style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 8px;">
+                        {match.get('home', match.get('home_team', '?'))} <span style="color: rgba(255, 255, 255, 0.5);">vs</span> {match.get('away', match.get('away_team', '?'))}
                     </div>
-                    <div class="prob-{away_class}" style="text-align: center; flex: 1;">
-                        <div>2</div>
-                        <div>{int(prob_2 * 100)}%</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <div class="prob-{home_class}" style="text-align: center; flex: 1;">
+                            <div>1</div>
+                            <div>{int(prob_1 * 100)}%</div>
+                        </div>
+                        <div class="prob-{draw_class}" style="text-align: center; flex: 1;">
+                            <div>X</div>
+                            <div>{int(prob_x * 100)}%</div>
+                        </div>
+                        <div class="prob-{away_class}" style="text-align: center; flex: 1;">
+                            <div>2</div>
+                            <div>{int(prob_2 * 100)}%</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 # Nouvel onglet Notifications
 with tabs[6]:  # Notifications
