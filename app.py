@@ -160,7 +160,8 @@ tabs = st.tabs([
     "🎯 Daily Combo", 
     "💡 Smart Market Recommendations", 
     "🧠 Système d'Apprentissage",
-    f"📬 Notifications ({st.session_state.notification_count})"
+    f"📬 Notifications ({st.session_state.notification_count})",
+    "🌟 Aperçus & Matchs Spéciaux"
 ])
 
 with tabs[0]:  # Live Monitoring (Surveillance en direct)
