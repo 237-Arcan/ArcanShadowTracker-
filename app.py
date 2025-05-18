@@ -1453,190 +1453,91 @@ with tabs[6]:  # Notifications
     with col3:
         st.metric(label="Confiance système", value="88.9%", delta="+1.2%")
     
+    # Section d'analyse avancée
+    st.markdown("### 🔬 Analyses Avancées et Métriques")
     
-    # Structure pour les matchs en direct
-    if 'live_matches' not in st.session_state:
-        st.session_state.live_matches = [
-            {"id": 1, "home": "PSG", "away": "Lyon", "league": "Ligue 1", "time": "20:45", "status": "En direct", "minute": "37'", "score": "1-0"},
-            {"id": 2, "home": "Liverpool", "away": "Arsenal", "league": "Premier League", "time": "17:30", "status": "En direct", "minute": "68'", "score": "2-1"},
-            {"id": 3, "home": "Bayern Munich", "away": "Dortmund", "league": "Bundesliga", "time": "18:30", "status": "En direct", "minute": "52'", "score": "0-0"}
-        ]
+    st.markdown("""
+    <div style="padding: 15px; border-radius: 10px; background: linear-gradient(135deg, rgba(8, 15, 40, 0.7), rgba(17, 23, 64, 0.6)); 
+              border: 1px solid rgba(81, 99, 149, 0.3); margin-bottom: 15px;">
+        <div style="font-size: 16px; font-weight: bold; color: #05d9e8; margin-bottom: 10px;">
+            Analyses profondes du système
+        </div>
+        <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.6;">
+            Cette section présente des analyses avancées sur les performances et le comportement du système ArcanShadow.
+            Les métriques et visualisations sont mises à jour en temps réel pour offrir un aperçu complet de l'état du système.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Structure pour gérer les matchs surveillés en direct
-    if 'sentinel_monitored_live_matches' not in st.session_state:
-        st.session_state.sentinel_monitored_live_matches = []
-    
-    col1, col2 = st.columns([2, 1])
+    # Affichage des visualisations avancées
+    col1, col2 = st.columns(2)
     
     with col1:
-        # Tableau des matchs en direct disponibles
-        st.markdown("#### 🔴 Matchs actuellement en direct")
+        st.markdown("#### 📈 Performance des modules")
         
-        for match in st.session_state.live_matches:
-            is_monitored = any(m['id'] == match['id'] for m in st.session_state.sentinel_monitored_live_matches)
-            status_color = "#01ff80" if is_monitored else "rgba(255, 255, 255, 0.8)"
-            status_text = "🟢 Surveillé en direct" if is_monitored else "⚪ Disponible"
-            
-            st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; align-items: center; 
-                      padding: 12px; border-radius: 5px; margin-bottom: 15px; 
-                      background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
-                <div>
-                    <div style="font-weight: bold; font-size: 16px; color: white;">
-                        {match['home']} {match['score']} {match['away']}
-                    </div>
-                    <div style="font-size: 13px; color: #ff3364; font-weight: bold; margin-top: 4px;">
-                        {match['minute']} • EN DIRECT
-                    </div>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">
-                        {match['league']}
-                    </div>
-                </div>
-                <div style="font-size: 13px; color: {status_color};">
-                    {status_text}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Pour chaque match, ajouter des boutons d'action
-            col_a, col_b = st.columns([3, 2])
-            with col_a:
-                if not is_monitored:
-                    if st.button(f"Activer surveillance en direct", key=f"activate_live_notif_{match['id']}"):
-                        # Configuration de surveillance
-                        surveillance_config = {
-                            "id": match['id'],
-                            "home": match['home'],
-                            "away": match['away'],
-                            "league": match['league'],
-                            "minute": match['minute'],
-                            "score": match['score'],
-                            "monitoring_level": "Maximum",  # Plus haut niveau pour les matchs en direct
-                            "modules": ["ShadowMomentum", "LineTrap", "KarmicFlow", "MirrorPhase", "BetPulse"],
-                            "activated_at": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
-                            "alert_threshold": 5  # Seuil plus bas pour être plus réactif aux matchs en direct
-                        }
-                        st.session_state.sentinel_monitored_live_matches.append(surveillance_config)
-                        
-                        # Ajouter une notification d'activation
-                        if 'notifications' in st.session_state:
-                            new_notif = {
-                                "id": len(st.session_state.notifications) + 1,
-                                "type": "sentinel",
-                                "title": f"🔴 ArcanSentinel activé en DIRECT: {match['home']} vs {match['away']}",
-                                "message": f"Surveillance instantanée lancée sur le match en direct {match['home']} vs {match['away']} ({match['minute']}). Les analyses seront envoyées en temps réel.",
-                                "timestamp": "2025-05-17 " + datetime.now().strftime("%H:%M:%S"),
-                                "read": False,
-                                "priority": "urgent"
-                            }
-                            st.session_state.notifications.append(new_notif)
-                            # Mise à jour du compteur
-                            st.session_state.notification_count = sum(1 for n in st.session_state.notifications if not n["read"])
-                        
-                        st.rerun()
-                else:
-                    if st.button(f"Désactiver", key=f"deactivate_live_{match['id']}"):
-                        st.session_state.sentinel_monitored_live_matches = [m for m in st.session_state.sentinel_monitored_live_matches if m['id'] != match['id']]
-                        st.rerun()
+        # Données de performances simulées
+        module_performance = {
+            "ArcanX": 92.7,
+            "ShadowOdds": 88.5,
+            "TarotEcho": 94.1,
+            "KarmicFlow+": 90.2,
+            "MetaSystems": 85.9
+        }
+        
+        # Visualiser les performances
+        fig = go.Figure()
+        
+        # Ajouter les barres
+        fig.add_trace(go.Bar(
+            x=list(module_performance.keys()),
+            y=list(module_performance.values()),
+            marker_color=['#7000ff', '#01ff80', '#ffbe41', '#05d9e8', '#ff3364'],
+            text=[f"{val}%" for val in module_performance.values()],
+            textposition='auto'
+        ))
+        
+        # Mise en forme du graphique
+        fig.update_layout(
+            title="Précision des modules principaux",
+            yaxis=dict(title="Précision (%)"),
+            template="plotly_dark",
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, b=50, t=40),
+            height=300
+        )
+        
+        # Rendre le graphique statique
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
     with col2:
-        st.markdown("#### Configuration pour l'analyse en direct")
+        st.markdown("#### 🔄 Évolution de la performance")
         
-        st.markdown("""
-        <div style="border: 1px solid rgba(255, 51, 100, 0.3); border-radius: 10px; padding: 15px; background: rgba(255, 51, 100, 0.05);">
-            <h4 style="color: #ff3364; margin-top: 0;">Surveillance en Direct</h4>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
-                ArcanSentinel analyse en temps réel:
-            </p>
-            <ul style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
-                <li>Les changements instantanés de dynamique de jeu</li>
-                <li>Les réactions immédiates des cotes en direct</li>
-                <li>Les patterns d'énergie pendant le match</li>
-                <li>Les moments critiques avec forte probabilité de but</li>
-                <li>Les opportunités de paris optimales en live</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        # Données d'évolution simulées
+        dates = ["13/05", "14/05", "15/05", "16/05", "17/05", "18/05"]
+        evolution = [78.3, 80.1, 82.5, 85.2, 87.6, 89.4]
         
-        # Affichage des matchs surveillés en direct
-        if st.session_state.sentinel_monitored_live_matches:
-            st.markdown("#### Matchs en direct sous surveillance")
-            for match in st.session_state.sentinel_monitored_live_matches:
-                # Simuler une progression du match
-                current_minute = match.get('minute', "??'")
-                if "'" in current_minute:
-                    minute_num = int(current_minute.replace("'", ""))
-                    minute_num += 3  # Avancer de quelques minutes
-                    current_minute = f"{minute_num}'"
-                
-                st.markdown(f"""
-                <div style="background: rgba(255, 51, 100, 0.15); border: 1px solid rgba(255, 51, 100, 0.3); 
-                          border-radius: 5px; padding: 15px; margin-top: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: bold; color: white;">
-                            {match['home']} {match['score']} {match['away']}
-                        </div>
-                        <div style="color: #ff3364; font-weight: bold; font-size: 14px;">
-                            {current_minute}
-                        </div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.7);">
-                        <span style="color: #01ff80;">●</span> Analyse en direct active
-                    </div>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 5px;">
-                        5 modules actifs • Seuil d'alerte: {match.get('alert_threshold', 5)}/10
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Information sur le traitement automatique
-            st.markdown("""
-            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); border-left: 2px solid #ff3364; 
-                      padding-left: 10px; margin-top: 15px;">
-                Les insights détectés en direct sont automatiquement envoyés à l'onglet Notifications.
-                <br><br>
-                Les patterns détectés par ArcanSentinel sont transmis à D-forge pour analyse 
-                et développement potentiel de nouveaux modules.
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.info("Aucun match en direct sous surveillance. Activez ArcanSentinel sur un match en cours pour recevoir des insights en temps réel.")
+        # Créer le graphique avec plotly
+        fig = go.Figure()
+        
+        # Ajouter la ligne principale
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=evolution,
+            mode='lines+markers',
+            line=dict(color='#01ff80', width=2),
+            marker=dict(size=8, color='#01ff80')
+        ))
+        
+        # Mise en forme du graphique
+        fig.update_layout(
+            title="Évolution de la précision globale",
+            yaxis=dict(title="Précision (%)"),
+            template="plotly_dark",
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, b=50, t=40),
+            height=300
+        )
+        
+        # Rendre le graphique statique
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False, 'staticPlot': True})
     
-    # Affichage des indicateurs en temps réel si au moins un match est surveillé
-    if st.session_state.sentinel_monitored_live_matches:
-        st.markdown("### 🔄 Indicateurs ArcanSentinel en temps réel")
-        
-        # Prendre le premier match surveillé pour afficher des données
-        active_match = st.session_state.sentinel_monitored_live_matches[0]
-        
-        st.markdown(f"""
-        <div style="padding: 12px; border-radius: 8px; margin-bottom: 15px; 
-                    background: rgba(255, 51, 100, 0.1); border: 1px solid rgba(255, 51, 100, 0.2);">
-            <div style="font-weight: bold; font-size: 18px; color: white; margin-bottom: 8px;">
-                {active_match['home']} {active_match['score']} {active_match['away']} • {active_match['minute']}
-            </div>
-            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">
-                <span style="color: #ff3364; font-weight: bold;">ANALYSE EN DIRECT</span> • {active_match['league']}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Surveillance simulée
-        sentinel_metrics = [
-            {"name": "Momentum", "value": 72, "delta": "+3", "color": "#01ff80"},
-            {"name": "Variance de cote", "value": 0.18, "delta": "-0.05", "color": "#ffbe41"}, 
-            {"name": "Pression collective", "value": 64, "delta": "+8", "color": "#01ff80"},
-            {"name": "Cycle karmique", "value": 88, "delta": "+2", "color": "#01ff80"},
-            {"name": "Anomalie structurelle", "value": 22, "delta": "-4", "color": "#ff3364"}
-        ]
-        
-        cols = st.columns(len(sentinel_metrics))
-        for i, metric in enumerate(sentinel_metrics):
-            with cols[i]:
-                st.markdown(f"""
-                <div style="text-align: center; padding: 10px;">
-                    <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">{metric['name']}</div>
-                    <div style="font-size: 24px; font-weight: bold; color: {metric['color']};">{metric['value']}</div>
-                    <div style="font-size: 12px; color: {metric['color']};">{metric['delta']}</div>
-                </div>
-                """, unsafe_allow_html=True)
