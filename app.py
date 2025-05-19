@@ -13,6 +13,8 @@ import random
 # Importer nos modules pour les différents onglets
 from predictions_tab import display_predictions_tab
 from daily_combo_tab import display_daily_combo_tab
+from learning_system_tab import display_learning_system_tab
+from notifications_tab import display_notifications_tab
 
 # Fonction pour charger le CSS personnalisé
 def load_custom_css():
@@ -165,7 +167,9 @@ st.markdown(f"### {t('welcome_message')}")
 # Créer les onglets pour la nouvelle version d'ArcanShadow
 tabs = st.tabs([
     "🔮 Prédictions",
-    "🎯 Daily Combo"
+    "🎯 Daily Combo",
+    "🧠 Système d'Apprentissage",
+    "📬 Notifications"
 ])
 
 # Affichage des onglets
@@ -174,3 +178,9 @@ with tabs[0]:
     
 with tabs[1]:
     display_daily_combo_tab()
+    
+with tabs[2]:
+    display_learning_system_tab()
+    
+with tabs[3]:
+    display_notifications_tab()
