@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 import random
 import time
 
-# Importer notre module pour l'API Football
-from api.football_data import (
+# Importer notre module adaptateur pour l'API ESPN
+from api.football_adapter import (
     get_upcoming_matches,
     get_team_statistics,
     get_h2h_matches, 
