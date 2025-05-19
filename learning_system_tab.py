@@ -1,7 +1,7 @@
 """
 Module pour l'onglet Système d'Apprentissage d'ArcanShadow.
 Ce module visualise l'évolution de l'intelligence du système et ses processus d'apprentissage,
-avec une intégration des données réelles de Transfermarkt pour améliorer les analyses.
+en intégrant des données multi-sources via le hub central d'intégration.
 """
 
 import streamlit as st
@@ -12,18 +12,33 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import random
 import logging
+import os
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Importer notre module d'intégration Transfermarkt
-from api.transfermarkt_integration import (
-    is_transfermarkt_available,
-    enhance_match_data_with_transfermarkt,
-    get_team_players,
-    get_team_profile
-)
+# Importer notre hub d'intégration central
+try:
+    from api.data_integration_hub import DataIntegrationHub
+    HUB_AVAILABLE = True
+    logger.info("Hub d'intégration central disponible pour l'onglet Système d'Apprentissage")
+except ImportError:
+    HUB_AVAILABLE = False
+    logger.warning("Hub d'intégration central non disponible pour l'onglet Système d'Apprentissage")
+
+# Importer notre module d'intégration Transfermarkt (en fallback)
+try:
+    from api.transfermarkt_integration import (
+        is_transfermarkt_available,
+        enhance_match_data_with_transfermarkt,
+        get_team_players,
+        get_team_profile
+    )
+    TRANSFERMARKT_FALLBACK_AVAILABLE = True
+except ImportError:
+    TRANSFERMARKT_FALLBACK_AVAILABLE = False
+    logger.warning("Module Transfermarkt fallback non disponible")
 
 def generate_learning_data(days=30):
     """

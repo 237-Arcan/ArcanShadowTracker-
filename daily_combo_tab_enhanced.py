@@ -59,14 +59,23 @@ def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     bet_trap_detector = BetTrapMapEnhanced if BetTrapMapEnhanced else None
     odds_analyzer = ShadowOddsPlusEnhanced if ShadowOddsPlusEnhanced else None
     
-    # Récupération des matchs du jour avec données enrichies
+    # Récupération des matchs du jour à partir du hub central
     try:
-        # Utiliser l'API football_data pour obtenir les prochains matchs
-        from api.football_data import get_upcoming_matches
-        today_matches = get_upcoming_matches(days_ahead=1)
+        # Utiliser le hub d'intégration pour obtenir les prochains matchs
+        # Cela permet d'utiliser des données réelles si disponibles, ou simulées si nécessaire
+        today_matches = data_hub.get_upcoming_matches(days_ahead=1)
+        logger.info(f"Récupéré {len(today_matches)} matchs via le hub d'intégration central")
     except Exception as e:
-        st.warning(f"Impossible de récupérer les matchs à venir: {e}")
-        today_matches = []
+        logger.error(f"Erreur lors de la récupération via le hub: {e}")
+        # Fallback à la méthode directe
+        try:
+            from api.football_data import get_upcoming_matches
+            today_matches = get_upcoming_matches(days_ahead=1)
+            logger.info(f"Récupéré {len(today_matches)} matchs via la méthode directe")
+        except Exception as e2:
+            logger.error(f"Impossible de récupérer les matchs à venir: {e2}")
+            st.warning("Impossible d'accéder aux données de matchs. Affichage d'un exemple.")
+            today_matches = []
     
     # Si aucun match n'est disponible via l'API, utiliser des matchs simulés
     if not today_matches:
@@ -196,18 +205,56 @@ def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
         desc = ""
         
         if best_bet_type == "1X2":
-            # Calcul plus intelligent des probabilités
-            home_adv = 0.1  # Avantage à domicile
-            
-            # Si trap_risk est élevé, ajuster les probabilités
-            trap_risk = match.get("trap_risk", 0)
-            if trap_risk > 0.7:
-                # Si haut risque de piège, favoriser le résultat surprenant
-                outcomes = ["1", "X", "2"]
-                proba = [0.25, 0.35, 0.4]  # Favoriser l'équipe extérieure ou le nul
-            else:
-                outcomes = ["1", "X", "2"]
-                proba = [0.45, 0.3, 0.25]  # Probabilités standards
+            # Tenter d'obtenir des statistiques réelles via le hub d'intégration
+            try:
+                # Récupération des statistiques réelles des équipes
+                team_stats = data_hub.get_team_statistics(
+                    home_team=match["home_team"],
+                    away_team=match["away_team"]
+                )
+                
+                # Récupération des prédictions directement du hub central
+                match_predictions = data_hub.get_match_predictions(
+                    home_team=match["home_team"],
+                    away_team=match["away_team"]
+                )
+                
+                if match_predictions and 'probabilities' in match_predictions:
+                    # Utiliser les probabilités calculées par XGBoost
+                    probs = match_predictions['probabilities']
+                    home_prob = probs.get('home', 45) / 100
+                    draw_prob = probs.get('draw', 30) / 100
+                    away_prob = probs.get('away', 25) / 100
+                    
+                    # Normaliser
+                    total = home_prob + draw_prob + away_prob
+                    home_prob /= total
+                    draw_prob /= total
+                    away_prob /= total
+                    
+                    # Utiliser ces probabilités pour le choix
+                    outcomes = ["1", "X", "2"]
+                    proba = [home_prob, draw_prob, away_prob]
+                    logger.info(f"Utilisation des probabilités réelles: {proba}")
+                else:
+                    # Fallback aux probabilités simulées mais plus réalistes
+                    trap_risk = match.get("trap_risk", 0)
+                    if trap_risk > 0.7:
+                        outcomes = ["1", "X", "2"]
+                        proba = [0.25, 0.35, 0.4]  # Favoriser l'équipe extérieure ou le nul
+                    else:
+                        outcomes = ["1", "X", "2"]
+                        proba = [0.45, 0.3, 0.25]  # Probabilités standards
+            except Exception as e:
+                logger.warning(f"Erreur lors de la récupération des prédictions: {e}")
+                # Probabilités simulées
+                trap_risk = match.get("trap_risk", 0)
+                if trap_risk > 0.7:
+                    outcomes = ["1", "X", "2"]
+                    proba = [0.25, 0.35, 0.4]  # Favoriser l'équipe extérieure ou le nul
+                else:
+                    outcomes = ["1", "X", "2"]
+                    proba = [0.45, 0.3, 0.25]  # Probabilités standards
                 
             selection = np.random.choice(outcomes, p=proba)
             
