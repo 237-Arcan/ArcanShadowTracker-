@@ -1,5 +1,6 @@
 """
-Application principale ArcanShadow.
+Tableau de bord principal pour ArcanShadow
+Permet de visualiser la santé du système et ses connexions aux sources externes.
 """
 
 import streamlit as st
@@ -8,18 +9,18 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
+import time
 import os
 import json
 import logging
 import random
-import time
 import requests
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration de la page Streamlit - doit être appelé en premier
+# Configuration de la page Streamlit
 st.set_page_config(
     page_title="ArcanShadow - Tableau de Bord",
     page_icon="📊",

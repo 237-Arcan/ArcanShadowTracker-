@@ -562,12 +562,7 @@ def display_api_readiness():
 
 def main():
     """Fonction principale du tableau de bord"""
-    # Configuration de la page Streamlit
-    st.set_page_config(
-        page_title="ArcanShadow - Tableau de Bord",
-        page_icon="📊",
-        layout="wide"
-    )
+    # Ne pas configurer la page ici - cela doit être fait dans app.py
     
     # Charger le CSS personnalisé
     load_custom_css()
