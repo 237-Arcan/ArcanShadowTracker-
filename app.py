@@ -21,14 +21,55 @@ from daily_combo_tab import display_daily_combo_tab
 from learning_system_tab import display_learning_system_tab
 from notifications_tab import display_notifications_tab
 
-# Importer les versions enrichies (si disponibles)
+# Importer le module d'intégration des composants enrichis
 try:
-    from predictions_tab_enhanced import display_enhanced_predictions_tab
-    ENHANCED_PREDICTIONS_AVAILABLE = True
-    logger.info("Module de prédictions enrichi disponible")
-except ImportError:
+    from modules.enhanced_components import get_enhanced_components
+    enhanced_components = get_enhanced_components()
+    ENHANCED_COMPONENTS_AVAILABLE = True
+    
+    # Récupérer le statut des composants enrichis
+    components_summary = enhanced_components.get_available_components_summary()
+    logger.info(f"Composants enrichis disponibles: {components_summary}")
+    
+    # Vérifier si les composants spécifiques sont disponibles
+    ENHANCED_PREDICTIONS_AVAILABLE = enhanced_components.is_enhanced('predictions_tab')
+    ENHANCED_BET_TRAP_MAP_AVAILABLE = enhanced_components.is_enhanced('bet_trap_map')
+    ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE = enhanced_components.is_enhanced('shadow_odds_plus')
+    ENHANCED_SENTIMENT_AVAILABLE = enhanced_components.is_enhanced('fan_sentiment_monitor')
+    
+    # Récupérer les fonctions/instances enrichies
+    if ENHANCED_PREDICTIONS_AVAILABLE:
+        display_enhanced_predictions_tab = enhanced_components.get_display_predictions_tab()
+        logger.info("Module de prédictions enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_BET_TRAP_MAP_AVAILABLE:
+        bet_trap_map = enhanced_components.get_bet_trap_map()
+        logger.info("Module BetTrapMap enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
+        shadow_odds_plus = enhanced_components.get_shadow_odds_plus()
+        logger.info("Module ShadowOddsPlus enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_SENTIMENT_AVAILABLE:
+        fan_sentiment_monitor = enhanced_components.get_fan_sentiment_monitor()
+        logger.info("Module FanSentimentMonitor enrichi disponible via le gestionnaire de composants")
+
+except ImportError as e:
+    ENHANCED_COMPONENTS_AVAILABLE = False
     ENHANCED_PREDICTIONS_AVAILABLE = False
-    logger.warning("Module de prédictions enrichi non disponible, utilisation de la version classique")
+    ENHANCED_BET_TRAP_MAP_AVAILABLE = False
+    ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE = False
+    ENHANCED_SENTIMENT_AVAILABLE = False
+    logger.warning(f"Gestionnaire de composants enrichis non disponible: {e}")
+    
+    # Essayer d'importer individuellement
+    try:
+        from predictions_tab_enhanced import display_enhanced_predictions_tab
+        ENHANCED_PREDICTIONS_AVAILABLE = True
+        logger.info("Module de prédictions enrichi disponible")
+    except ImportError:
+        ENHANCED_PREDICTIONS_AVAILABLE = False
+        logger.warning("Module de prédictions enrichi non disponible, utilisation de la version classique")
 
 # Vérifier si le hub de données est disponible
 try:
@@ -39,15 +80,6 @@ try:
 except ImportError:
     DATA_HUB_AVAILABLE = False
     logger.warning("Hub d'intégration de données non disponible")
-
-# Vérifier si le module FanSentimentMonitor enrichi est disponible
-try:
-    from modules.fan_sentiment_monitor_enhanced import FanSentimentMonitorEnhanced
-    ENHANCED_SENTIMENT_AVAILABLE = True
-    logger.info("Module FanSentimentMonitor enrichi disponible")
-except ImportError:
-    ENHANCED_SENTIMENT_AVAILABLE = False
-    logger.warning("Module FanSentimentMonitor enrichi non disponible")
 
 # Fonction pour charger le CSS personnalisé
 def load_custom_css():
@@ -205,6 +237,56 @@ tabs = st.tabs([
     "📬 Notifications"
 ])
 
+# Fonction pour afficher un badge de statut des composants améliorés
+def show_enhanced_components_status():
+    """Affiche un résumé des composants améliorés disponibles"""
+    if ENHANCED_COMPONENTS_AVAILABLE:
+        # Compter combien de composants améliorés sont disponibles
+        enhanced_count = sum([
+            ENHANCED_PREDICTIONS_AVAILABLE,
+            ENHANCED_BET_TRAP_MAP_AVAILABLE,
+            ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE, 
+            ENHANCED_SENTIMENT_AVAILABLE
+        ])
+        
+        total_count = 4  # Nombre total de composants améliorés
+        
+        if enhanced_count > 0:
+            st.sidebar.markdown("### 🌟 Composants enrichis")
+            
+            # Afficher un indicateur pour chaque composant
+            components_status = {
+                "Prédictions": ENHANCED_PREDICTIONS_AVAILABLE,
+                "BetTrapMap": ENHANCED_BET_TRAP_MAP_AVAILABLE,
+                "ShadowOddsPlus": ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE,
+                "FanSentimentMonitor": ENHANCED_SENTIMENT_AVAILABLE
+            }
+            
+            status_html = "<div style='margin-bottom: 20px;'>"
+            for component, is_enhanced in components_status.items():
+                icon = "✅" if is_enhanced else "⚪"
+                status_html += f"<div>{icon} {component}</div>"
+            status_html += "</div>"
+            
+            st.sidebar.markdown(status_html, unsafe_allow_html=True)
+            
+            # Afficher un message sur les sources de données
+            if DATA_HUB_AVAILABLE:
+                st.sidebar.markdown("**Sources de données intégrées:**")
+                st.sidebar.markdown("- ✅ Transfermarkt API")
+                st.sidebar.markdown("- ✅ soccerdata (9 sources)")
+                st.sidebar.markdown("- ✅ Enrichissement des joueurs")
+            
+            # Afficher un résumé des bénéfices
+            st.sidebar.markdown("**Améliorations activées:**")
+            st.sidebar.markdown("- Analyses basées sur des données multi-sources")
+            st.sidebar.markdown("- Visualisations enrichies")
+            st.sidebar.markdown("- Détection avancée de patterns")
+            st.sidebar.markdown("- Plus de précision dans les prédictions")
+
+# Afficher le statut des composants améliorés
+show_enhanced_components_status()
+
 # Affichage des onglets
 with tabs[0]:
     # Utiliser la version améliorée de l'onglet Prédictions si disponible
@@ -215,10 +297,19 @@ with tabs[0]:
         display_predictions_tab()
     
 with tabs[1]:
+    # Afficher un indicateur si les composants enrichis sont utilisés pour Daily Combo
+    if ENHANCED_BET_TRAP_MAP_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
+        st.info("🌟 Composants enrichis utilisés pour l'analyse des opportunités")
     display_daily_combo_tab()
     
 with tabs[2]:
+    # Afficher un indicateur si les composants enrichis sont utilisés pour le Système d'Apprentissage
+    if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
+        st.info("🌟 Données multi-sources intégrées au système d'apprentissage")
     display_learning_system_tab()
     
 with tabs[3]:
+    # Afficher un indicateur si les composants enrichis sont utilisés pour les Notifications
+    if ENHANCED_SENTIMENT_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
+        st.info("🌟 Détection avancée des événements significatifs activée")
     display_notifications_tab()
