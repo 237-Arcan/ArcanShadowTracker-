@@ -24,18 +24,50 @@ class SoccerDataAdapter:
     
     def __init__(self):
         """Initialise l'adaptateur SoccerData."""
-        # Récupérer l'instance d'intégration
-        self.integration = get_soccer_data_integration()
-        self.available = is_soccerdata_available()
+        try:
+            # Tenter d'importer soccerdata directement
+            import soccerdata as sd
+            self.sd = sd
+            self.available = True
+            
+            # Initialiser les scrapers pour les sources clés
+            self.scrapers = {}
+            
+            try:
+                # FBref (la source la plus stable, fonctionne sans authentification)
+                self.scrapers['fbref'] = sd.FBref(leagues=["EPL", "La Liga", "Ligue 1", "Serie A", "1. Bundesliga"], 
+                                                  seasons=["2023-2024"])
+                logger.info("Scraper FBref initialisé avec succès")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'initialisation du scraper FBref: {e}")
+            
+            try:
+                # Sofascore (source alternative)
+                self.scrapers['sofascore'] = sd.SofaScore(leagues=["EPL", "La Liga", "Ligue 1", "Serie A", "1. Bundesliga"], 
+                                                          seasons=["2023-2024"])
+                logger.info("Scraper SofaScore initialisé avec succès")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'initialisation du scraper SofaScore: {e}")
+            
+            # Vérifier quelles sources sont disponibles
+            self.sources_available = {
+                source: scraper is not None 
+                for source, scraper in self.scrapers.items()
+            }
+            
+            # Si au moins une source est disponible, considérer l'adaptateur comme fonctionnel
+            if any(self.sources_available.values()):
+                logger.info(f"Adaptateur SoccerData initialisé avec succès. Sources disponibles: {self.sources_available}")
+            else:
+                logger.warning("Aucune source SoccerData n'est disponible.")
+                self.available = False
         
-        if self.available:
-            logger.info("Adaptateur SoccerData initialisé avec succès")
-            self.sources_available = self.integration.sources_available
-            logger.info(f"Sources disponibles: {self.sources_available}")
-        else:
-            logger.warning("SoccerData n'est pas disponible, fonctionnement limité")
+        except ImportError:
+            self.available = False
+            self.sources_available = {}
+            logger.warning("Bibliothèque SoccerData non disponible, fonctionnement limité")
     
-    def get_team_form(self, team_name, last_matches=5, source='sofascore'):
+    def get_team_form(self, team_name, last_matches=5, source='fbref'):
         """
         Récupère la forme récente d'une équipe.
         
@@ -47,11 +79,82 @@ class SoccerDataAdapter:
         Returns:
             dict: Informations sur la forme récente
         """
-        if not self.available:
+        if not self.available or source not in self.scrapers:
+            logger.warning(f"Source {source} non disponible pour la forme de l'équipe, utilisation de données simulées")
             return self._generate_simulated_form(team_name, last_matches)
         
         try:
-            return self.integration.get_team_recent_form(team_name, last_matches, source)
+            # Utiliser directement le scraper de la source spécifiée
+            scraper = self.scrapers[source]
+            
+            # Normaliser le nom de l'équipe pour la recherche
+            team_name_normalized = team_name.lower().replace(" ", "_")
+            
+            # Récupérer les matchs récents de l'équipe
+            matches = scraper.read_schedule()
+            
+            # Filtrer les matchs de l'équipe
+            team_matches = matches[(matches['home'].str.lower() == team_name.lower()) | 
+                                  (matches['away'].str.lower() == team_name.lower())]
+            
+            # Trier par date (du plus récent au plus ancien)
+            team_matches = team_matches.sort_values('date', ascending=False).head(last_matches)
+            
+            if team_matches.empty:
+                logger.warning(f"Aucun match trouvé pour {team_name}, utilisation de données simulées")
+                return self._generate_simulated_form(team_name, last_matches)
+            
+            # Calculer les résultats (W/D/L) du point de vue de l'équipe
+            results = []
+            scores = []
+            for _, match in team_matches.iterrows():
+                if match['home'].lower() == team_name.lower():
+                    # L'équipe joue à domicile
+                    home_score = match.get('home_score', 0)
+                    away_score = match.get('away_score', 0)
+                    
+                    if home_score > away_score:
+                        results.append("W")
+                    elif home_score < away_score:
+                        results.append("L")
+                    else:
+                        results.append("D")
+                    
+                    scores.append(f"{home_score}-{away_score}")
+                else:
+                    # L'équipe joue à l'extérieur
+                    home_score = match.get('home_score', 0)
+                    away_score = match.get('away_score', 0)
+                    
+                    if away_score > home_score:
+                        results.append("W")
+                    elif away_score < home_score:
+                        results.append("L")
+                    else:
+                        results.append("D")
+                    
+                    scores.append(f"{away_score}-{home_score}")
+            
+            # Calculer les statistiques globales
+            wins = results.count("W")
+            draws = results.count("D")
+            losses = results.count("L")
+            points = wins * 3 + draws
+            
+            return {
+                "team": team_name,
+                "last_results": results,
+                "scores": scores,
+                "summary": {
+                    "wins": wins,
+                    "draws": draws,
+                    "losses": losses,
+                    "points": points,
+                    "form_rating": round(points / (len(results) * 3) * 10, 1)  # Rating sur 10
+                },
+                "source": source,
+                "authentic_data": True
+            }
         except Exception as e:
             logger.error(f"Erreur lors de la récupération de la forme de {team_name}: {e}")
             return self._generate_simulated_form(team_name, last_matches)
@@ -69,16 +172,60 @@ class SoccerDataAdapter:
         Returns:
             dict: Statistiques du joueur
         """
-        if not self.available:
+        if not self.available or source not in self.scrapers:
+            logger.warning(f"Source {source} non disponible pour les stats du joueur, utilisation de données simulées")
             return self._generate_simulated_player_stats(player_name, team)
         
         try:
-            stats_df = self.integration.get_player_statistics(player_name, team, season, source)
-            if stats_df.empty:
-                return self._generate_simulated_player_stats(player_name, team)
+            # Utiliser directement le scraper de la source spécifiée
+            scraper = self.scrapers[source]
             
-            # Convertir le DataFrame en dictionnaire
-            return self._process_player_stats(stats_df, player_name)
+            # Si la source est FBref, essayer de récupérer les stats du joueur
+            if source == 'fbref':
+                # Récupérer les données des joueurs
+                player_stats = scraper.read_player_season_stats(stat_type='standard')
+                
+                # Tenter de trouver le joueur par son nom
+                player_data = player_stats[player_stats['player'].str.contains(player_name, case=False)]
+                
+                # Si un filtre d'équipe est fourni, appliquer le filtre
+                if team and not player_data.empty:
+                    player_data = player_data[player_data['squad'].str.contains(team, case=False)]
+                
+                if player_data.empty:
+                    logger.warning(f"Aucune donnée trouvée pour le joueur {player_name}, utilisation de données simulées")
+                    return self._generate_simulated_player_stats(player_name, team)
+                
+                # Utiliser la première correspondance trouvée
+                player_row = player_data.iloc[0]
+                
+                # Extraire les colonnes pertinentes
+                stats_dict = {
+                    "player_name": player_row.get('player', player_name),
+                    "team": player_row.get('squad', team or 'Unknown Team'),
+                    "position": player_row.get('position', 'Unknown'),
+                    "stats": {},
+                    "source": source,
+                    "authentic_data": True
+                }
+                
+                # Colonnes à extraire si elles existent
+                stats_columns = [
+                    'games', 'games_starts', 'minutes', 'goals', 'assists', 'pens_made', 'pens_att',
+                    'shots_total', 'shots_on_target', 'cards_yellow', 'cards_red', 'xg', 'npxg', 'xa',
+                    'passes_completed', 'passes', 'passes_pct', 'progressive_passes'
+                ]
+                
+                for col in stats_columns:
+                    if col in player_row:
+                        stats_dict["stats"][col] = player_row[col]
+                
+                return stats_dict
+            else:
+                # Pour les autres sources, utiliser des données simulées pour l'instant
+                logger.warning(f"Extraction de données de joueur non implémentée pour la source {source}")
+                return self._generate_simulated_player_stats(player_name, team)
+                
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des stats de {player_name}: {e}")
             return self._generate_simulated_player_stats(player_name, team)

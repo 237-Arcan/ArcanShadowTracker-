@@ -22,9 +22,8 @@ class TransfermarktAdapter:
     
     def __init__(self):
         """Initialise l'adaptateur Transfermarkt."""
-        self.base_url = "https://transfermarkt-api.fly.dev"
-        self.api_online = self._check_api_connection()
-        # Mise en cache pour éviter les appels répétés à l'API
+        self.base_url = "https://www.transfermarkt.com"
+        # Mise en cache pour éviter les appels répétés
         self.cache = {
             'clubs': {},
             'players': {},
@@ -32,19 +31,38 @@ class TransfermarktAdapter:
             'cache_time': {}
         }
         self.cache_expiration = 3600  # 1 heure en secondes
+        
+        # Headers pour simuler un navigateur (nécessaire pour l'extraction)
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive'
+        }
+        
+        # Vérifier la connexion
+        self.api_online = self._check_api_connection()
+        logger.info(f"Adaptateur Transfermarkt initialisé, connexion: {self.api_online}")
     
     def _check_api_connection(self):
         """
-        Vérifie si l'API Transfermarkt est accessible.
+        Vérifie si le site Transfermarkt est accessible pour extraction.
         
         Returns:
-            bool: True si l'API est accessible, False sinon
+            bool: True si le site est accessible, False sinon
         """
         try:
-            response = requests.get(f"{self.base_url}/docs")
-            return response.status_code == 200
+            # Tester une page simple de Transfermarkt
+            response = requests.get(f"{self.base_url}/en/", headers=self.headers)
+            
+            if response.status_code == 200:
+                logger.info("Connexion à Transfermarkt établie avec succès")
+                return True
+            else:
+                logger.error(f"Erreur de connexion à Transfermarkt: {response.status_code}")
+                return False
         except Exception as e:
-            logger.error(f"Erreur de connexion à l'API Transfermarkt: {e}")
+            logger.error(f"Exception lors de la connexion à Transfermarkt: {e}")
             return False
     
     def _get_from_cache(self, cache_type, item_id):
@@ -87,7 +105,7 @@ class TransfermarktAdapter:
     
     def search_club(self, club_name):
         """
-        Recherche un club par son nom.
+        Recherche un club par son nom en utilisant le site Transfermarkt directement.
         
         Args:
             club_name (str): Nom du club à rechercher
@@ -96,8 +114,8 @@ class TransfermarktAdapter:
             dict: Résultats de la recherche
         """
         if not self.api_online:
-            logger.warning("API Transfermarkt non disponible pour la recherche de club")
-            return {'status': 'error', 'message': 'API non disponible'}
+            logger.warning("Connexion Transfermarkt non disponible pour la recherche de club")
+            return {'status': 'error', 'message': 'Site non disponible'}
         
         try:
             # Vérifier dans le cache
@@ -105,11 +123,63 @@ class TransfermarktAdapter:
             if cache_result:
                 return cache_result
             
-            # Appel à l'API
-            response = requests.get(f"{self.base_url}/clubs/search/{club_name}")
+            # Formatter le nom du club pour l'URL (remplacer espaces par +)
+            formatted_name = club_name.replace(' ', '+')
+            
+            # Extraction directe depuis le site
+            search_url = f"{self.base_url}/searchresults/do-search/_/search/{formatted_name}"
+            response = requests.get(search_url, headers=self.headers)
             
             if response.status_code == 200:
-                data = response.json()
+                # Extraire les résultats de la recherche avec BeautifulSoup
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Extraire les clubs (contenus dans des div avec classe spécifique)
+                clubs_results = []
+                club_divs = soup.select('div.box')
+                
+                if not club_divs:
+                    logger.warning(f"Aucun résultat pour la recherche du club {club_name}")
+                
+                for div in club_divs:
+                    # Vérifier s'il s'agit d'un résultat de club
+                    if 'Clubs' in div.get_text():
+                        # Trouver les résultats de clubs
+                        club_table = div.select_one('table.items')
+                        if club_table:
+                            rows = club_table.select('tr.odd, tr.even')
+                            for row in rows:
+                                try:
+                                    # Extraire les informations du club
+                                    name_elem = row.select_one('td.hauptlink a')
+                                    if name_elem:
+                                        club_name = name_elem.get_text().strip()
+                                        club_url = name_elem['href']
+                                        club_id = club_url.split('/')[-1]
+                                        
+                                        # Extraire les métadonnées supplémentaires
+                                        meta_elems = row.select('td')
+                                        country = ""
+                                        if len(meta_elems) > 2:
+                                            country = meta_elems[2].get_text().strip()
+                                        
+                                        clubs_results.append({
+                                            'id': club_id,
+                                            'name': club_name,
+                                            'country': country,
+                                            'url': self.base_url + club_url
+                                        })
+                                except Exception as e:
+                                    logger.error(f"Erreur lors de l'extraction d'un club: {e}")
+                
+                # Résultat structuré
+                data = {
+                    'status': 'success',
+                    'results_count': len(clubs_results),
+                    'clubs': clubs_results
+                }
+                
                 # Mettre en cache
                 self._save_to_cache('clubs', f"search_{club_name}", data)
                 return data
