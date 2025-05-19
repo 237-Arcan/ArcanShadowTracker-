@@ -45,8 +45,8 @@ class DataIntegrationHub:
         # Variables de suivi des sources
         self.sources_status = {
             'football_api': self._check_football_api(),
-            'transfermarkt': False,
-            'soccerdata': False,
+            'transfermarkt': self._check_transfermarkt(),
+            'soccerdata': self._check_soccerdata(),
             'time_module': self.time_module is not None,
             'cross_platform': hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter is not None
         }
@@ -91,7 +91,6 @@ class DataIntegrationHub:
             from api.transfermarkt_adapter import TransfermarktAdapter
             self.transfermarkt_adapter = TransfermarktAdapter()
             logger.info("Adaptateur Transfermarkt initialisé avec succès")
-            self.sources_status['transfermarkt'] = True
         except Exception as e:
             logger.error(f"Erreur lors de l'initialisation de l'adaptateur Transfermarkt: {e}")
             self.transfermarkt_adapter = None
@@ -103,10 +102,37 @@ class DataIntegrationHub:
             from api.soccerdata_adapter import SoccerDataAdapter
             self.soccerdata_adapter = SoccerDataAdapter()
             logger.info("Adaptateur SoccerData initialisé avec succès")
-            self.sources_status['soccerdata'] = True
         except Exception as e:
             logger.error(f"Erreur lors de l'initialisation de l'adaptateur SoccerData: {e}")
             self.soccerdata_adapter = None
+    
+    def _check_transfermarkt(self):
+        """
+        Vérifie si l'adaptateur Transfermarkt est disponible et fonctionnel.
+        
+        Returns:
+            bool: True si l'adaptateur est disponible et fonctionnel, False sinon
+        """
+        if not hasattr(self, 'transfermarkt_adapter') or self.transfermarkt_adapter is None:
+            logger.warning("Adaptateur Transfermarkt non disponible")
+            return False
+        
+        # Vérifier si l'adaptateur est correctement connecté
+        return self.transfermarkt_adapter.api_online
+    
+    def _check_soccerdata(self):
+        """
+        Vérifie si l'adaptateur SoccerData est disponible et fonctionnel.
+        
+        Returns:
+            bool: True si l'adaptateur est disponible et fonctionnel, False sinon
+        """
+        if not hasattr(self, 'soccerdata_adapter') or self.soccerdata_adapter is None:
+            logger.warning("Adaptateur SoccerData non disponible")
+            return False
+        
+        # Vérifier si l'adaptateur est correctement initialisé
+        return self.soccerdata_adapter.available
     
     def _check_football_api(self):
         """Vérifie si l'API Football est accessible"""
@@ -139,12 +165,12 @@ class DataIntegrationHub:
         Returns:
             dict: Statut mis à jour des API
         """
-        # Mettre à jour le statut de l'API Football
+        # Mettre à jour le statut de toutes les sources
         self.sources_status['football_api'] = self._check_football_api()
-        
-        # Implémenter des vérifications similaires pour les autres sources
-        # self.sources_status['transfermarkt'] = self._check_transfermarkt()
-        # self.sources_status['soccerdata'] = self._check_soccerdata()
+        self.sources_status['transfermarkt'] = self._check_transfermarkt()
+        self.sources_status['soccerdata'] = self._check_soccerdata()
+        self.sources_status['time_module'] = self.time_module is not None
+        self.sources_status['cross_platform'] = hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter is not None
         
         logger.info(f"Statut des connexions API mis à jour: {self.sources_status}")
         
