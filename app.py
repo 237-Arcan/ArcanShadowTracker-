@@ -15,11 +15,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Importer nos modules pour les différents onglets - versions classiques
-from predictions_tab import display_predictions_tab
-from daily_combo_tab import display_daily_combo_tab
-from learning_system_tab import display_learning_system_tab
-from notifications_tab import display_notifications_tab
+# Importer notre nouveau tableau de bord centralisé
+from dashboard import main as display_dashboard
 
 # Import des versions améliorées
 try:
@@ -283,26 +280,14 @@ def t(key, **format_args):
 
 # Configuration de la page
 st.set_page_config(
-    page_title="ArcanShadow",
-    page_icon="🔮",
+    page_title="ArcanShadow Dashboard",
+    page_icon="📊",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# Charger le CSS personnalisé
-load_custom_css()
-
-# Interface principale
-st.title(f"🔮 {t('app_title')}")
-st.markdown(f"### {t('welcome_message')}")
-
-# Créer les onglets pour la nouvelle version d'ArcanShadow
-tabs = st.tabs([
-    "🔮 Prédictions",
-    "🎯 Daily Combo",
-    "🧠 Système d'Apprentissage",
-    "📬 Notifications"
-])
+# Lancer directement le tableau de bord centralisé
+display_dashboard()
 
 # Fonction pour afficher un badge de statut des composants améliorés
 def show_enhanced_components_status():
