@@ -276,7 +276,7 @@ def create_learning_events_chart(data):
         x=data['date'],
         y=data['learning_events'],
         marker_color='rgba(94, 75, 139, 0.7)',
-        name='Evenements d\'apprentissage'
+        name='Evenements apprentissage'
     ))
     
     # Mise en page

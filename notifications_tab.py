@@ -306,29 +306,39 @@ def display_notifications_tab():
     type_counts = df["type"].value_counts().reset_index()
     type_counts.columns = ["Type", "Nombre"]
     
-    # Mappage des types pour l'affichage
-    type_names = {
-        "prediction_success": "Prédictions réussies",
-        "prediction_failure": "Prédictions échouées",
-        "pattern_detected": "Patterns détectés",
-        "system_update": "Mises à jour système",
-        "high_value_match": "Matchs à haute valeur",
-        "unusual_pattern": "Anomalies détectées",
-        "learning_event": "Événements d'apprentissage"
-    }
+    # Création manuelle du mapping pour éviter les erreurs
+    mapped_types = []
+    for t in type_counts["Type"]:
+        if t == "prediction_success":
+            mapped_types.append("Prédictions réussies")
+        elif t == "prediction_failure":
+            mapped_types.append("Prédictions échouées")
+        elif t == "pattern_detected":
+            mapped_types.append("Patterns détectés")
+        elif t == "system_update":
+            mapped_types.append("Mises à jour système")
+        elif t == "high_value_match":
+            mapped_types.append("Matchs à haute valeur")
+        elif t == "unusual_pattern":
+            mapped_types.append("Anomalies détectées")
+        elif t == "learning_event":
+            mapped_types.append("Événements d'apprentissage")
+        else:
+            mapped_types.append(str(t))
     
-    # Appliquer le mappage avec une fonction pour éviter l'erreur
-    def map_type_name(type_key):
-        return type_names.get(type_key, type_key)
-    
-    type_counts["Type"] = type_counts["Type"].apply(map_type_name)
+    type_counts["Type_Display"] = mapped_types
     
     # Colonnes pour statistiques et visualisation
     col1, col2 = st.columns([1, 2])
     
     with col1:
+        # Créer un nouveau DataFrame au lieu d'utiliser rename
+        display_df = pd.DataFrame({
+            "Type": type_counts["Type_Display"],
+            "Nombre": type_counts["Nombre"]
+        })
         st.dataframe(
-            type_counts,
+            display_df,
             use_container_width=True,
             hide_index=True
         )
@@ -337,44 +347,10 @@ def display_notifications_tab():
         # Création d'un graphique simple
         st.markdown("Répartition des notifications par type")
         
-        # Utilisation d'un graphique HTML simple (sans Plotly pour simplifier)
-        colors = ["#58D68D", "#EC7063", "#5499C7", "#AF7AC5", "#F4D03F", "#E67E22", "#A377FE"]
-        
-        # Création d'un texte simple pour éviter les erreurs de formatage
-        bar_html = "<div>"
-        
-        # Utilisez des boucles simples et des couleurs fixes
-        for i, row in type_counts.iterrows():
-            typ = row['Type']
-            num = row['Nombre']
-            width = min(100, num * 10)
-            
-            # Alterner entre quelques couleurs fixes
-            if i % 3 == 0:
-                color = "#5499C7"
-            elif i % 3 == 1:
-                color = "#58D68D"
-            else:
-                color = "#F4D03F"
-                
-            bar_html += f"""
-            <div style="margin-bottom: 10px;">
-                <div style="font-size: 0.9em;">{typ}</div>
-                <div style="display: flex; align-items: center;">
-                    <div style="width: {width}%; height: 20px; background-color: {color}; 
-                    border-radius: 3px; margin-right: 10px;"></div>
-                    <div>{num}</div>
-                </div>
-            </div>
-            """
-            
-        bar_html += "</div>"
-        
-        st.markdown(f"""
-        <div style="padding: 15px; background-color: rgba(45, 45, 68, 0.1); border-radius: 5px;">
-            {bar_html}
-        </div>
-        """, unsafe_allow_html=True)
+        # Version simplifiée du graphique pour éviter les problèmes de formatage
+        for i in range(len(type_counts)):
+            st.progress(min(1.0, type_counts["Nombre"].iloc[i] / 10))
+            st.text(f"{mapped_types[i]}: {type_counts['Nombre'].iloc[i]}")
 
 def add_notifications_tab(tab):
     """
