@@ -814,12 +814,37 @@ def display_enhanced_predictions_tab():
     selected_match_idx = st.selectbox("Sélectionner un match", range(len(match_options)), format_func=lambda i: match_options[i])
     selected_match = upcoming_matches[selected_match_idx]
     
-    # Afficher la carte du match
+    # Afficher une carte détaillée du match
+    match_date = datetime.fromisoformat(selected_match['date'].replace('Z', '+00:00'))
+    date_string = match_date.strftime('%d/%m/%Y %H:%M')
+    
+    # Créer une présentation élégante du match
     st.markdown(f"""
-    <div class="match-card">
-        <h3>{selected_match['home_team']} vs {selected_match['away_team']}</h3>
-        <p>{selected_match['date']} - {selected_match.get('time', '??:??')}</p>
-        <p>{selected_match.get('league_name', selected_league['name'])}</p>
+    <div class="match-card" style="background-color: #1E1E2E; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="text-align: center; width: 40%;">
+                <h4>{selected_match['home_team']}</h4>
+            </div>
+            <div style="text-align: center; width: 20%;">
+                <h3>VS</h3>
+            </div>
+            <div style="text-align: center; width: 40%;">
+                <h4>{selected_match['away_team']}</h4>
+            </div>
+        </div>
+        
+        <hr style="border-color: #444; margin: 10px 0;">
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+            <div style="width: 50%;">
+                <p><strong>Date:</strong> {date_string}</p>
+                <p><strong>Stade:</strong> {selected_match.get('venue', 'Information non disponible')}</p>
+            </div>
+            <div style="width: 50%;">
+                <p><strong>Arbitre:</strong> {selected_match.get('referee', 'Information non disponible')}</p>
+                <p><strong>Météo:</strong> {selected_match.get('temperature', '')} {selected_match.get('weather', 'Information non disponible')}</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
