@@ -40,16 +40,29 @@ class DataIntegrationHub:
         self._init_transfermarkt()
         self._init_soccerdata()
         self._init_time_module()
+        self._init_cross_platform_adapter()
         
         # Variables de suivi des sources
         self.sources_status = {
             'football_api': self._check_football_api(),
             'transfermarkt': False,
             'soccerdata': False,
-            'time_module': self.time_module is not None
+            'time_module': self.time_module is not None,
+            'cross_platform': hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter is not None
         }
         
         logger.info(f"Hub d'intégration initialisé. Sources disponibles: {self.sources_status}")
+        
+    def _init_cross_platform_adapter(self):
+        """Initialise l'adaptateur cross-platform pour la préparation mobile"""
+        try:
+            # Importer dynamiquement l'adaptateur cross-platform
+            from api.modules.cross_platform_adapter import CrossPlatformAdapter
+            self.cross_platform_adapter = CrossPlatformAdapter(self)
+            logger.info("Adaptateur cross-platform initialisé avec succès")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation de l'adaptateur cross-platform: {e}")
+            self.cross_platform_adapter = None
         
     def _init_time_module(self):
         """Initialise le module de temps intégré"""
@@ -358,6 +371,72 @@ class DataIntegrationHub:
                     return match_datetime
             
             return match_datetime.strftime("%d/%m/%Y")
+            
+    # Méthodes pour préparer les données pour l'application mobile
+    
+    def prepare_matches_for_app(self, matches, platform="mobile"):
+        """
+        Prépare les données de matchs pour l'application mobile
+        
+        Args:
+            matches (list): Liste de matchs à préparer
+            platform (str): Plateforme cible ('mobile', 'web', 'watch')
+            
+        Returns:
+            list: Données préparées pour l'application
+        """
+        if hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter:
+            try:
+                return self.cross_platform_adapter.prepare_matches_for_app(matches, platform)
+            except Exception as e:
+                logger.error(f"Erreur lors de la préparation des données pour l'app: {e}")
+        
+        # Version de base si l'adaptateur n'est pas disponible
+        return matches
+    
+    def generate_app_configuration(self, platform="mobile"):
+        """
+        Génère une configuration pour l'application mobile
+        
+        Args:
+            platform (str): Plateforme cible
+            
+        Returns:
+            dict: Configuration de l'application
+        """
+        if hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter:
+            try:
+                return self.cross_platform_adapter.generate_app_configuration(platform)
+            except Exception as e:
+                logger.error(f"Erreur lors de la génération de la configuration app: {e}")
+        
+        # Configuration minimale par défaut
+        return {
+            "version": "1.0.0",
+            "api_url": "/api",
+            "refresh_interval": 300,
+            "platform": platform
+        }
+    
+    def export_data_for_app(self, data, format="json"):
+        """
+        Exporte les données dans un format prêt pour l'application
+        
+        Args:
+            data (dict/list): Données à exporter
+            format (str): Format d'exportation ('json', 'compact')
+            
+        Returns:
+            str: Données exportées au format demandé
+        """
+        if hasattr(self, 'cross_platform_adapter') and self.cross_platform_adapter:
+            try:
+                return self.cross_platform_adapter.export_data_for_app(data, format)
+            except Exception as e:
+                logger.error(f"Erreur lors de l'exportation des données: {e}")
+        
+        # Version simple JSON par défaut
+        return json.dumps(data)
     
     def _generate_simulated_matches(self, days_ahead=7, leagues=None, start_date=None):
         """
