@@ -773,11 +773,26 @@ def display_enhanced_predictions_tab():
                 filtered_matches = []
                 league_id = selected_league['id']
                 
+                # Obtenir la date actuelle pour filtrer les matchs
+                now = datetime.now()
+                
                 for match in upcoming_matches:
                     # Vérifier si le match appartient bien à la ligue sélectionnée
+                    belongs_to_league = False
                     if 'league_id' in match and match['league_id'] == league_id:
-                        filtered_matches.append(match)
+                        belongs_to_league = True
                     elif 'league' in match and 'id' in match['league'] and match['league']['id'] == league_id:
+                        belongs_to_league = True
+                    
+                    # Ne garder que les matchs de la bonne ligue
+                    if belongs_to_league:
+                        # Ajouter des informations complémentaires si disponibles
+                        if 'venue' not in match:
+                            match['venue'] = "Information non disponible"
+                        if 'referee' not in match:
+                            match['referee'] = "Information non disponible"
+                            
+                        # Conserver le match
                         filtered_matches.append(match)
                 
                 upcoming_matches = filtered_matches

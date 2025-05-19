@@ -428,47 +428,109 @@ def _get_sample_upcoming_matches(days_ahead=3, filter_leagues=None):
     leagues = get_available_leagues()
     leagues_by_id = {league["id"]: league for league in leagues}
     
-    # Générer des matchs pour chaque jour dans la période spécifiée
-    for day in range(1, days_ahead + 1):
-        # Générer des matchs pour chaque ligue sélectionnée
-        for league_id in available_leagues_ids:
-            # S'assurer qu'au moins 2 équipes sont disponibles pour cette ligue
-            if league_id in league_teams and len(league_teams[league_id]) >= 2:
-                teams = league_teams[league_id]
+    # Garder trace des matchs déjà générés pour éviter les doublons
+    generated_matches = {}  # format: "{home_team}-{away_team}" -> True
+
+    # Générer des matchs pour la période spécifiée
+    for league_id in available_leagues_ids:
+        # S'assurer qu'au moins 2 équipes sont disponibles pour cette ligue
+        if league_id in league_teams and len(league_teams[league_id]) >= 2:
+            teams = league_teams[league_id]
+            
+            # Créer toutes les combinaisons possibles de matchs sans répétition
+            possible_matches = []
+            for i in range(len(teams)):
+                for j in range(i+1, len(teams)):
+                    home_team = teams[i]
+                    away_team = teams[j]
+                    possible_matches.append((home_team, away_team))
+            
+            # Mélanger les matchs possibles
+            random.shuffle(possible_matches)
+            
+            # Limiter le nombre de matchs par ligue (au max 3)
+            match_count = min(len(possible_matches), 3)
+            
+            for i in range(match_count):
+                if i >= len(possible_matches):
+                    break
+                    
+                home_team, away_team = possible_matches[i]
                 
-                # Nombre de matchs pour cette ligue et ce jour (entre 1 et 2)
-                num_matches = min(len(teams) // 2, random.randint(1, 2))
+                # Créer une clé unique pour ce match
+                match_key = f"{home_team['name']}-{away_team['name']}"
                 
-                # Créer des paires uniques d'équipes pour les matchs
-                available_teams = teams.copy()
-                random.shuffle(available_teams)
+                # Vérifier si ce match ou son inverse a déjà été généré
+                reverse_key = f"{away_team['name']}-{home_team['name']}"
+                if match_key in generated_matches or reverse_key in generated_matches:
+                    continue
+                    
+                # Marquer ce match comme généré
+                generated_matches[match_key] = True
                 
-                for i in range(num_matches):
-                    if len(available_teams) < 2:
-                        break
+                # Générer une date et heure réaliste pour le match
+                # Les matchs se jouent généralement les jours de week-end ou en milieu de semaine en soirée
+                
+                # Obtenir la date actuelle et le jour de la semaine (0=lundi, 6=dimanche)
+                current_date = datetime.now()
+                current_day = current_date.weekday()
+                
+                # Si nous sommes en début de semaine (lundi-jeudi), les prochains matchs sont en fin de semaine
+                if current_day < 4:  # Lundi à Jeudi
+                    # Prochain match ce week-end (samedi ou dimanche)
+                    days_until_weekend = (5 if current_day < 5 else 6) - current_day
+                    match_date = current_date + timedelta(days=days_until_weekend)
+                    # Heure typique pour un match (entre 14h et 20h)
+                    hour = random.choice([14, 16, 18, 20])
+                # Si on est déjà en week-end ou vendredi, les matchs sont pour la semaine prochaine
+                else:
+                    # Matchs en milieu de semaine prochaine (mardi-mercredi)
+                    days_until_midweek = (7 - current_day) + random.choice([1, 2])  # Mardi ou Mercredi
+                    match_date = current_date + timedelta(days=days_until_midweek)
+                    # Les matchs de milieu de semaine sont généralement en soirée
+                    hour = random.choice([19, 20, 21])
+                
+                # Ajuster l'heure du match
+                match_date = match_date.replace(hour=hour, minute=random.choice([0, 15, 30, 45]), second=0, microsecond=0)
+                
+                # Obtenir le nom de la ligue
+                league_name = leagues_by_id.get(league_id, {}).get("name", f"League {league_id}")
+                
+                # Générer des informations de stade aléatoires
+                venues = {
+                    39: ["Emirates Stadium", "Stamford Bridge", "Etihad Stadium", "Old Trafford", "Anfield"],
+                    140: ["Camp Nou", "Santiago Bernabéu", "Metropolitano"],
+                    61: ["Parc des Princes", "Vélodrome", "Stade Louis II", "Stade Pierre-Mauroy"],
+                    78: ["Allianz Arena", "Signal Iduna Park", "BayArena"],
+                    135: ["Allianz Stadium", "San Siro", "Giuseppe Meazza"]
+                }
+                
+                # Générer des noms d'arbitres aléatoires
+                referees = [
+                    "Michael Oliver", "Felix Brych", "Daniele Orsato", 
+                    "Björn Kuipers", "Clément Turpin", "Anthony Taylor",
+                    "Slavko Vinčić", "Danny Makkelie", "Stéphanie Frappart"
+                ]
+                
+                venue = random.choice(venues.get(league_id, ["Stade non spécifié"]))
+                referee = random.choice(referees)
+                
+                match_info = {
+                    "id": random.randint(10000, 99999),
+                    "date": match_date.isoformat(),
+                    "league": league_name,
+                    "league_id": league_id,
+                    "home_team": home_team["name"],
+                    "away_team": away_team["name"],
+                    "home_logo": home_team["logo"],
+                    "away_logo": away_team["logo"],
+                    "venue": venue,
+                    "referee": referee,
+                    "temperature": f"{random.randint(15, 28)}°C",
+                    "weather": random.choice(["Ensoleillé", "Nuageux", "Pluie légère", "Clair"])
+                }
                     
-                    # Prendre les deux premières équipes de la liste mélangée
-                    home_team = available_teams.pop(0)
-                    away_team = available_teams.pop(0)
-                    
-                    # Générer une date et heure pour le match
-                    match_date = datetime.now() + timedelta(days=day, hours=random.randint(-2, 8))
-                    
-                    # Obtenir le nom de la ligue
-                    league_name = leagues_by_id.get(league_id, {}).get("name", f"League {league_id}")
-                    
-                    match_info = {
-                        "id": random.randint(10000, 99999),
-                        "date": match_date.isoformat(),
-                        "league": league_name,
-                        "league_id": league_id,
-                        "home_team": home_team["name"],
-                        "away_team": away_team["name"],
-                        "home_logo": home_team["logo"],
-                        "away_logo": away_team["logo"]
-                    }
-                    
-                    matches.append(match_info)
+                matches.append(match_info)
     
     # Tri des matchs par date
     matches.sort(key=lambda x: x["date"])
