@@ -19,11 +19,17 @@ logger = logging.getLogger(__name__)
 from api.data_integration_hub import DataIntegrationHub
 
 # Importer les composants améliorés
-from modules.enhanced_components import get_enhanced_component
-
-# Récupération des composants améliorés
-ShadowOddsPlusEnhanced = get_enhanced_component('shadow_odds_plus')
-FanSentimentMonitorEnhanced = get_enhanced_component('fan_sentiment_monitor')
+# Importer les composants améliorés
+try:
+    from modules.enhanced_components import get_enhanced_components
+    enhanced_components = get_enhanced_components()
+    
+    # Récupération des composants améliorés
+    ShadowOddsPlusEnhanced = enhanced_components.get_component('shadow_odds_plus')
+    FanSentimentMonitorEnhanced = enhanced_components.get_component('fan_sentiment_monitor')
+except ImportError:
+    ShadowOddsPlusEnhanced = None
+    FanSentimentMonitorEnhanced = None
 
 def generate_enhanced_notifications(count=10):
     """
@@ -138,7 +144,8 @@ def generate_enhanced_notifications(count=10):
             
             if odds_analyzer:
                 # Utiliser l'analyseur avancé pour des informations plus précises
-                content = f"Mouvement suspect détecté chez {bookmaker}: {movement_pct}% de volume inhabituel sur {teams[0]} vs {teams[1]}. Activité concentrée sur {random.choice(['victoire à domicile', 'match nul', 'victoire à l\'extérieur'])}."
+                choices = ['victoire à domicile', 'match nul', 'victoire à extérieur']
+                content = f"Mouvement suspect détecté chez {bookmaker}: {movement_pct}% de volume inhabituel sur {teams[0]} vs {teams[1]}. Activité concentrée sur {random.choice(choices)}."
             else:
                 content = f"Volume de paris inhabituellement élevé (+{movement_pct}%) chez {bookmaker} pour {teams[0]} vs {teams[1]}."
         
@@ -152,7 +159,9 @@ def generate_enhanced_notifications(count=10):
             
             if sentiment_analyzer:
                 # Utiliser l'analyseur avancé pour une analyse plus précise
-                content = f"Sentiment {sentiment} ({change}) des fans de {team} suite à {random.choice(['la dernière défaite', 'la victoire récente', 'l\'annonce du transfert', 'la conférence de presse'])}. Impact potentiel sur la motivation de l'équipe."
+                events = ['la dernière défaite', 'la victoire récente', 'l\'annonce du transfert', 'la conférence de presse']
+                selected_event = random.choice(events)
+                content = f"Sentiment {sentiment} ({change}) des fans de {team} suite à {selected_event}. Impact potentiel sur la motivation de l'équipe."
             else:
                 content = f"Sentiment {sentiment} des fans de {team}. Tendance {change} sur les réseaux sociaux."
         
@@ -621,4 +630,3 @@ def add_enhanced_notifications_tab(tab):
     """
     with tab:
         display_enhanced_notifications_tab()
-"""

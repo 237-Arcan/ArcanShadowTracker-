@@ -21,6 +21,15 @@ from daily_combo_tab import display_daily_combo_tab
 from learning_system_tab import display_learning_system_tab
 from notifications_tab import display_notifications_tab
 
+# Import des versions améliorées 
+# (ces imports ne seront pas utilisés si les versions améliorées sont accessibles via le gestionnaire)
+try:
+    from daily_combo_tab_enhanced import display_enhanced_daily_combo_tab
+    from learning_system_tab_enhanced import display_enhanced_learning_system_tab
+    from notifications_tab_enhanced import display_enhanced_notifications_tab
+except ImportError:
+    pass
+
 # Importer le module d'intégration des composants enrichis
 try:
     from modules.enhanced_components import get_enhanced_components
@@ -33,6 +42,9 @@ try:
     
     # Vérifier si les composants spécifiques sont disponibles
     ENHANCED_PREDICTIONS_AVAILABLE = enhanced_components.is_enhanced('predictions_tab')
+    ENHANCED_DAILY_COMBO_AVAILABLE = enhanced_components.is_enhanced('daily_combo_tab')
+    ENHANCED_LEARNING_SYSTEM_AVAILABLE = enhanced_components.is_enhanced('learning_system_tab')
+    ENHANCED_NOTIFICATIONS_AVAILABLE = enhanced_components.is_enhanced('notifications_tab')
     ENHANCED_BET_TRAP_MAP_AVAILABLE = enhanced_components.is_enhanced('bet_trap_map')
     ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE = enhanced_components.is_enhanced('shadow_odds_plus')
     ENHANCED_SENTIMENT_AVAILABLE = enhanced_components.is_enhanced('fan_sentiment_monitor')
@@ -41,6 +53,18 @@ try:
     if ENHANCED_PREDICTIONS_AVAILABLE:
         display_enhanced_predictions_tab = enhanced_components.get_display_predictions_tab()
         logger.info("Module de prédictions enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_DAILY_COMBO_AVAILABLE:
+        display_enhanced_daily_combo_tab = enhanced_components.get_daily_combo_tab()
+        logger.info("Module Daily Combo enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_LEARNING_SYSTEM_AVAILABLE:
+        display_enhanced_learning_system_tab = enhanced_components.get_learning_system_tab()
+        logger.info("Module Système d'Apprentissage enrichi disponible via le gestionnaire de composants")
+    
+    if ENHANCED_NOTIFICATIONS_AVAILABLE:
+        display_enhanced_notifications_tab = enhanced_components.get_notifications_tab()
+        logger.info("Module Notifications enrichi disponible via le gestionnaire de composants")
     
     if ENHANCED_BET_TRAP_MAP_AVAILABLE:
         bet_trap_map = enhanced_components.get_bet_trap_map()
@@ -57,6 +81,9 @@ try:
 except ImportError as e:
     ENHANCED_COMPONENTS_AVAILABLE = False
     ENHANCED_PREDICTIONS_AVAILABLE = False
+    ENHANCED_DAILY_COMBO_AVAILABLE = False
+    ENHANCED_LEARNING_SYSTEM_AVAILABLE = False
+    ENHANCED_NOTIFICATIONS_AVAILABLE = False
     ENHANCED_BET_TRAP_MAP_AVAILABLE = False
     ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE = False
     ENHANCED_SENTIMENT_AVAILABLE = False
@@ -297,19 +324,34 @@ with tabs[0]:
         display_predictions_tab()
     
 with tabs[1]:
-    # Afficher un indicateur si les composants enrichis sont utilisés pour Daily Combo
-    if ENHANCED_BET_TRAP_MAP_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
-        st.info("🌟 Composants enrichis utilisés pour l'analyse des opportunités")
-    display_daily_combo_tab()
+    # Utiliser la version améliorée de l'onglet Daily Combo si disponible
+    if ENHANCED_DAILY_COMBO_AVAILABLE:
+        st.info("🌟 Version enrichie avec données multi-sources activée")
+        display_enhanced_daily_combo_tab()
+    else:
+        # Afficher un indicateur si les composants enrichis sont utilisés pour Daily Combo
+        if ENHANCED_BET_TRAP_MAP_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
+            st.info("🌟 Composants enrichis utilisés pour l'analyse des opportunités")
+        display_daily_combo_tab()
     
 with tabs[2]:
-    # Afficher un indicateur si les composants enrichis sont utilisés pour le Système d'Apprentissage
-    if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
-        st.info("🌟 Données multi-sources intégrées au système d'apprentissage")
-    display_learning_system_tab()
+    # Utiliser la version améliorée de l'onglet Système d'Apprentissage si disponible
+    if ENHANCED_LEARNING_SYSTEM_AVAILABLE:
+        st.info("🌟 Version enrichie avec données multi-sources activée")
+        display_enhanced_learning_system_tab()
+    else:
+        # Afficher un indicateur si les composants enrichis sont utilisés pour le Système d'Apprentissage
+        if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
+            st.info("🌟 Données multi-sources intégrées au système d'apprentissage")
+        display_learning_system_tab()
     
 with tabs[3]:
-    # Afficher un indicateur si les composants enrichis sont utilisés pour les Notifications
-    if ENHANCED_SENTIMENT_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
-        st.info("🌟 Détection avancée des événements significatifs activée")
-    display_notifications_tab()
+    # Utiliser la version améliorée de l'onglet Notifications si disponible
+    if ENHANCED_NOTIFICATIONS_AVAILABLE:
+        st.info("🌟 Version enrichie avec données multi-sources activée")
+        display_enhanced_notifications_tab()
+    else:
+        # Afficher un indicateur si les composants enrichis sont utilisés pour les Notifications
+        if ENHANCED_SENTIMENT_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
+            st.info("🌟 Détection avancée des événements significatifs activée")
+        display_notifications_tab()

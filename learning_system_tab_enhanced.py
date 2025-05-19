@@ -21,11 +21,16 @@ logger = logging.getLogger(__name__)
 from api.data_integration_hub import DataIntegrationHub
 
 # Importer les composants améliorés
-from modules.enhanced_components import get_enhanced_component
-
-# Récupération des composants améliorés
-FanSentimentMonitorEnhanced = get_enhanced_component('fan_sentiment_monitor')
-ShadowOddsPlusEnhanced = get_enhanced_component('shadow_odds_plus')
+try:
+    from modules.enhanced_components import get_enhanced_components
+    enhanced_components = get_enhanced_components()
+    
+    # Récupération des composants améliorés
+    FanSentimentMonitorEnhanced = enhanced_components.get_component('fan_sentiment_monitor')
+    ShadowOddsPlusEnhanced = enhanced_components.get_component('shadow_odds_plus')
+except ImportError:
+    FanSentimentMonitorEnhanced = None
+    ShadowOddsPlusEnhanced = None
 
 def generate_learning_data(days=30):
     """
@@ -152,30 +157,34 @@ def generate_learning_data(days=30):
     event_count = days // 2  # Un événement tous les 2 jours en moyenne
     event_timestamps = sorted(random.sample(range(days), event_count))
     
-    for day in event_timestamp:
+    for day in event_timestamps:
         event_date = dates[day]
         event_type = random.choice(event_types)
         
         # Description spécifique selon le type d'événement
+        event_desc = ""
         if event_type == "Recalibration des paramètres":
-            desc = f"Recalibration des paramètres du module {random.choice(['PrédictionsEnhanced', 'BetTrapMapEnhanced', 'AnalyseEnhanced'])}"
+            event_desc = f"Recalibration des paramètres du module {random.choice(['PrédictionsEnhanced', 'BetTrapMapEnhanced', 'AnalyseEnhanced'])}"
         elif event_type == "Mise à jour des poids":
-            desc = f"Mise à jour des poids du réseau neuronal suite à l'analyse de {random.randint(50, 200)} nouveaux matchs"
+            event_desc = f"Mise à jour des poids du réseau neuronal suite à l'analyse de {random.randint(50, 200)} nouveaux matchs"
         elif event_type == "Identification d'un nouveau pattern":
-            desc = f"Nouveau pattern identifié: {random.choice(['tendance de sur-performance des équipes après un changement d\'entraîneur', 'corrélation entre météo et performance des équipes techniques', 'impact des suspensions sur les phases défensives'])}"
+            pattern_choices = ["tendance de sur-performance des équipes après un changement d'entraîneur", 
+                             "corrélation entre météo et performance des équipes techniques", 
+                             "impact des suspensions sur les phases défensives"]
+            event_desc = f"Nouveau pattern identifié: {random.choice(pattern_choices)}"
         elif event_type == "Intégration de données externes":
-            desc = f"Intégration de nouvelles données de {random.choice(['Transfermarkt', 'soccerdata', 'données détaillées des joueurs'])}"
+            event_desc = f"Intégration de nouvelles données de {random.choice(['Transfermarkt', 'soccerdata', 'données détaillées des joueurs'])}"
         elif event_type == "Ajustement auto-adaptatif":
-            desc = f"Ajustement auto-adaptatif du seuil de confiance dans les prédictions {random.choice(['de victoire à domicile', 'de matchs à haut score', 'de clean sheets'])}"
+            event_desc = f"Ajustement auto-adaptatif du seuil de confiance dans les prédictions {random.choice(['de victoire à domicile', 'de matchs à haut score', 'de clean sheets'])}"
         elif event_type == "Analyse avancée des sentiments des fans":
-            desc = f"Corrélation établie entre sentiment des fans et performance de l'équipe pour {random.choice(['les équipes de Premier League', 'les clubs avec forte présence sur les réseaux sociaux', 'les derbies à fort enjeu'])}"
+            event_desc = f"Corrélation établie entre sentiment des fans et performance de l'équipe pour {random.choice(['les équipes de Premier League', 'les clubs avec forte présence sur les réseaux sociaux', 'les derbies à fort enjeu'])}"
         elif event_type == "Détection d'anomalies dans les cotes":
-            desc = f"Détection d'un pattern récurrent d'anomalies dans les cotes de {random.choice(['matchs de fin de saison', 'équipes en lute pour le maintien', 'compétitions mineures'])}"
+            event_desc = f"Détection d'un pattern récurrent d'anomalies dans les cotes de {random.choice(['matchs de fin de saison', 'équipes en lute pour le maintien', 'compétitions mineures'])}"
         
         events.append({
             "date": event_date,
             "type": event_type,
-            "description": desc,
+            "description": event_desc,
             "impact": random.uniform(0.01, 0.05)  # Impact de l'événement sur la performance
         })
     
@@ -699,4 +708,3 @@ def add_enhanced_learning_system_tab(tab):
     """
     with tab:
         display_enhanced_learning_system_tab()
-"""

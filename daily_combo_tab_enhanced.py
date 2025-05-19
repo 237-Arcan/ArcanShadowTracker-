@@ -27,11 +27,17 @@ from api.football_data import (
 from api.data_integration_hub import DataIntegrationHub
 
 # Importer les composants améliorés
-from modules.enhanced_components import get_enhanced_component
-
-# Récupération des composants améliorés
-BetTrapMapEnhanced = get_enhanced_component('bet_trap_map')
-ShadowOddsPlusEnhanced = get_enhanced_component('shadow_odds_plus')
+# Importer les composants améliorés
+try:
+    from modules.enhanced_components import get_enhanced_components
+    enhanced_components = get_enhanced_components()
+    
+    # Récupération des composants améliorés
+    BetTrapMapEnhanced = enhanced_components.get_component('bet_trap_map')
+    ShadowOddsPlusEnhanced = enhanced_components.get_component('shadow_odds_plus')
+except ImportError:
+    BetTrapMapEnhanced = None
+    ShadowOddsPlusEnhanced = None
 
 def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     """
@@ -696,4 +702,3 @@ def add_enhanced_daily_combo_tab(tab):
     """
     with tab:
         display_enhanced_daily_combo_tab()
-"""

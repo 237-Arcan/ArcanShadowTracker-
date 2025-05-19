@@ -33,6 +33,30 @@ class EnhancedComponents:
                 'fallback_function': 'display_predictions_tab'
             },
             {
+                'name': 'daily_combo_tab',
+                'module': 'daily_combo_tab_enhanced',
+                'class': None,
+                'function': 'display_enhanced_daily_combo_tab',
+                'fallback_module': 'daily_combo_tab',
+                'fallback_function': 'display_daily_combo_tab'
+            },
+            {
+                'name': 'learning_system_tab',
+                'module': 'learning_system_tab_enhanced',
+                'class': None,
+                'function': 'display_enhanced_learning_system_tab',
+                'fallback_module': 'learning_system_tab',
+                'fallback_function': 'display_learning_system_tab'
+            },
+            {
+                'name': 'notifications_tab',
+                'module': 'notifications_tab_enhanced',
+                'class': None,
+                'function': 'display_enhanced_notifications_tab',
+                'fallback_module': 'notifications_tab',
+                'fallback_function': 'display_notifications_tab'
+            },
+            {
                 'name': 'bet_trap_map',
                 'module': 'modules.bet_trap_map_enhanced',
                 'class': 'BetTrapMapEnhanced',
@@ -215,6 +239,33 @@ class EnhancedComponents:
             FanSentimentMonitor: Instance de FanSentimentMonitor ou FanSentimentMonitorEnhanced
         """
         return self.get_component('fan_sentiment_monitor')
+    
+    def get_daily_combo_tab(self):
+        """
+        Récupère la fonction d'affichage de l'onglet Daily Combo.
+        
+        Returns:
+            function: Fonction d'affichage de l'onglet Daily Combo
+        """
+        return self.get_component('daily_combo_tab')
+    
+    def get_learning_system_tab(self):
+        """
+        Récupère la fonction d'affichage de l'onglet Système d'Apprentissage.
+        
+        Returns:
+            function: Fonction d'affichage de l'onglet Système d'Apprentissage
+        """
+        return self.get_component('learning_system_tab')
+    
+    def get_notifications_tab(self):
+        """
+        Récupère la fonction d'affichage de l'onglet Notifications.
+        
+        Returns:
+            function: Fonction d'affichage de l'onglet Notifications
+        """
+        return self.get_component('notifications_tab')
     
     def get_available_components_summary(self):
         """
