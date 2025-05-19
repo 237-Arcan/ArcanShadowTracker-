@@ -337,34 +337,20 @@ show_enhanced_components_status()
 
 # Affichage des onglets
 with tabs[0]:
-    # Ajouter une option pour choisir entre le style standard et le style mobile
-    style_options = ["Standard", "Mobile"]
-    selected_style = st.radio("Choisir un style d'affichage", style_options, horizontal=True)
-    
-    if selected_style == "Mobile":
-        # Charger notre nouvelle interface style mobile
-        try:
-            # Importer le module de prédictions style mobile
-            from predictions_mobile_style import display_mobile_predictions
-            st.info("📱 Interface style mobile activée")
-            display_mobile_predictions()
-        except Exception as e:
-            st.error(f"Erreur lors de l'affichage de l'interface mobile: {e}")
-            # Fallback à la version améliorée ou standard
-            if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
-                display_enhanced_predictions_tab()
-            else:
-                display_predictions_tab()
-    else:
-        # Utiliser la version améliorée de l'onglet Prédictions si disponible
+    # Utiliser uniquement le style mobile enrichi
+    try:
+        # Importer le module de prédictions style mobile
+        from predictions_mobile_style import display_mobile_predictions
+        st.info("📱 Interface style mobile activée avec données multi-sources")
+        display_mobile_predictions()
+    except Exception as e:
+        st.error(f"Erreur lors de l'affichage de l'interface mobile: {e}")
+        # Fallback en cas d'erreur critique
         if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
-            st.info("🌟 Version enrichie avec données multi-sources activée")
-            try:
-                display_enhanced_predictions_tab()
-            except Exception as e:
-                st.error(f"Erreur lors de l'affichage de l'onglet Prédictions enrichi: {e}")
-                display_predictions_tab()
+            st.warning("Retour à l'interface standard en raison d'une erreur")
+            display_enhanced_predictions_tab()
         else:
+            st.warning("Retour à l'interface standard en raison d'une erreur")
             display_predictions_tab()
     
 with tabs[1]:
