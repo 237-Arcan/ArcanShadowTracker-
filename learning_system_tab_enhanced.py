@@ -154,8 +154,9 @@ def generate_learning_data(days=30):
         event_types.append("Détection d'anomalies dans les cotes")
         
     # Générer des événements tout au long de la période
-    event_count = days // 2  # Un événement tous les 2 jours en moyenne
-    event_timestamps = sorted(random.sample(range(days), event_count))
+    event_count = min(days // 2, len(dates)-1)  # Un événement tous les 2 jours en moyenne, mais pas plus que dates disponibles
+    day_indices = list(range(min(days, len(dates))))
+    event_timestamps = sorted(random.sample(day_indices, event_count))
     
     for day in event_timestamps:
         event_date = dates[day]
@@ -179,7 +180,7 @@ def generate_learning_data(days=30):
         elif event_type == "Analyse avancée des sentiments des fans":
             event_desc = f"Corrélation établie entre sentiment des fans et performance de l'équipe pour {random.choice(['les équipes de Premier League', 'les clubs avec forte présence sur les réseaux sociaux', 'les derbies à fort enjeu'])}"
         elif event_type == "Détection d'anomalies dans les cotes":
-            event_desc = f"Détection d'un pattern récurrent d'anomalies dans les cotes de {random.choice(['matchs de fin de saison', 'équipes en lute pour le maintien', 'compétitions mineures'])}"
+            event_desc = f"Détection d'un pattern récurrent d'anomalies dans les cotes de {random.choice(['matchs de fin de saison', 'équipes en lutte pour le maintien', 'compétitions mineures'])}"
         
         events.append({
             "date": event_date,
@@ -224,11 +225,14 @@ def generate_learning_data(days=30):
         }
     ]
     
+    # Vérifier et ajuster les longueurs des tableaux pour le DataFrame
+    min_length = min(len(dates), len(accuracies), len(patterns))
+    
     # Création d'un DataFrame des données quotidiennes
     daily_data = pd.DataFrame({
-        'date': dates,
-        'accuracy': accuracies,
-        'patterns': patterns
+        'date': dates[:min_length],
+        'accuracy': accuracies[:min_length],
+        'patterns': patterns[:min_length]
     })
     
     # Calcul des événements par jour pour le graphique
