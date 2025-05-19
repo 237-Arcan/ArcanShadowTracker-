@@ -85,14 +85,28 @@ class DataIntegrationHub:
         }
     
     def _init_transfermarkt(self):
-        """Initialise la connexion à Transfermarkt (adapté selon l'implémentation)"""
-        # Cette fonction serait complétée avec le code réel de connexion
-        pass
+        """Initialise la connexion à Transfermarkt via notre adaptateur"""
+        try:
+            # Importer dynamiquement l'adaptateur Transfermarkt
+            from api.transfermarkt_adapter import TransfermarktAdapter
+            self.transfermarkt_adapter = TransfermarktAdapter()
+            logger.info("Adaptateur Transfermarkt initialisé avec succès")
+            self.sources_status['transfermarkt'] = True
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation de l'adaptateur Transfermarkt: {e}")
+            self.transfermarkt_adapter = None
     
     def _init_soccerdata(self):
-        """Initialise la connexion à soccerdata"""
-        # Cette fonction serait complétée avec le code réel de connexion
-        pass
+        """Initialise la connexion à soccerdata via notre adaptateur"""
+        try:
+            # Importer dynamiquement l'adaptateur SoccerData
+            from api.soccerdata_adapter import SoccerDataAdapter
+            self.soccerdata_adapter = SoccerDataAdapter()
+            logger.info("Adaptateur SoccerData initialisé avec succès")
+            self.sources_status['soccerdata'] = True
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation de l'adaptateur SoccerData: {e}")
+            self.soccerdata_adapter = None
     
     def _check_football_api(self):
         """Vérifie si l'API Football est accessible"""
