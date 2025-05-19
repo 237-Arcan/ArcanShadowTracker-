@@ -726,7 +726,7 @@ def display_enhanced_predictions_tab():
     
     # Récupérer les matchs à venir pour cette ligue
     try:
-        upcoming_matches = get_upcoming_matches(days=3, league_id=selected_league['id'])
+        upcoming_matches = get_upcoming_matches(days_ahead=3, league_id=selected_league['id'])
         
         if not upcoming_matches:
             st.warning("Aucun match à venir pour cette ligue dans les prochains jours.")
