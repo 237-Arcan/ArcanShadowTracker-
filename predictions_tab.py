@@ -41,7 +41,8 @@ from api.transfermarkt_integration import (
 def generate_match_probabilities(match_id, home_team, away_team, home_team_id=None, away_team_id=None, league_id=None):
     """
     Génère des probabilités pour un match spécifique.
-    Utilise des données réelles lorsque disponibles pour améliorer la précision.
+    Utilise des données réelles lorsque disponibles pour améliorer la précision,
+    enrichies par les données de Transfermarkt quand elles sont accessibles.
     
     Args:
         match_id (int): ID du match
@@ -124,6 +125,27 @@ def generate_match_probabilities(match_id, home_team, away_team, home_team_id=No
                     # Fallback si les calculs échouent
                     pass
         
+        # Créer un objet match_data pour enrichissement Transfermarkt
+        match_data = {
+            'match_id': match_id,
+            'home_team': home_team,
+            'away_team': away_team,
+            'home_team_id': home_team_id,
+            'away_team_id': away_team_id,
+            'league_id': league_id
+        }
+        
+        # Essayer d'enrichir avec des données Transfermarkt si disponible
+        transfermarkt_available = is_transfermarkt_available()
+        if transfermarkt_available:
+            logger.info(f"Enrichissement du match {home_team} vs {away_team} avec les données Transfermarkt")
+            try:
+                # Enrichir les données du match
+                match_data = enhance_match_data_with_transfermarkt(match_data)
+                logger.info("Données Transfermarkt intégrées avec succès")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'enrichissement avec Transfermarkt: {e}")
+        
         # Générer les insights basés sur les données disponibles
         insights = generate_match_insights(
             home_team, 
@@ -131,7 +153,8 @@ def generate_match_probabilities(match_id, home_team, away_team, home_team_id=No
             home_team_stats, 
             away_team_stats, 
             h2h_data,
-            has_detailed_data
+            has_detailed_data,
+            match_data  # Passer les données enrichies
         )
         
         return {

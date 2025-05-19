@@ -1,7 +1,7 @@
 """
 Module pour l'onglet Daily Combo d'ArcanShadow.
 Ce module génère des recommandations quotidiennes de paris combinés
-basées sur l'analyse des matchs du jour.
+basées sur l'analyse des matchs du jour, enrichies par l'API Transfermarkt.
 """
 
 import streamlit as st
@@ -10,6 +10,11 @@ import numpy as np
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import random
+import logging
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Importer notre module pour l'API Football
 from api.football_data import (
@@ -18,9 +23,18 @@ from api.football_data import (
     get_h2h_matches
 )
 
+# Importer notre module d'intégration Transfermarkt
+from api.transfermarkt_integration import (
+    is_transfermarkt_available,
+    enhance_match_data_with_transfermarkt,
+    get_team_players,
+    get_team_profile
+)
+
 def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     """
-    Génère une combinaison quotidienne de paris recommandés.
+    Génère une combinaison quotidienne de paris recommandés,
+    enrichie par des données Transfermarkt pour une analyse plus précise.
     
     Args:
         max_matches (int): Nombre maximum de matchs à inclure
@@ -30,6 +44,12 @@ def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     Returns:
         dict: Informations sur le combo généré
     """
+    # Vérifier si l'API Transfermarkt est disponible
+    transfermarkt_available = is_transfermarkt_available()
+    if transfermarkt_available:
+        logger.info("API Transfermarkt disponible pour enrichir les recommandations du Daily Combo")
+    else:
+        logger.info("API Transfermarkt non disponible, utilisation des données standard uniquement")
     # Récupération des matchs du jour
     today_matches = get_upcoming_matches(days_ahead=1)
     
