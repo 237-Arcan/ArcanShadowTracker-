@@ -103,6 +103,22 @@ class DataIntegrationHub:
         
         return sources
     
+    def get_upcoming_matches(self, days_ahead=3, leagues=None):
+        """
+        Récupère les matchs à venir depuis l'API Football.
+        Cette méthode redirige vers la fonction dans le module football_data.
+        
+        Args:
+            days_ahead (int): Nombre de jours à l'avance à considérer
+            leagues (list): Liste des IDs de ligues à inclure
+            
+        Returns:
+            list: Liste des matchs à venir
+        """
+        # Importer ici pour éviter les imports circulaires
+        from api.football_data import get_upcoming_matches as get_matches
+        return get_matches(days_ahead=days_ahead, leagues=leagues)
+    
     def enhance_match_data(self, match_data):
         """
         Enrichit les données d'un match avec toutes les sources disponibles.
