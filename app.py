@@ -32,11 +32,10 @@ except ImportError:
 
 # Vérifier si le hub de données est disponible
 try:
-    from api.data_integration_hub import get_data_integration_hub, get_available_sources
+    # Vérifier simplement si le module d'intégration est présent
+    import api.data_integration_hub
     DATA_HUB_AVAILABLE = True
-    # Récupérer les sources disponibles pour informations
-    available_sources = get_available_sources()
-    logger.info(f"Hub d'intégration de données disponible. Sources: {available_sources}")
+    logger.info("Hub d'intégration de données disponible")
 except ImportError:
     DATA_HUB_AVAILABLE = False
     logger.warning("Hub d'intégration de données non disponible")

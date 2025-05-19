@@ -531,5 +531,29 @@ def get_available_sources():
     Returns:
         dict: Dictionnaire des sources et leur disponibilité
     """
-    hub = get_data_integration_hub()
-    return hub.get_available_sources()
+    # Vérification simple des sources sans utiliser le hub (pour éviter la récursion)
+    sources = {
+        'transfermarkt': is_transfermarkt_available()
+    }
+    
+    # Vérifier soccerdata si importé
+    if SOCCERDATA_IMPORTED:
+        try:
+            import soccerdata
+            sources['soccerdata'] = True
+            # Ajouter des sources soccerdata basiques
+            sources['soccerdata_fbref'] = True
+            sources['soccerdata_espn'] = True
+            sources['soccerdata_fotmob'] = True
+        except ImportError:
+            sources['soccerdata'] = False
+    else:
+        sources['soccerdata'] = False
+    
+    # Vérifier l'enrichissement de données joueur si importé
+    if PLAYER_ENRICHMENT_IMPORTED:
+        sources['player_enrichment'] = True
+    else:
+        sources['player_enrichment'] = False
+    
+    return sources

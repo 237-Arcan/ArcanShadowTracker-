@@ -39,20 +39,23 @@ from api.transfermarkt_integration import (
 
 # Imports de nos NOUVEAUX modules de données avancées
 try:
-    # Import du hub central d'intégration des données
-    from api.data_integration_hub import (
-        get_data_integration_hub,
-        enhance_match_data,
-        get_player_details,
-        get_team_details,
-        get_league_standings,
-        get_match_statistics,
-        is_source_available
-    )
+    # Pour éviter les problèmes de récursion, on n'importe que les modules existants
+    import api.data_integration_hub
+    import api.transfermarkt_integration
+    
+    # Vérifier les packages disponibles
+    try:
+        import soccerdata
+        SOCCERDATA_AVAILABLE = True
+    except ImportError:
+        SOCCERDATA_AVAILABLE = False
+    
+    # Module disponible
     DATA_HUB_AVAILABLE = True
 except ImportError:
     logger.warning("Hub d'intégration de données non disponible, fonctionnalités avancées désactivées")
     DATA_HUB_AVAILABLE = False
+    SOCCERDATA_AVAILABLE = False
 
 # Import du module d'analyse avancée
 try:
