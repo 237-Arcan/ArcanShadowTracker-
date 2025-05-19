@@ -95,7 +95,7 @@ def get_upcoming_matches(days_ahead=3, leagues=None):
     """
     client = get_espn_client()
     if not client:
-        return _get_sample_upcoming_matches(days_ahead)
+        return _get_sample_upcoming_matches(days_ahead, filter_leagues=leagues)
     
     try:
         # Récupération des matchs via ESPN
@@ -142,7 +142,7 @@ def get_upcoming_matches(days_ahead=3, leagues=None):
         
         # Si aucun match n'est trouvé via l'API, utiliser des exemples
         if not matches:
-            return _get_sample_upcoming_matches(days_ahead)
+            return _get_sample_upcoming_matches(days_ahead, filter_leagues=leagues)
         
         # Tri des matchs par date
         matches.sort(key=lambda x: x["date"])
@@ -151,7 +151,7 @@ def get_upcoming_matches(days_ahead=3, leagues=None):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des matchs à venir: {str(e)}")
         # En cas d'erreur, utiliser des données de repli
-        return _get_sample_upcoming_matches(days_ahead)
+        return _get_sample_upcoming_matches(days_ahead, filter_leagues=leagues)
 
 # Fonction pour récupérer les statistiques d'une équipe
 def get_team_statistics(team_id, league_id, season=None):
@@ -354,51 +354,121 @@ def _get_sample_teams():
         {"id": 505, "name": "Inter", "logo": "https://media-4.api-sports.io/football/teams/505.png", "abbreviation": "INT"}
     ]
 
-def _get_sample_upcoming_matches(days_ahead=3):
+def _get_sample_upcoming_matches(days_ahead=3, filter_leagues=None):
     """
-    Génère des matchs à venir simulés pour la démonstration.
+    Génère des matchs à venir simulés pour la démonstration avec respect des équipes par championnats.
     
     Args:
         days_ahead (int): Nombre de jours à l'avance
+        filter_leagues (list): Liste d'IDs de championnats à inclure
         
     Returns:
         list: Liste de matchs simulés
     """
-    # Obtenez les équipes d'exemple
-    teams = _get_sample_teams()
+    # Définir les équipes par championnats pour éviter les mélanges incorrects
+    league_teams = {
+        # Premier League
+        39: [
+            {"id": 42, "name": "Arsenal", "logo": "https://media-4.api-sports.io/football/teams/42.png"},
+            {"id": 49, "name": "Chelsea", "logo": "https://media-4.api-sports.io/football/teams/49.png"},
+            {"id": 50, "name": "Manchester City", "logo": "https://media-4.api-sports.io/football/teams/50.png"},
+            {"id": 33, "name": "Manchester United", "logo": "https://media-4.api-sports.io/football/teams/33.png"},
+            {"id": 40, "name": "Liverpool", "logo": "https://media-4.api-sports.io/football/teams/40.png"}
+        ],
+        # La Liga
+        140: [
+            {"id": 529, "name": "Barcelona", "logo": "https://media-4.api-sports.io/football/teams/529.png"},
+            {"id": 541, "name": "Real Madrid", "logo": "https://media-4.api-sports.io/football/teams/541.png"},
+            {"id": 530, "name": "Atletico Madrid", "logo": "https://media-4.api-sports.io/football/teams/530.png"}
+        ],
+        # Ligue 1
+        61: [
+            {"id": 85, "name": "Paris Saint-Germain", "logo": "https://media-4.api-sports.io/football/teams/85.png"},
+            {"id": 81, "name": "Marseille", "logo": "https://media-4.api-sports.io/football/teams/81.png"},
+            {"id": 79, "name": "Lille", "logo": "https://media-4.api-sports.io/football/teams/79.png"},
+            {"id": 83, "name": "Monaco", "logo": "https://media-4.api-sports.io/football/teams/83.png"}
+        ],
+        # Bundesliga
+        78: [
+            {"id": 157, "name": "Bayern Munich", "logo": "https://media-4.api-sports.io/football/teams/157.png"},
+            {"id": 165, "name": "Borussia Dortmund", "logo": "https://media-4.api-sports.io/football/teams/165.png"},
+            {"id": 160, "name": "Bayer Leverkusen", "logo": "https://media-4.api-sports.io/football/teams/160.png"}
+        ],
+        # Serie A
+        135: [
+            {"id": 496, "name": "Juventus", "logo": "https://media-4.api-sports.io/football/teams/496.png"},
+            {"id": 489, "name": "AC Milan", "logo": "https://media-4.api-sports.io/football/teams/489.png"},
+            {"id": 505, "name": "Inter", "logo": "https://media-4.api-sports.io/football/teams/505.png"}
+        ],
+        # Champions League (mélange de top équipes)
+        2: [
+            {"id": 50, "name": "Manchester City", "logo": "https://media-4.api-sports.io/football/teams/50.png"},
+            {"id": 541, "name": "Real Madrid", "logo": "https://media-4.api-sports.io/football/teams/541.png"},
+            {"id": 157, "name": "Bayern Munich", "logo": "https://media-4.api-sports.io/football/teams/157.png"},
+            {"id": 529, "name": "Barcelona", "logo": "https://media-4.api-sports.io/football/teams/529.png"},
+            {"id": 85, "name": "Paris Saint-Germain", "logo": "https://media-4.api-sports.io/football/teams/85.png"},
+            {"id": 40, "name": "Liverpool", "logo": "https://media-4.api-sports.io/football/teams/40.png"}
+        ]
+    }
     
-    # Créez des paires aléatoires pour les matchs
+    # Créer des paires pour les matchs
     matches = []
+    
+    # Utiliser toutes les ligues ou seulement celles demandées
+    if filter_leagues:
+        available_leagues_ids = [league_id for league_id in league_teams.keys() if league_id in filter_leagues]
+    else:
+        available_leagues_ids = list(league_teams.keys())
+    
+    # Si aucune ligue ne correspond, retourner une liste vide
+    if not available_leagues_ids:
+        return []
+    
+    # Récupérer les informations complètes des ligues
     leagues = get_available_leagues()
+    leagues_by_id = {league["id"]: league for league in leagues}
     
     # Générer des matchs pour chaque jour dans la période spécifiée
     for day in range(1, days_ahead + 1):
-        # Nombre de matchs pour ce jour (entre 2 et 5)
-        num_matches = random.randint(2, 5)
-        
-        for _ in range(num_matches):
-            # Sélectionner deux équipes aléatoires différentes
-            home_team = random.choice(teams)
-            away_team = random.choice([t for t in teams if t["id"] != home_team["id"]])
-            
-            # Sélectionner une ligue aléatoire
-            league = random.choice(leagues)
-            
-            # Générer une date et heure aléatoire pour le match
-            match_date = datetime.now() + timedelta(days=day, hours=random.randint(-2, 8))
-            
-            match_info = {
-                "id": random.randint(10000, 99999),
-                "date": match_date.isoformat(),
-                "league": league["name"],
-                "league_id": league["id"],
-                "home_team": home_team["name"],
-                "away_team": away_team["name"],
-                "home_logo": home_team["logo"],
-                "away_logo": away_team["logo"]
-            }
-            
-            matches.append(match_info)
+        # Générer des matchs pour chaque ligue sélectionnée
+        for league_id in available_leagues_ids:
+            # S'assurer qu'au moins 2 équipes sont disponibles pour cette ligue
+            if league_id in league_teams and len(league_teams[league_id]) >= 2:
+                teams = league_teams[league_id]
+                
+                # Nombre de matchs pour cette ligue et ce jour (entre 1 et 2)
+                num_matches = min(len(teams) // 2, random.randint(1, 2))
+                
+                # Créer des paires uniques d'équipes pour les matchs
+                available_teams = teams.copy()
+                random.shuffle(available_teams)
+                
+                for i in range(num_matches):
+                    if len(available_teams) < 2:
+                        break
+                    
+                    # Prendre les deux premières équipes de la liste mélangée
+                    home_team = available_teams.pop(0)
+                    away_team = available_teams.pop(0)
+                    
+                    # Générer une date et heure pour le match
+                    match_date = datetime.now() + timedelta(days=day, hours=random.randint(-2, 8))
+                    
+                    # Obtenir le nom de la ligue
+                    league_name = leagues_by_id.get(league_id, {}).get("name", f"League {league_id}")
+                    
+                    match_info = {
+                        "id": random.randint(10000, 99999),
+                        "date": match_date.isoformat(),
+                        "league": league_name,
+                        "league_id": league_id,
+                        "home_team": home_team["name"],
+                        "away_team": away_team["name"],
+                        "home_logo": home_team["logo"],
+                        "away_logo": away_team["logo"]
+                    }
+                    
+                    matches.append(match_info)
     
     # Tri des matchs par date
     matches.sort(key=lambda x: x["date"])
