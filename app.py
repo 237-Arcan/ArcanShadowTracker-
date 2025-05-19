@@ -9,12 +9,46 @@ import os
 import matplotlib.pyplot as plt
 import requests
 import random
+import logging
 
-# Importer nos modules pour les différents onglets
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Importer nos modules pour les différents onglets - versions classiques
 from predictions_tab import display_predictions_tab
 from daily_combo_tab import display_daily_combo_tab
 from learning_system_tab import display_learning_system_tab
 from notifications_tab import display_notifications_tab
+
+# Importer les versions enrichies (si disponibles)
+try:
+    from predictions_tab_enhanced import display_enhanced_predictions_tab
+    ENHANCED_PREDICTIONS_AVAILABLE = True
+    logger.info("Module de prédictions enrichi disponible")
+except ImportError:
+    ENHANCED_PREDICTIONS_AVAILABLE = False
+    logger.warning("Module de prédictions enrichi non disponible, utilisation de la version classique")
+
+# Vérifier si le hub de données est disponible
+try:
+    from api.data_integration_hub import get_data_integration_hub, get_available_sources
+    DATA_HUB_AVAILABLE = True
+    # Récupérer les sources disponibles pour informations
+    available_sources = get_available_sources()
+    logger.info(f"Hub d'intégration de données disponible. Sources: {available_sources}")
+except ImportError:
+    DATA_HUB_AVAILABLE = False
+    logger.warning("Hub d'intégration de données non disponible")
+
+# Vérifier si le module FanSentimentMonitor enrichi est disponible
+try:
+    from modules.fan_sentiment_monitor_enhanced import FanSentimentMonitorEnhanced
+    ENHANCED_SENTIMENT_AVAILABLE = True
+    logger.info("Module FanSentimentMonitor enrichi disponible")
+except ImportError:
+    ENHANCED_SENTIMENT_AVAILABLE = False
+    logger.warning("Module FanSentimentMonitor enrichi non disponible")
 
 # Fonction pour charger le CSS personnalisé
 def load_custom_css():
@@ -174,7 +208,12 @@ tabs = st.tabs([
 
 # Affichage des onglets
 with tabs[0]:
-    display_predictions_tab()
+    # Utiliser la version améliorée de l'onglet Prédictions si disponible
+    if ENHANCED_PREDICTIONS_AVAILABLE:
+        st.info("🌟 Version enrichie avec données multi-sources activée")
+        display_enhanced_predictions_tab()
+    else:
+        display_predictions_tab()
     
 with tabs[1]:
     display_daily_combo_tab()
