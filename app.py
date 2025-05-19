@@ -338,17 +338,25 @@ show_enhanced_components_status()
 # Affichage des onglets
 with tabs[0]:
     # Utiliser la version améliorée de l'onglet Prédictions si disponible
-    if ENHANCED_PREDICTIONS_AVAILABLE:
+    if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
         st.info("🌟 Version enrichie avec données multi-sources activée")
-        display_enhanced_predictions_tab()
+        try:
+            display_enhanced_predictions_tab()
+        except Exception as e:
+            st.error(f"Erreur lors de l'affichage de l'onglet Prédictions enrichi: {e}")
+            display_predictions_tab()
     else:
         display_predictions_tab()
     
 with tabs[1]:
     # Utiliser la version améliorée de l'onglet Daily Combo si disponible
-    if ENHANCED_DAILY_COMBO_AVAILABLE:
+    if ENHANCED_DAILY_COMBO_AVAILABLE and display_enhanced_daily_combo_tab is not None:
         st.info("🌟 Version enrichie avec données multi-sources activée")
-        display_enhanced_daily_combo_tab()
+        try:
+            display_enhanced_daily_combo_tab()
+        except Exception as e:
+            st.error(f"Erreur lors de l'affichage de l'onglet Daily Combo enrichi: {e}")
+            display_daily_combo_tab()
     else:
         # Afficher un indicateur si les composants enrichis sont utilisés pour Daily Combo
         if ENHANCED_BET_TRAP_MAP_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
@@ -357,9 +365,13 @@ with tabs[1]:
     
 with tabs[2]:
     # Utiliser la version améliorée de l'onglet Système d'Apprentissage si disponible
-    if ENHANCED_LEARNING_SYSTEM_AVAILABLE:
+    if ENHANCED_LEARNING_SYSTEM_AVAILABLE and display_enhanced_learning_system_tab is not None:
         st.info("🌟 Version enrichie avec données multi-sources activée")
-        display_enhanced_learning_system_tab()
+        try:
+            display_enhanced_learning_system_tab()
+        except Exception as e:
+            st.error(f"Erreur lors de l'affichage de l'onglet Système d'Apprentissage enrichi: {e}")
+            display_learning_system_tab()
     else:
         # Afficher un indicateur si les composants enrichis sont utilisés pour le Système d'Apprentissage
         if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
@@ -368,9 +380,13 @@ with tabs[2]:
     
 with tabs[3]:
     # Utiliser la version améliorée de l'onglet Notifications si disponible
-    if ENHANCED_NOTIFICATIONS_AVAILABLE:
+    if ENHANCED_NOTIFICATIONS_AVAILABLE and display_enhanced_notifications_tab is not None:
         st.info("🌟 Version enrichie avec données multi-sources activée")
-        display_enhanced_notifications_tab()
+        try:
+            display_enhanced_notifications_tab()
+        except Exception as e:
+            st.error(f"Erreur lors de l'affichage de l'onglet Notifications enrichi: {e}")
+            display_notifications_tab()
     else:
         # Afficher un indicateur si les composants enrichis sont utilisés pour les Notifications
         if ENHANCED_SENTIMENT_AVAILABLE or ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE:
