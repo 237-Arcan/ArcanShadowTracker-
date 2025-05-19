@@ -41,7 +41,13 @@ from api.transfermarkt_integration import (
 try:
     # Pour éviter les problèmes de récursion, on n'importe que les modules existants
     import api.data_integration_hub
+    from api.data_integration_hub import DataIntegrationHub
     import api.transfermarkt_integration
+    
+    # Initialiser le hub d'intégration dès maintenant
+    data_hub = DataIntegrationHub()
+    DATA_HUB_AVAILABLE = True
+    logger.info("Hub d'intégration de données initialisé correctement")
     
     # Vérifier les packages disponibles
     try:
@@ -113,17 +119,47 @@ def generate_enhanced_match_probabilities(match_id, home_team, away_team, home_t
     if DATA_HUB_AVAILABLE:
         try:
             # Enrichir les données du match avec toutes les sources disponibles
-            enhanced_data = enhance_match_data(match_data)
-            logger.info(f"Données du match enrichies avec le hub d'intégration pour {home_team} vs {away_team}")
+            try:
+                # Vérifier si la fonction est disponible dans le hub
+                if hasattr(data_hub, 'enhance_match_data'):
+                    enhanced_data = data_hub.enhance_match_data(match_data)
+                    logger.info(f"Données du match enrichies avec le hub d'intégration pour {home_team} vs {away_team}")
+                else:
+                    # Si la fonction n'est pas disponible, utiliser les données originales
+                    enhanced_data = match_data
+                    logger.warning("Fonction enhance_match_data non disponible dans le hub")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'enrichissement des données: {e}")
+                enhanced_data = match_data
             
-            # Récupérer des détails avancés sur les équipes
-            home_team_details = get_team_details(home_team)
-            away_team_details = get_team_details(away_team)
+            # Récupérer des détails sur les équipes (implémentation sécurisée)
+            try:
+                # Créer une fonction de récupération des détails équipe avec gestion d'erreurs
+                def get_safe_team_details(team_name):
+                    try:
+                        # Chercher l'équipe via Transfermarkt si disponible
+                        if is_transfermarkt_available():
+                            from api.transfermarkt_integration import search_club_by_name
+                            club_info = search_club_by_name(team_name)
+                            if club_info and len(club_info) > 0:
+                                return club_info[0]
+                        return {"name": team_name}
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la récupération des détails de l'équipe {team_name}: {e}")
+                        return {"name": team_name}
+                
+                # Utiliser notre fonction sécurisée
+                home_team_details = get_safe_team_details(home_team)
+                away_team_details = get_safe_team_details(away_team)
+            except Exception as e:
+                logger.error(f"Erreur lors de la récupération des détails des équipes: {e}")
+                home_team_details = {"name": home_team}
+                away_team_details = {"name": away_team}
             
             # Utiliser ces données pour améliorer les probabilités
             if ADVANCED_INSIGHTS_AVAILABLE:
                 logger.info("Génération d'insights avancés pour le match")
-                match_insights = generate_match_insights(enhanced_data)
+                match_insights = generate_enhanced_match_insights(home_team, away_team, home_stats={}, away_stats={}, h2h_data=[], match_data=enhanced_data)
                 
                 # Extraire les métriques de confiance
                 confidence_metrics = match_insights.get('confidence_metrics', {})
@@ -806,15 +842,21 @@ def display_enhanced_predictions_tab():
         # Afficher les cotes et probabilités supplémentaires
         st.markdown("#### Probabilités détaillées")
         
+        # Fonction de sécurité pour éviter les divisions par zéro
+        def safe_odds(prob):
+            if prob is None or prob <= 0.01:
+                return "-"
+            return f"{1/prob:.2f}"
+            
         st.markdown(f"""
         | Marché | Probabilité | Cote estimée |
         |--------|-------------|--------------|
-        | Victoire {selected_match['home_team']} | {probabilities['home_win']*100:.1f}% | {1/probabilities['home_win']:.2f} |
-        | Match Nul | {probabilities['draw']*100:.1f}% | {1/probabilities['draw']:.2f} |
-        | Victoire {selected_match['away_team']} | {probabilities['away_win']*100:.1f}% | {1/probabilities['away_win']:.2f} |
-        | Moins de 2.5 buts | {probabilities['under_2_5']*100:.1f}% | {1/probabilities['under_2_5']:.2f} |
-        | Plus de 2.5 buts | {probabilities['over_2_5']*100:.1f}% | {1/probabilities['over_2_5']:.2f} |
-        | Les deux équipes marquent | {probabilities['both_score']*100:.1f}% | {1/probabilities['both_score']:.2f} |
+        | Victoire {selected_match['home_team']} | {probabilities.get('home_win', 0)*100:.1f}% | {safe_odds(probabilities.get('home_win', 0))} |
+        | Match Nul | {probabilities.get('draw', 0)*100:.1f}% | {safe_odds(probabilities.get('draw', 0))} |
+        | Victoire {selected_match['away_team']} | {probabilities.get('away_win', 0)*100:.1f}% | {safe_odds(probabilities.get('away_win', 0))} |
+        | Moins de 2.5 buts | {probabilities.get('under_2_5', 0)*100:.1f}% | {safe_odds(probabilities.get('under_2_5', 0))} |
+        | Plus de 2.5 buts | {probabilities.get('over_2_5', 0)*100:.1f}% | {safe_odds(probabilities.get('over_2_5', 0))} |
+        | Les deux équipes marquent | {probabilities.get('both_score', 0)*100:.1f}% | {safe_odds(probabilities.get('both_score', 0))} |
         """)
     
     # Générer et afficher les insights pour ce match
