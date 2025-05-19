@@ -217,12 +217,50 @@ class AdvancedPredictionEngine:
         """
         match_data = {}
         
-        # Essayer d'enrichir les données avec le hub d'intégration
+        # Essayer d'utiliser le hub d'intégration central
+        try:
+            from api.data_integration_hub import DataIntegrationHub
+            # Créer une nouvelle instance ou utiliser l'instance existante
+            hub = DataIntegrationHub()
+            
+            # Utiliser le hub pour générer les prédictions directement
+            # Cela centralisera tout le traitement des données
+            predictions = hub.get_match_predictions(
+                home_team=match['home_team'],
+                away_team=match['away_team'],
+                league_id=match.get('league_id')
+            )
+            
+            # Si on a des prédictions du hub, les utiliser
+            if predictions:
+                # Ajouter l'importance des caractéristiques XGBoost
+                predictions['feature_importance'] = hub.get_xgboost_feature_importance()
+                
+                # Compléter avec nos données de match
+                predictions['match_data'] = match
+                
+                # Prétraiter pour assurer la compatibilité
+                if 'probabilities' in predictions and isinstance(predictions['probabilities'], dict):
+                    for key, value in predictions['probabilities'].items():
+                        if isinstance(value, float):
+                            predictions['probabilities'][key] = round(value * 100)
+                
+                # Retourner les prédictions enrichies
+                return predictions
+        except Exception as e:
+            logger.warning(f"Erreur lors de l'utilisation du hub d'intégration: {e}")
+        
+        # Si on n'a pas pu utiliser le hub, on continue avec le code existant
+        match_data = {}
+        
+        # Essayer d'enrichir les données avec les sources individuelles
         if DATA_HUB_AVAILABLE and data_hub:
             try:
+                # Puisque le hub central n'a pas fonctionné, on essaie d'utiliser data_hub directement
                 enhanced_data = data_hub.get_team_statistics(
                     home_team=match['home_team'],
-                    away_team=match['away_team']
+                    away_team=match['away_team'],
+                    league_id=match.get('league_id')
                 )
                 if enhanced_data:
                     match_data.update(enhanced_data)
@@ -759,7 +797,18 @@ def display_match_predictions(match, prediction_engine):
 def display_mobile_style_interface():
     """
     Affiche l'interface style mobile pour les prédictions de matchs avec XGBoost
+    en utilisant le hub central d'intégration de données
     """
+    # Tenter d'initialiser le hub d'intégration
+    try:
+        from api.data_integration_hub import DataIntegrationHub
+        hub = DataIntegrationHub()
+        HUB_AVAILABLE = True
+        logger.info("Hub d'intégration initialisé avec succès")
+    except Exception as e:
+        logger.warning(f"Impossible d'initialiser le hub d'intégration: {e}")
+        HUB_AVAILABLE = False
+        hub = None
     # Ajouter le CSS personnalisé
     st.markdown("""
     <style>
@@ -994,24 +1043,39 @@ def display_mobile_style_interface():
     st.session_state.selected_date_idx = selected_date_idx
     selected_date = date_options[selected_date_idx]["date"]
     
-    # Récupérer tous les matchs à venir
-    try:
-        all_upcoming_matches = get_upcoming_matches(days_ahead=7)
-        logger.info(f"Récupéré {len(all_upcoming_matches)} matchs à venir")
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des matchs: {str(e)}")
-        st.info("Utilisation de données de démonstration...")
-        all_upcoming_matches = generate_demo_matches(days=7)
+    # Récupérer tous les matchs à venir via le hub d'intégration si disponible
+    if HUB_AVAILABLE and hub:
+        try:
+            all_upcoming_matches = hub.get_upcoming_matches(days_ahead=7)
+            logger.info(f"Récupéré {len(all_upcoming_matches)} matchs à venir via le hub d'intégration")
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des matchs via le hub: {str(e)}")
+            try:
+                # Fallback à la méthode traditionnelle
+                all_upcoming_matches = get_upcoming_matches(days_ahead=7)
+                logger.info(f"Récupéré {len(all_upcoming_matches)} matchs à venir via la méthode traditionnelle")
+            except Exception as e2:
+                logger.error(f"Erreur lors de la récupération des matchs: {str(e2)}")
+                st.info("Utilisation de données de démonstration...")
+                all_upcoming_matches = generate_demo_matches(days=7)
+    else:
+        try:
+            # Utiliser la méthode traditionnelle
+            all_upcoming_matches = get_upcoming_matches(days_ahead=7)
+            logger.info(f"Récupéré {len(all_upcoming_matches)} matchs à venir")
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des matchs: {str(e)}")
+            st.info("Utilisation de données de démonstration...")
+            all_upcoming_matches = generate_demo_matches(days=7)
     
-    # Récupérer les ligues disponibles
-    try:
-        # Importer directement depuis le module pour éviter l'erreur
-        from api.football_adapter import get_available_leagues
-        leagues = get_available_leagues()
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des ligues: {str(e)}")
-        # Utiliser les ligues de nos matchs de démo
-        leagues = []
+    # Récupérer les ligues disponibles via le hub d'intégration si disponible
+    # Remarque: La plupart des hubs incluent une méthode get_available_leagues(), mais 
+    # nous utilisons le code existant pour l'adapter à notre hub
+    leagues = []
+    if HUB_AVAILABLE and hub:
+        # Extraire les ligues à partir des matchs récupérés par le hub
+        # Ce code est plus robuste car il s'assure que nous n'affichons que des ligues 
+        # qui ont des matchs pour la période sélectionnée
         for match in all_upcoming_matches:
             league_id = match.get('league_id', 0)
             league_name = match.get('league_name', '')
@@ -1023,6 +1087,25 @@ def display_mobile_style_interface():
                     'name': league_name,
                     'country': country
                 })
+    else:
+        try:
+            # Fallback à la méthode traditionnelle
+            from api.football_adapter import get_available_leagues
+            leagues = get_available_leagues()
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des ligues: {str(e)}")
+            # Utiliser les ligues de nos matchs
+            for match in all_upcoming_matches:
+                league_id = match.get('league_id', 0)
+                league_name = match.get('league_name', '')
+                country = match.get('country', 'Inconnu')
+                
+                if not any(l.get('id') == league_id for l in leagues):
+                    leagues.append({
+                        'id': league_id,
+                        'name': league_name,
+                        'country': country
+                    })
     
     # Regrouper les matchs par ligue pour la date sélectionnée
     leagues_with_matches = {}

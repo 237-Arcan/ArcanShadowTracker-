@@ -119,15 +119,34 @@ except ImportError as e:
         ENHANCED_PREDICTIONS_AVAILABLE = False
         logger.warning("Module de prédictions enrichi non disponible, utilisation de la version classique")
 
-# Vérifier si le hub de données est disponible
+# Initialiser le hub d'intégration de données
 try:
-    # Vérifier simplement si le module d'intégration est présent
-    import api.data_integration_hub
+    # Créer une instance du hub d'intégration pour la partager globalement
+    from api.data_integration_hub import DataIntegrationHub
+    # Créer l'instance globale qui sera utilisée par tous les modules
+    global data_hub
+    data_hub = DataIntegrationHub()
     DATA_HUB_AVAILABLE = True
-    logger.info("Hub d'intégration de données disponible")
-except ImportError:
+    
+    # Vérifier le statut des API
+    api_status = data_hub.sources_status
+    logger.info(f"Hub d'intégration de données initialisé avec succès. Status des API: {api_status}")
+    
+    # Si l'API Football n'est pas disponible, vérifier la clé API
+    if not api_status.get('football_api', False):
+        football_api_key = os.environ.get('FOOTBALL_API_KEY')
+        if not football_api_key:
+            logger.warning("Clé API Football non trouvée dans les variables d'environnement")
+        else:
+            logger.warning("Clé API Football trouvée mais l'API n'est pas accessible")
+except ImportError as e:
     DATA_HUB_AVAILABLE = False
-    logger.warning("Hub d'intégration de données non disponible")
+    data_hub = None
+    logger.warning(f"Hub d'intégration de données non disponible: {e}")
+except Exception as e:
+    DATA_HUB_AVAILABLE = False
+    data_hub = None
+    logger.error(f"Erreur lors de l'initialisation du hub d'intégration: {e}")
 
 # Fonction pour charger le CSS personnalisé
 def load_custom_css():
@@ -288,6 +307,44 @@ tabs = st.tabs([
 # Fonction pour afficher un badge de statut des composants améliorés
 def show_enhanced_components_status():
     """Affiche un résumé des composants améliorés disponibles"""
+    st.sidebar.markdown("### 🔮 Statut ArcanShadow")
+    
+    # Afficher l'état du hub d'intégration de données
+    if DATA_HUB_AVAILABLE and data_hub:
+        st.sidebar.markdown("🔄 **Hub d'intégration central** ✅")
+        
+        # Obtenir le statut des API du hub
+        api_status = data_hub.sources_status
+        
+        # Afficher le statut des API
+        st.sidebar.markdown("**Sources de données disponibles:**")
+        
+        football_api_status = api_status.get('football_api', False)
+        football_icon = "✅" if football_api_status else "⚠️"
+        football_text = "Connectée" if football_api_status else "Simulation" 
+        st.sidebar.markdown(f"- {football_icon} API Football: **{football_text}**")
+        
+        transfermarkt_status = api_status.get('transfermarkt', False)
+        transfermarkt_icon = "✅" if transfermarkt_status else "⚠️"
+        transfermarkt_text = "Connectée" if transfermarkt_status else "Simulation"
+        st.sidebar.markdown(f"- {transfermarkt_icon} Transfermarkt: **{transfermarkt_text}**")
+        
+        soccerdata_status = api_status.get('soccerdata', False)
+        soccerdata_icon = "✅" if soccerdata_status else "⚠️"
+        soccerdata_text = "Connectée" if soccerdata_status else "Simulation"
+        st.sidebar.markdown(f"- {soccerdata_icon} soccerdata: **{soccerdata_text}**")
+        
+        # Ajouter un indicateur de connexion pour aider au débogage
+        football_api_key = os.environ.get('FOOTBALL_API_KEY')
+        if not football_api_key and not football_api_status:
+            st.sidebar.warning("⚠️ Clé API Football non configurée")
+        elif not football_api_status and football_api_key:
+            st.sidebar.warning("⚠️ Problème de connexion à l'API Football")
+    else:
+        st.sidebar.markdown("🔄 **Hub d'intégration central** ❌")
+        st.sidebar.warning("Hub non initialisé. Les fonctionnalités utiliseront des données simulées.")
+    
+    # Afficher le statut des composants enrichis
     if ENHANCED_COMPONENTS_AVAILABLE:
         # Compter combien de composants améliorés sont disponibles
         enhanced_count = sum([
@@ -304,7 +361,7 @@ def show_enhanced_components_status():
             
             # Afficher un indicateur pour chaque composant
             components_status = {
-                "Prédictions": ENHANCED_PREDICTIONS_AVAILABLE,
+                "Prédictions XGBoost": True,  # Toujours disponible maintenant
                 "BetTrapMap": ENHANCED_BET_TRAP_MAP_AVAILABLE,
                 "ShadowOddsPlus": ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE,
                 "FanSentimentMonitor": ENHANCED_SENTIMENT_AVAILABLE
@@ -317,20 +374,24 @@ def show_enhanced_components_status():
             status_html += "</div>"
             
             st.sidebar.markdown(status_html, unsafe_allow_html=True)
-            
-            # Afficher un message sur les sources de données
-            if DATA_HUB_AVAILABLE:
-                st.sidebar.markdown("**Sources de données intégrées:**")
-                st.sidebar.markdown("- ✅ Transfermarkt API")
-                st.sidebar.markdown("- ✅ soccerdata (9 sources)")
-                st.sidebar.markdown("- ✅ Enrichissement des joueurs")
-            
-            # Afficher un résumé des bénéfices
-            st.sidebar.markdown("**Améliorations activées:**")
-            st.sidebar.markdown("- Analyses basées sur des données multi-sources")
-            st.sidebar.markdown("- Visualisations enrichies")
-            st.sidebar.markdown("- Détection avancée de patterns")
-            st.sidebar.markdown("- Plus de précision dans les prédictions")
+    
+    # Afficher un résumé des bénéfices
+    st.sidebar.markdown("### ✨ Améliorations activées")
+    st.sidebar.markdown("- 🧠 **Moteur XGBoost** pour des prédictions précises")
+    st.sidebar.markdown("- 📊 Analyses basées sur des données multi-sources")
+    st.sidebar.markdown("- 📱 Interface mobile améliorée")
+    st.sidebar.markdown("- 🔍 Détection avancée de patterns")
+    
+    # Si les données sont simulées, afficher un avertissement
+    if DATA_HUB_AVAILABLE and data_hub and not data_hub.sources_status.get('football_api', False):
+        with st.sidebar.expander("ℹ️ Mode simulation"):
+            st.markdown("""
+            Le système fonctionne actuellement avec des données simulées.
+            Pour obtenir des prédictions avec des données réelles, veuillez configurer
+            votre clé API Football.
+            """)
+            if st.button("Vérifier les connexions"):
+                st.session_state.check_connections = True
 
 # Afficher le statut des composants améliorés
 show_enhanced_components_status()
