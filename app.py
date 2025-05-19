@@ -337,16 +337,35 @@ show_enhanced_components_status()
 
 # Affichage des onglets
 with tabs[0]:
-    # Utiliser la version améliorée de l'onglet Prédictions si disponible
-    if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
-        st.info("🌟 Version enrichie avec données multi-sources activée")
+    # Ajouter une option pour choisir entre le style standard et le style mobile
+    style_options = ["Standard", "Mobile"]
+    selected_style = st.radio("Choisir un style d'affichage", style_options, horizontal=True)
+    
+    if selected_style == "Mobile":
+        # Charger notre nouvelle interface style mobile
         try:
-            display_enhanced_predictions_tab()
+            # Importer le module de prédictions style mobile
+            from predictions_mobile_style import display_mobile_predictions
+            st.info("📱 Interface style mobile activée")
+            display_mobile_predictions()
         except Exception as e:
-            st.error(f"Erreur lors de l'affichage de l'onglet Prédictions enrichi: {e}")
-            display_predictions_tab()
+            st.error(f"Erreur lors de l'affichage de l'interface mobile: {e}")
+            # Fallback à la version améliorée ou standard
+            if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
+                display_enhanced_predictions_tab()
+            else:
+                display_predictions_tab()
     else:
-        display_predictions_tab()
+        # Utiliser la version améliorée de l'onglet Prédictions si disponible
+        if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
+            st.info("🌟 Version enrichie avec données multi-sources activée")
+            try:
+                display_enhanced_predictions_tab()
+            except Exception as e:
+                st.error(f"Erreur lors de l'affichage de l'onglet Prédictions enrichi: {e}")
+                display_predictions_tab()
+        else:
+            display_predictions_tab()
     
 with tabs[1]:
     # Utiliser la version améliorée de l'onglet Daily Combo si disponible
