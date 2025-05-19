@@ -56,8 +56,8 @@ def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     data_hub = DataIntegrationHub()
     
     # Initialiser les composants améliorés si disponibles
-    bet_trap_detector = BetTrapMapEnhanced() if BetTrapMapEnhanced else None
-    odds_analyzer = ShadowOddsPlusEnhanced() if ShadowOddsPlusEnhanced else None
+    bet_trap_detector = BetTrapMapEnhanced if BetTrapMapEnhanced else None
+    odds_analyzer = ShadowOddsPlusEnhanced if ShadowOddsPlusEnhanced else None
     
     # Récupération des matchs du jour avec données enrichies
     today_matches = data_hub.get_upcoming_matches(days_ahead=1)

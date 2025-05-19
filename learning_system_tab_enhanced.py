@@ -46,7 +46,7 @@ def generate_learning_data(days=30):
     data_hub = DataIntegrationHub()
     
     # Initialiser les composants améliorés si disponibles
-    sentiment_analyzer = FanSentimentMonitorEnhanced() if FanSentimentMonitorEnhanced else None
+    sentiment_analyzer = FanSentimentMonitorEnhanced if FanSentimentMonitorEnhanced else None
     
     # Date de départ (30 jours avant aujourd'hui par défaut)
     start_date = datetime.now() - timedelta(days=days)

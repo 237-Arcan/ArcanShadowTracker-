@@ -46,8 +46,8 @@ def generate_enhanced_notifications(count=10):
     data_hub = DataIntegrationHub()
     
     # Initialiser les composants améliorés si disponibles
-    odds_analyzer = ShadowOddsPlusEnhanced() if ShadowOddsPlusEnhanced else None
-    sentiment_analyzer = FanSentimentMonitorEnhanced() if FanSentimentMonitorEnhanced else None
+    odds_analyzer = ShadowOddsPlusEnhanced if ShadowOddsPlusEnhanced else None
+    sentiment_analyzer = FanSentimentMonitorEnhanced if FanSentimentMonitorEnhanced else None
     
     # Catégories de notifications
     categories = [
