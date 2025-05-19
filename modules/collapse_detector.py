@@ -1,12 +1,21 @@
 """
 CollapseDetector - Module de détection des risques d'effondrement d'une équipe.
 Analyse les patterns de fragilité mentale et d'effondrements historiques.
+Utilise les données de Transfermarkt pour une analyse plus précise des joueurs clés.
 """
 
 import random
 from datetime import datetime, timedelta
 import numpy as np
+import logging
 from collections import defaultdict
+
+# Intégration de l'adaptateur Transfermarkt
+from api.transfermarkt_adapter import TransfermarktAdapter
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class CollapseDetector:
     """
@@ -15,7 +24,17 @@ class CollapseDetector:
     """
     
     def __init__(self):
-        """Initialise le module CollapseDetector"""
+        """Initialise le module CollapseDetector avec l'adaptateur Transfermarkt"""
+        # Initialiser l'adaptateur Transfermarkt pour obtenir des données réelles
+        self.transfermarkt = TransfermarktAdapter()
+        logger.info("Initialisation de l'adaptateur Transfermarkt pour CollapseDetector")
+        self.use_real_data = self.transfermarkt.api_online
+        
+        if self.use_real_data:
+            logger.info("CollapseDetector utilisera les données réelles de Transfermarkt")
+        else:
+            logger.warning("API Transfermarkt non disponible, CollapseDetector utilisera des données simulées")
+            
         self.collapse_patterns = {
             'after_conceding': {
                 'description': 'Effondrement après avoir encaissé un but',

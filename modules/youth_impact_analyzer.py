@@ -265,11 +265,20 @@ class YouthImpactAnalyzer:
                     if 'market_value' in player_profile:
                         # La valeur marchande peut indiquer le potentiel du joueur
                         market_value = player_profile.get('market_value', 0)
+                        
+                        # S'assurer que market_value est un nombre
+                        if isinstance(market_value, str):
+                            try:
+                                # Supprimer symboles monétaires et convertir en nombre
+                                market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                            except:
+                                market_value = 0
+                                
                         if not player_data.get('potential_ability'):
                             # Calculer un potentiel basé sur la valeur marchande et l'âge
                             age_factor = 1.5 if player_data.get('age', 20) < 19 else 1.0
                             # Normaliser la valeur marchande (supposons 50M = 1.0)
-                            normalized_value = min(1.0, market_value / 50000000) * age_factor
+                            normalized_value = min(1.0, float(market_value) / 50000000) * age_factor
                             player_data['potential_ability'] = normalized_value
                             
                     # Autres attributs utiles de Transfermarkt
@@ -518,39 +527,48 @@ class YouthImpactAnalyzer:
                     all_young_players = []
                     
                     for club in clubs:
-                        club_id = club.get('id')
-                        if not club_id:
-                            continue
-                            
-                        # Récupérer les joueurs du club
-                        club_players = self.transfermarkt.get_club_players(club_id)
-                        if 'status' not in club_players or club_players['status'] != 'error':
-                            players = club_players.get('squad', [])
-                            
-                            # Filtrer les jeunes joueurs
-                            for player in players:
-                                player_age = player.get('age', 30)
-                                if player_age <= age_max:
-                                    # Ajouter le club au joueur
-                                    player['club'] = club.get('name', '')
-                                    player['club_id'] = club_id
-                                    
-                                    # Calculer un score basé sur les attributs disponibles
-                                    market_value = player.get('market_value', 0)
-                                    # S'assurer que market_value est un nombre
-                                    if isinstance(market_value, str):
+                        if isinstance(club, dict):
+                            club_id = club.get('id')
+                            if not club_id:
+                                continue
+                                
+                            # Récupérer les joueurs du club
+                            club_players = self.transfermarkt.get_club_players(club_id)
+                            if 'status' not in club_players or club_players['status'] != 'error':
+                                players = club_players.get('squad', [])
+                                
+                                # Filtrer les jeunes joueurs
+                                for player in players:
+                                    if isinstance(player, dict):
+                                        player_age = player.get('age', 30)
                                         try:
-                                            # Supprimer symboles monétaires et convertir en nombre
-                                            market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
-                                        except:
-                                            market_value = 0
+                                            player_age = int(player_age)
+                                        except (ValueError, TypeError):
+                                            player_age = 30
+                                            
+                                        if player_age <= age_max:
+                                            # Ajouter le club au joueur
+                                            player_copy = player.copy()  # Travailler sur une copie
+                                            player_copy['club'] = club.get('name', '')
+                                            player_copy['club_id'] = club_id
+                                            
+                                            # Calculer un score basé sur les attributs disponibles
+                                            market_value = player_copy.get('market_value', 0)
+                                            # S'assurer que market_value est un nombre
+                                            if isinstance(market_value, str):
+                                                try:
+                                                    # Supprimer symboles monétaires et convertir en nombre
+                                                    market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                                                except:
+                                                    market_value = 0
 
-                                    age_factor = (age_max - player_age + 1) / 10  # Plus jeune = meilleur facteur
-                                    
-                                    # Le score combine valeur marchande et jeunesse
-                                    player['talent_score'] = float(market_value) * age_factor
-                                    
-                                    all_young_players.append(player)
+                                            age_factor = (age_max - player_age + 1) / 10  # Plus jeune = meilleur facteur
+                                            
+                                            # Le score combine valeur marchande et jeunesse
+                                            player_copy['talent_score'] = float(market_value) * age_factor
+                                            
+                                            # Ajouter à la liste des jeunes joueurs
+                                            all_young_players.append(player_copy)
                     
                     # Trier par score de talent et limiter le nombre
                     all_young_players.sort(key=lambda x: x.get('talent_score', 0), reverse=True)
@@ -568,6 +586,73 @@ class YouthImpactAnalyzer:
             top_talents = self._generate_simulated_talents(limit)
         
         return top_talents
+        
+    def _generate_simulated_talents(self, limit=10):
+        """
+        Génère une liste simulée de jeunes talents pour les cas où l'API n'est pas disponible.
+        
+        Args:
+            limit (int): Nombre de talents à générer
+            
+        Returns:
+            list: Liste des talents simulés
+        """
+        logger.info(f"Génération de {limit} jeunes talents simulés")
+        
+        # Listes pour générer des noms aléatoires
+        first_names = ['Noah', 'Liam', 'Lucas', 'Ethan', 'Gabriel', 'Mohamed', 'Raphael', 'Adam', 'Leo', 'Hugo',
+                      'Mateo', 'Tom', 'Louis', 'Nathan', 'Arthur', 'Jules', 'Yanis', 'Enzo', 'Axel', 'Gael']
+        last_names = ['Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau',
+                      'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent', 'Fournier']
+        
+        clubs = ['Paris SG', 'Olympique Lyon', 'AS Monaco', 'LOSC Lille', 'OGC Nice', 'Olympique Marseille', 'Stade Rennais',
+                'Montpellier HSC', 'RC Strasbourg', 'RC Lens', 'FC Nantes', 'AS Saint-Etienne', 'Bordeaux', 'Angers SCO',
+                'Real Madrid', 'FC Barcelona', 'Manchester United', 'Liverpool FC', 'Bayern Munich', 'Juventus']
+        
+        positions = ['Gardien', 'Défenseur central', 'Arrière droit', 'Arrière gauche', 'Milieu défensif',
+                     'Milieu central', 'Milieu offensif', 'Ailier droit', 'Ailier gauche', 'Attaquant']
+        
+        simulated_talents = []
+        
+        for i in range(limit):
+            # Générer un âge entre 16 et 23 ans
+            age = random.randint(16, 23)
+            
+            # Plus le joueur est jeune, plus son potentiel peut être élevé
+            potential_max = 0.9 + ((23 - age) * 0.01)
+            
+            # Générer un profil aléatoire
+            talent = {
+                'id': f"SIM{100000 + i}",
+                'name': f"{random.choice(first_names)} {random.choice(last_names)}",
+                'age': age,
+                'position': random.choice(positions),
+                'club': random.choice(clubs),
+                'club_id': f"CLUB{random.randint(1000, 9999)}",
+                'market_value': random.randint(5000000, 80000000),
+                'potential_ability': round(random.uniform(0.65, potential_max), 2),
+                'attributes': {
+                    'technical': round(random.uniform(0.5, 0.95), 2),
+                    'physical': round(random.uniform(0.5, 0.95), 2),
+                    'mental': round(random.uniform(0.5, 0.95), 2),
+                    'tactical': round(random.uniform(0.5, 0.95), 2)
+                },
+                'talent_score': 0  # Sera calculé ci-dessous
+            }
+            
+            # Calculer un score de talent (plus jeune = bonus)
+            age_factor = (24 - age) / 10
+            value_factor = talent['market_value'] / 50000000
+            attribute_avg = sum(talent['attributes'].values()) / len(talent['attributes'])
+            
+            talent['talent_score'] = (value_factor * 0.4 + age_factor * 0.3 + attribute_avg * 0.3) * talent['potential_ability']
+            
+            simulated_talents.append(talent)
+        
+        # Trier par score de talent
+        simulated_talents.sort(key=lambda x: x['talent_score'], reverse=True)
+        
+        return simulated_talents
     
     def track_youth_player_development(self, player_id, timeframe_months=6):
         """
