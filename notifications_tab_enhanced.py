@@ -109,9 +109,13 @@ def generate_enhanced_notifications(count=10):
             confidence = round(random.uniform(0.65, 0.95), 2)
             
             if odds_analyzer:
-                # Utiliser l'API football_data pour obtenir les prochains matchs
-                from api.football_data import get_upcoming_matches
-                matches = get_upcoming_matches(days_ahead=1)
+                try:
+                    # Utiliser l'API football_data pour obtenir les prochains matchs
+                    from api.football_data import get_upcoming_matches
+                    matches = get_upcoming_matches(days_ahead=1)
+                except Exception as e:
+                    st.warning(f"Impossible de récupérer les matchs à venir: {e}")
+                    matches = []
                 if matches:
                     match = random.choice(matches)
                     analysis = odds_analyzer.analyze_match_odds(
