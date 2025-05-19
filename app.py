@@ -337,14 +337,13 @@ show_enhanced_components_status()
 
 # Affichage des onglets
 with tabs[0]:
-    # Utiliser uniquement le style mobile enrichi
+    # Utiliser notre nouvel onglet de prédictions XGBoost
     try:
-        # Importer le module de prédictions style mobile
-        from predictions_mobile_style import display_mobile_predictions
-        st.info("📱 Interface style mobile activée avec données multi-sources")
-        display_mobile_predictions()
+        # Importer le module de prédictions XGBoost
+        from xgboost_predictions_tab import display_xgboost_predictions_tab
+        display_xgboost_predictions_tab()
     except Exception as e:
-        st.error(f"Erreur lors de l'affichage de l'interface mobile: {e}")
+        st.error(f"Erreur lors de l'affichage de l'interface XGBoost: {e}")
         # Fallback en cas d'erreur critique
         if ENHANCED_PREDICTIONS_AVAILABLE and display_enhanced_predictions_tab is not None:
             st.warning("Retour à l'interface standard en raison d'une erreur")
