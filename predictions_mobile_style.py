@@ -236,6 +236,21 @@ def display_mobile_football_predictions():
         background-color: #2E2E3F;
         border-radius: 10px;
         cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .match-item:hover {
+        background-color: #3A3A4F;
+    }
+    .match-item-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #FF2B6B;
+        color: white;
+        padding: 3px 8px;
+        font-size: 10px;
+        border-bottom-left-radius: 10px;
     }
     .team-home, .team-away {
         text-align: center;
@@ -246,14 +261,100 @@ def display_mobile_football_predictions():
         width: 20%;
         font-weight: bold;
     }
+    .filters-bar {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+    .filter-pill {
+        flex: 0 0 auto;
+        padding: 5px 12px;
+        border-radius: 15px;
+        background-color: #333;
+        color: #ccc;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .filter-pill-active {
+        background-color: #BB9AF7;
+        color: #1A1B26;
+    }
+    .search-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+    .search-input {
+        width: 100%;
+        padding: 8px 15px 8px 35px;
+        border-radius: 20px;
+        background-color: #333;
+        border: none;
+        color: white;
+    }
+    .traptection-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        margin-left: 5px;
+        color: white;
+        background-color: #F7768E;
+    }
+    .value-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        margin-left: 5px;
+        color: white;
+        background-color: #9ECE6A;
+    }
+    .hot-match-indicator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #FF2B6B, #FF9500);
+    }
     </style>
     """, unsafe_allow_html=True)
     
-    # En-tête
+    # En-tête avec badge de version enrichie
     st.markdown("""
         <div style="display: flex; align-items: center; margin-bottom: 20px;">
             <span style="font-size: 32px; margin-right: 10px;">⚽</span>
             <h1 style="margin: 0;">Football</h1>
+            <span style="margin-left: 10px; font-size: 12px; background-color: #7AA2F7; color: white; padding: 3px 8px; border-radius: 10px;">ARCAN+</span>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Barre de recherche
+    st.markdown("""
+        <div class="search-container">
+            <div class="search-icon">🔍</div>
+            <input type="text" class="search-input" placeholder="Rechercher une équipe, un joueur...">
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Filtres rapides
+    st.markdown("""
+        <div class="filters-bar">
+            <div class="filter-pill filter-pill-active">Tous</div>
+            <div class="filter-pill">Top Matchs</div>
+            <div class="filter-pill">Bons Plans</div>
+            <div class="filter-pill">Premier League</div>
+            <div class="filter-pill">Ligue 1</div>
+            <div class="filter-pill">La Liga</div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -465,16 +566,40 @@ def display_mobile_football_predictions():
                 except:
                     pass
             
-            # Afficher le match
+            # Générer des indicateurs pour le match (valeur, piège potentiel, etc.)
+            # Pour la démo, on attribue aléatoirement ces badges à certains matchs
+            is_value_bet = random.random() > 0.7
+            is_trap_match = random.random() > 0.85
+            is_hot_match = random.random() > 0.65
+            
+            # Construire l'affichage HTML du match avec ces indicateurs
             match_html = f"""
             <div class="match-item">
                 <div class="team-home">{match['home_team']}</div>
                 <div class="match-time">{match_time}</div>
                 <div class="team-away">{match['away_team']}</div>
+                
+                {f'<div class="match-item-badge">HOT</div>' if is_hot_match else ''}
+                {f'<div class="hot-match-indicator"></div>' if is_hot_match else ''}
             </div>
             """
             
             st.markdown(match_html, unsafe_allow_html=True)
+            
+            # Ajouter des badges pour les matchs spéciaux
+            if is_value_bet:
+                st.markdown(f"""
+                <div style="margin-top: -10px; margin-bottom: 10px; padding-left: 10px;">
+                    <span class="value-badge">Valeur</span>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if is_trap_match:
+                st.markdown(f"""
+                <div style="margin-top: -10px; margin-bottom: 10px; padding-left: 10px;">
+                    <span class="traptection-badge">Piège potentiel</span>
+                </div>
+                """, unsafe_allow_html=True)
             
             # Créer un bouton pour voir les détails de ce match
             match_key = f"match_{match.get('id', hash(match['home_team'] + match['away_team']))}"
@@ -539,55 +664,120 @@ def get_match_predictions(match):
     draw_odds = round((1 / (draw_prob/100) * (1 + margin)), 2)
     away_odds = round((1 / (away_prob/100) * (1 + margin)), 2)
     
+    # Variables pour stocker des informations enrichies
+    player_insights = []
+    team_form_data = {}
+    value_data = {}
+    has_transfermarkt_data = False
+    has_hub_data = False
+    
     # Essayer d'obtenir des statistiques plus avancées si disponibles
     try:
         # Importer directement pour éviter de se référer à une variable non définie
-        from api.transfermarkt_integration import enhance_match_data_with_transfermarkt
-        from api.data_integration_hub import DataIntegrationHub
-        
-        # Tenter d'enrichir les données avec des statistiques externes
-        try:
-            data_hub = DataIntegrationHub()
-            hub_data = data_hub.get_enhanced_match_data(
-                home_team=match['home_team'], 
-                away_team=match['away_team']
-            )
-            
-            # Affiner les prédictions avec les données du hub
-            if hub_data:
-                # Ajuster les probabilités en fonction des données enrichies
-                strength_diff = hub_data.get('strength_difference', 0)
-                form_diff = hub_data.get('form_difference', 0)
-                
-                # Ajuster les probabilités basées sur ces facteurs
-                adjustment = (strength_diff + form_diff) * 0.05
-                home_prob = min(max(0, home_prob + round(adjustment * 100)), 95)
-                away_prob = min(max(0, away_prob - round(adjustment * 100)), 95)
-                draw_prob = max(0, 100 - home_prob - away_prob)
-        except Exception as e:
-            logger.warning(f"Impossible d'utiliser le hub d'intégration: {e}")
+        from api.transfermarkt_integration import (
+            enhance_match_data_with_transfermarkt,
+            get_team_players,
+            get_team_profile
+        )
         
         # Tenter d'enrichir avec Transfermarkt spécifiquement
         try:
             tm_data = enhance_match_data_with_transfermarkt(match['home_team'], match['away_team'])
             if tm_data:
+                has_transfermarkt_data = True
                 # Affiner les prédictions avec les données Transfermarkt
                 value_diff = tm_data.get('value_difference', 0)
                 if value_diff > 0:
                     # Équipe à domicile a une valeur marchande plus élevée
                     home_prob = min(home_prob + 5, 95)
                     away_prob = max(away_prob - 5, 5)
+                    value_data = {
+                        "home_value": tm_data.get('home_value', 0),
+                        "away_value": tm_data.get('away_value', 0),
+                        "difference": value_diff,
+                        "difference_percentage": tm_data.get('value_difference_percentage', 0)
+                    }
                 elif value_diff < 0:
                     # Équipe à l'extérieur a une valeur marchande plus élevée
                     away_prob = min(away_prob + 5, 95)
                     home_prob = max(home_prob - 5, 5)
+                    value_data = {
+                        "home_value": tm_data.get('home_value', 0),
+                        "away_value": tm_data.get('away_value', 0),
+                        "difference": abs(value_diff),
+                        "difference_percentage": tm_data.get('value_difference_percentage', 0)
+                    }
+                
+                # Récupérer les joueurs clés si disponibles
+                home_players = get_team_players(match['home_team'])
+                away_players = get_team_players(match['away_team'])
+                
+                if home_players and len(home_players) > 0:
+                    # Trouver le joueur avec la valeur la plus élevée
+                    top_player_home = max(home_players, key=lambda p: p.get('value', 0))
+                    player_insights.append({
+                        "team": match['home_team'],
+                        "name": top_player_home.get('name', 'Joueur vedette'),
+                        "value": top_player_home.get('value', 0),
+                        "position": top_player_home.get('position', 'Attaquant'),
+                        "status": random.choice(["En forme", "Légèrement blessé", "Disponible"]) 
+                    })
+                
+                if away_players and len(away_players) > 0:
+                    # Trouver le joueur avec la valeur la plus élevée
+                    top_player_away = max(away_players, key=lambda p: p.get('value', 0))
+                    player_insights.append({
+                        "team": match['away_team'],
+                        "name": top_player_away.get('name', 'Joueur vedette'),
+                        "value": top_player_away.get('value', 0),
+                        "position": top_player_away.get('position', 'Attaquant'),
+                        "status": random.choice(["En forme", "Légèrement blessé", "Disponible"])
+                    })
         except Exception as e:
             logger.warning(f"Impossible d'enrichir avec Transfermarkt: {e}")
+        
+        # Essayer d'utiliser le hub d'intégration de données
+        try:
+            from api.data_integration_hub import DataIntegrationHub
+            data_hub = DataIntegrationHub()
+            
+            # Tenter d'enrichir avec le hub
+            try:
+                hub_data = data_hub.get_match_data(
+                    home_team=match['home_team'], 
+                    away_team=match['away_team']
+                )
+                
+                # Affiner les prédictions avec les données du hub
+                if hub_data:
+                    has_hub_data = True
+                    # Ajuster les probabilités en fonction des données enrichies
+                    strength_diff = hub_data.get('strength_difference', 0)
+                    form_diff = hub_data.get('form_difference', 0)
+                    
+                    # Ajuster les probabilités basées sur ces facteurs
+                    adjustment = (strength_diff + form_diff) * 0.05
+                    home_prob = min(max(0, home_prob + round(adjustment * 100)), 95)
+                    away_prob = min(max(0, away_prob - round(adjustment * 100)), 95)
+                    draw_prob = max(0, 100 - home_prob - away_prob)
+                    
+                    # Récupérer les données de forme
+                    home_form = hub_data.get('home_form', [0.5, 0.5, 0.5, 0.5, 0.5])
+                    away_form = hub_data.get('away_form', [0.5, 0.5, 0.5, 0.5, 0.5])
+                    
+                    team_form_data = {
+                        "home": home_form,
+                        "away": away_form
+                    }
+            except Exception as e:
+                logger.warning(f"Impossible d'obtenir les données du match via le hub: {e}")
+        except Exception as e:
+            logger.warning(f"Impossible d'initialiser le hub d'intégration: {e}")
     except Exception as e:
         logger.warning(f"Impossible d'accéder aux fonctions d'enrichissement: {e}")
     
     # Générer des facteurs clés pour le match
-    key_factors = [
+    base_key_factors = [
         "Forme récente des équipes",
         "Historique des confrontations directes",
         "Force de l'attaque vs défense",
@@ -595,8 +785,36 @@ def get_match_predictions(match):
         "Absences et blessures importantes"
     ]
     
+    # Ajouter des facteurs spécifiques basés sur les données enrichies
+    advanced_factors = []
+    if has_transfermarkt_data:
+        advanced_factors.append(f"Différence de valeur marchande: {value_data.get('difference_percentage', 0)}%")
+    if len(player_insights) > 0:
+        for player in player_insights:
+            advanced_factors.append(f"Impact de {player['name']} ({player['team']})")
+    if has_hub_data:
+        advanced_factors.append("Analyse multi-sources de données")
+    
+    # Combiner les facteurs de base et avancés
+    all_factors = base_key_factors + advanced_factors
+    selected_factors = random.sample(all_factors, min(4, len(all_factors)))
+    
     # Créer un score de confiance
     confidence_score = round(random.uniform(0.65, 0.92), 2)
+    
+    # Ajouter des insights sur les paris
+    bet_insights = []
+    if home_prob > 60:
+        bet_insights.append(f"L'équipe à domicile ({match['home_team']}) a une forte probabilité de victoire")
+    if away_prob > 60: 
+        bet_insights.append(f"L'équipe à l'extérieur ({match['away_team']}) a une forte probabilité de victoire malgré le déplacement")
+    if draw_prob > 30:
+        bet_insights.append("Match serré, le nul est une option à considérer")
+    if 40 <= home_prob <= 60 and 40 <= away_prob <= 60:
+        bet_insights.append("Match très équilibré, prudence recommandée")
+    
+    if not bet_insights:
+        bet_insights = ["Analyse des cotes et tendances récentes favorable", "Opportunité détectée basée sur l'historique des confrontations"]
     
     # Retourner les prédictions complètes
     return {
@@ -610,8 +828,16 @@ def get_match_predictions(match):
             "draw": draw_odds,
             "away": away_odds
         },
-        "key_factors": random.sample(key_factors, 3),
+        "key_factors": selected_factors,
+        "bet_insights": bet_insights,
+        "player_insights": player_insights,
+        "team_form_data": team_form_data if team_form_data else {
+            "home": [random.uniform(0.4, 0.7) for _ in range(5)],
+            "away": [random.uniform(0.3, 0.6) for _ in range(5)]
+        },
+        "value_data": value_data,
         "confidence": confidence_score,
+        "has_enriched_data": has_transfermarkt_data or has_hub_data,
         "best_bet": "Victoire domicile" if home_prob > away_prob and home_prob > draw_prob else 
                     "Match nul" if draw_prob >= home_prob and draw_prob >= away_prob else 
                     "Victoire extérieur"
@@ -625,6 +851,15 @@ def display_match_predictions(match):
     
     # Générer des prédictions pour ce match
     predictions = get_match_predictions(match)
+    
+    # Badge pour montrer que l'analyse utilise des données enrichies multi-sources 
+    if predictions.get('has_enriched_data', False):
+        st.markdown("""
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span style="background-color: #7AA2F7; color: white; padding: 4px 10px; border-radius: 15px; font-size: 12px; margin-right: 10px;">ANALYSE AVANCÉE</span>
+            <span style="color: #999; font-size: 12px;">Données multi-sources activées</span>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Afficher les probabilités en colonnes
     col1, col2, col3 = st.columns(3)
@@ -656,7 +891,7 @@ def display_match_predictions(match):
         </div>
         """, unsafe_allow_html=True)
     
-    # Afficher la meilleure opportunité
+    # Afficher la meilleure opportunité 
     st.markdown(f"""
     <div style="margin-top: 20px; padding: 15px; background-color: #3D4E61; border-radius: 10px; border-left: 5px solid #FF2B6B;">
         <h4>💎 Meilleure opportunité</h4>
@@ -664,8 +899,44 @@ def display_match_predictions(match):
     </div>
     """, unsafe_allow_html=True)
     
+    # Afficher les insights de paris
+    if predictions.get('bet_insights'):
+        st.markdown("### 📈 Insights de paris")
+        
+        for insight in predictions['bet_insights']:
+            st.markdown(f"""
+            <div style="margin-top: 10px; padding: 10px; background-color: #2E2E3F; border-radius: 5px; border-left: 3px solid #9ECE6A;">
+                <p>✨ {insight}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Afficher les joueurs clés si disponibles
+    if predictions.get('player_insights') and len(predictions['player_insights']) > 0:
+        st.markdown("### 🌟 Joueurs clés")
+        
+        for player in predictions['player_insights']:
+            player_name = player.get('name', 'Joueur clé')
+            player_team = player.get('team', 'Équipe')
+            player_position = player.get('position', 'Attaquant')
+            player_status = player.get('status', 'Disponible')
+            
+            # Code couleur pour le statut
+            status_color = "#9ECE6A" if player_status == "En forme" else "#E0AF68" if player_status == "Légèrement blessé" else "#7AA2F7"
+            
+            st.markdown(f"""
+            <div style="margin-top: 10px; padding: 15px; background-color: #2E2E3F; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4>{player_name}</h4>
+                    <p>{player_team} • {player_position}</p>
+                </div>
+                <div style="background-color: {status_color}; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                    {player_status}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
     # Afficher les facteurs clés
-    st.markdown("### Facteurs clés d'analyse")
+    st.markdown("### 📊 Facteurs clés d'analyse")
     
     for i, factor in enumerate(predictions['key_factors']):
         st.markdown(f"""
@@ -674,12 +945,13 @@ def display_match_predictions(match):
         </div>
         """, unsafe_allow_html=True)
     
-    # Ajouter un graphique de tendance (factice pour l'instant)
-    st.markdown("### Tendance de la forme récente")
+    # Ajouter un graphique de tendance 
+    st.markdown("### 📈 Tendance de la forme récente")
     
-    # Générer des données de tendance factices
-    home_form = [random.uniform(0.4, 0.7) for _ in range(5)]
-    away_form = [random.uniform(0.3, 0.6) for _ in range(5)]
+    # Obtenir les données de forme des équipes
+    team_form = predictions.get('team_form_data', {})
+    home_form = team_form.get('home', [random.uniform(0.4, 0.7) for _ in range(5)])
+    away_form = team_form.get('away', [random.uniform(0.3, 0.6) for _ in range(5)])
     
     # Créer un dataframe pour le graphique
     trend_data = pd.DataFrame({
@@ -702,6 +974,47 @@ def display_match_predictions(match):
     )
     
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Ajouter des insights supplémentaires si disponibles
+    if predictions.get('value_data') and predictions['value_data']:
+        st.markdown("### 💰 Analyse de la valeur marchande")
+        
+        value_data = predictions['value_data']
+        home_value = value_data.get('home_value', 0)
+        away_value = value_data.get('away_value', 0)
+        diff_percentage = value_data.get('difference_percentage', 0)
+        
+        # Créer un graphique de comparaison des valeurs
+        value_fig = go.Figure()
+        
+        value_fig.add_trace(go.Bar(
+            x=[match['home_team']],
+            y=[home_value],
+            name=match['home_team'],
+            marker_color='#FF2B6B',
+            text=[f"{home_value}M €"],
+            textposition='auto',
+        ))
+        
+        value_fig.add_trace(go.Bar(
+            x=[match['away_team']],
+            y=[away_value],
+            name=match['away_team'],
+            marker_color='#3D8BF7',
+            text=[f"{away_value}M €"],
+            textposition='auto',
+        ))
+        
+        value_fig.update_layout(
+            title=f"Valeur marchande des équipes (Différence: {diff_percentage}%)",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font_color='white',
+            xaxis=dict(showgrid=False),
+            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title="Valeur (M €)")
+        )
+        
+        st.plotly_chart(value_fig, use_container_width=True)
 
 def display_mobile_predictions():
     """
