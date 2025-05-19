@@ -5,7 +5,11 @@ Ce module remplace l'ancien système d'API Football avec une source plus fiable 
 
 import streamlit as st
 # Pour l'API ESPN Football
-import espn_api
+try:
+    from espn_api.football import Football
+except ImportError:
+    # Fallback pour éviter les erreurs d'importation
+    Football = None
 from datetime import datetime, timedelta
 import pandas as pd
 import logging
@@ -31,11 +35,18 @@ def get_espn_client():
     Initialise et retourne un client pour l'API ESPN.
     
     Returns:
-        Football: Instance du client ESPN Football
+        Football: Instance du client ESPN Football ou None
     """
     try:
+        # Vérifier que la classe Football est disponible
+        if Football is None:
+            logger.error("La classe Football n'est pas disponible. Utilisation des données de repli.")
+            return None
+        
         # Initialisation du client ESPN (sans besoin de credentials pour l'accès de base)
-        client = Football(year=2025)  # Utiliser l'année actuelle
+        # Utiliser l'année actuelle
+        current_year = datetime.now().year
+        client = Football(year=current_year)
         return client
     except Exception as e:
         logger.error(f"Erreur lors de l'initialisation du client ESPN: {str(e)}")
