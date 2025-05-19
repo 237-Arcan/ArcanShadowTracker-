@@ -766,8 +766,21 @@ def display_enhanced_predictions_tab():
         try:
             # L'ID de ligue doit être dans une liste pour leagues
             if 'id' in selected_league:
-                leagues = [selected_league['id']]
-                upcoming_matches = get_upcoming_matches(days_ahead=3, leagues=leagues)
+                leagues_param = [selected_league['id']]
+                upcoming_matches = get_upcoming_matches(days_ahead=3, leagues=leagues_param)
+                
+                # Filtrage supplémentaire pour s'assurer que tous les matchs appartiennent à la bonne ligue
+                filtered_matches = []
+                league_id = selected_league['id']
+                
+                for match in upcoming_matches:
+                    # Vérifier si le match appartient bien à la ligue sélectionnée
+                    if 'league_id' in match and match['league_id'] == league_id:
+                        filtered_matches.append(match)
+                    elif 'league' in match and 'id' in match['league'] and match['league']['id'] == league_id:
+                        filtered_matches.append(match)
+                
+                upcoming_matches = filtered_matches
             else:
                 upcoming_matches = get_upcoming_matches(days_ahead=3)
         except Exception as e:
