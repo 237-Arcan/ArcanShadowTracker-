@@ -1,7 +1,7 @@
 """
 Module pour l'onglet Prédictions d'ArcanShadow.
 Ce module fournit une analyse complète des matchs à venir avec des prédictions
-basées sur des données réelles de football.
+basées sur des données réelles de football, enrichies par l'API Transfermarkt.
 """
 
 import streamlit as st
@@ -14,6 +14,11 @@ import datetime
 from datetime import datetime, timedelta
 import random
 import time
+import logging
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Importer notre module adaptateur pour l'API ESPN
 from api.football_adapter import (
@@ -22,6 +27,14 @@ from api.football_adapter import (
     get_h2h_matches, 
     get_team_last_matches,
     get_available_leagues
+)
+
+# Importer notre module d'intégration Transfermarkt
+from api.transfermarkt_integration import (
+    is_transfermarkt_available,
+    enhance_match_data_with_transfermarkt,
+    get_team_players,
+    get_team_profile
 )
 
 # Fonction pour générer des probabilités pour un match
@@ -140,9 +153,10 @@ def generate_match_probabilities(match_id, home_team, away_team, home_team_id=No
         return None
 
 # Fonction pour générer des insights sur un match
-def generate_match_insights(home_team, away_team, home_stats={}, away_stats={}, h2h_data=[], has_detailed_data=False):
+def generate_match_insights(home_team, away_team, home_stats={}, away_stats={}, h2h_data=[], has_detailed_data=False, match_data=None):
     """
-    Génère des insights pour un match basés sur l'analyse des données réelles.
+    Génère des insights pour un match basés sur l'analyse des données réelles,
+    enrichis par les données de Transfermarkt lorsque disponibles.
     
     Args:
         home_team (str): Nom de l'équipe à domicile
@@ -151,6 +165,7 @@ def generate_match_insights(home_team, away_team, home_stats={}, away_stats={}, 
         away_stats (dict): Statistiques de l'équipe à l'extérieur
         h2h_data (list): Données des confrontations directes
         has_detailed_data (bool): Indique si des données détaillées sont disponibles
+        match_data (dict, optional): Données complètes du match pour accéder aux informations Transfermarkt
         
     Returns:
         list: Liste des insights générés
@@ -162,8 +177,95 @@ def generate_match_insights(home_team, away_team, home_stats={}, away_stats={}, 
         "Tendance",
         "Anomalie",
         "Facteur d'influence",
-        "Comparaison historique"
+        "Comparaison historique",
+        "Analyse Transfermarkt" # Nouveau type pour les insights basés sur Transfermarkt
     ]
+    
+    # Vérifier si des données Transfermarkt sont disponibles
+    transfermarkt_available = is_transfermarkt_available()
+    has_transfermarkt_data = False
+    transfermarkt_insights = []
+    
+    if transfermarkt_available and match_data:
+        # Récupérer les données Transfermarkt si elles existent
+        home_transfermarkt = match_data.get('home_team_transfermarkt_data', {})
+        away_transfermarkt = match_data.get('away_team_transfermarkt_data', {})
+        
+        # Vérifier si des données valides sont disponibles
+        if home_transfermarkt or away_transfermarkt:
+            has_transfermarkt_data = True
+            logger.info(f"Données Transfermarkt disponibles pour le match {home_team} vs {away_team}")
+            
+            # Analyser les données Transfermarkt pour générer des insights
+            home_team_id = match_data.get('home_team_id')
+            away_team_id = match_data.get('away_team_id')
+            
+            # Récupérer les joueurs des équipes si possible
+            if home_team_id:
+                try:
+                    home_players = get_team_players(home_team_id)
+                    if home_players and 'squad' in home_players:
+                        # Analyser l'effectif pour trouver des joueurs clés
+                        for player in home_players.get('squad', []):
+                            if isinstance(player, dict):
+                                # Identifier des joueurs à fort impact (valeur marchande élevée)
+                                market_value = player.get('market_value', 0)
+                                if isinstance(market_value, str):
+                                    try:
+                                        # Convertir en nombre
+                                        value_str = ''.join(c for c in market_value if c.isdigit() or c == '.')
+                                        if value_str:
+                                            market_value = float(value_str)
+                                        else:
+                                            market_value = 0
+                                    except:
+                                        market_value = 0
+                                
+                                # Si joueur à valeur élevée (plus de 30M)
+                                if market_value > 30:
+                                    transfermarkt_insights.append({
+                                        "type": "Analyse Transfermarkt",
+                                        "text": f"{player.get('name', 'Joueur inconnu')} ({home_team}) est un joueur clé avec une valeur marchande de {market_value}M€",
+                                        "confidence": 0.9,
+                                        "importance": 4
+                                    })
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse des joueurs de {home_team}: {e}")
+            
+            if away_team_id:
+                try:
+                    away_players = get_team_players(away_team_id)
+                    if away_players and 'squad' in away_players:
+                        # Analyser l'effectif pour trouver des joueurs clés
+                        for player in away_players.get('squad', []):
+                            if isinstance(player, dict):
+                                # Identifier des joueurs à fort impact (valeur marchande élevée)
+                                market_value = player.get('market_value', 0)
+                                if isinstance(market_value, str):
+                                    try:
+                                        # Convertir en nombre
+                                        value_str = ''.join(c for c in market_value if c.isdigit() or c == '.')
+                                        if value_str:
+                                            market_value = float(value_str)
+                                        else:
+                                            market_value = 0
+                                    except:
+                                        market_value = 0
+                                
+                                # Si joueur à valeur élevée (plus de 30M)
+                                if market_value > 30:
+                                    transfermarkt_insights.append({
+                                        "type": "Analyse Transfermarkt",
+                                        "text": f"{player.get('name', 'Joueur inconnu')} ({away_team}) est un joueur clé avec une valeur marchande de {market_value}M€",
+                                        "confidence": 0.9,
+                                        "importance": 4
+                                    })
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse des joueurs de {away_team}: {e}")
+            
+            # Ajouter les meilleurs insights Transfermarkt (limiter à 3 maximum)
+            transfermarkt_insights.sort(key=lambda x: x["importance"], reverse=True)
+            insights.extend(transfermarkt_insights[:3])
     
     # Si nous avons des données détaillées, générer des insights plus précis
     if has_detailed_data and home_stats and away_stats:
