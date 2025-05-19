@@ -1,12 +1,21 @@
 """
 BetTrapMap - Module de cartographie des pièges à mise dans l'écosystème des paris sportifs.
 Analyse les configurations propices aux trappes à parieurs et identifie les paris à éviter.
+Intègre des données réelles de Transfermarkt pour une analyse plus précise.
 """
 
 import random
 from datetime import datetime, timedelta
 import numpy as np
+import logging
 from collections import defaultdict
+
+# Intégration de l'adaptateur Transfermarkt
+from api.transfermarkt_adapter import TransfermarktAdapter
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class BetTrapMap:
     """
@@ -18,7 +27,17 @@ class BetTrapMap:
     """
     
     def __init__(self):
-        """Initialise le module BetTrapMap"""
+        """Initialise le module BetTrapMap avec l'adaptateur Transfermarkt"""
+        # Initialiser l'adaptateur Transfermarkt pour obtenir des données réelles
+        self.transfermarkt = TransfermarktAdapter()
+        logger.info("Initialisation de l'adaptateur Transfermarkt pour BetTrapMap")
+        self.use_real_data = self.transfermarkt.api_online
+        
+        if self.use_real_data:
+            logger.info("BetTrapMap utilisera les données réelles de Transfermarkt")
+        else:
+            logger.warning("API Transfermarkt non disponible, BetTrapMap utilisera des données simulées")
+        
         # Paramètres de détection
         self.detection_params = {
             'odds_anomaly_threshold': 0.2,       # Seuil d'anomalie dans les cotes
@@ -88,9 +107,136 @@ class BetTrapMap:
         # Historique des pièges détectés
         self.trap_history = []
         
+    def analyze_team_data(self, team_id):
+        """
+        Analyse les données d'une équipe à partir de Transfermarkt pour détecter des facteurs
+        pouvant influencer les pièges de paris.
+        
+        Args:
+            team_id (str): ID de l'équipe dans Transfermarkt
+            
+        Returns:
+            dict: Analyse des facteurs de l'équipe liés aux pièges
+        """
+        analysis = {
+            'team_id': team_id,
+            'timestamp': datetime.now().isoformat(),
+            'factors_analyzed': 0,
+            'key_factors': [],
+            'player_factors': [],
+            'team_stability': 0.0,
+            'consistency_score': 0.0,
+            'overall_trap_risk': 0.0
+        }
+        
+        # Récupérer les données de l'équipe seulement si l'API est disponible
+        if not self.use_real_data or not team_id:
+            analysis['error'] = "Impossible d'analyser l'équipe: données Transfermarkt non disponibles"
+            return analysis
+            
+        try:
+            # Récupérer le profil du club et ses joueurs
+            club_profile = self.transfermarkt.get_club_profile(team_id)
+            if 'status' in club_profile and club_profile['status'] == 'error':
+                analysis['error'] = f"Erreur lors de la récupération du profil du club: {club_profile.get('message', '')}"
+                return analysis
+                
+            club_players = self.transfermarkt.get_club_players(team_id)
+            if 'status' in club_players and club_players['status'] == 'error':
+                analysis['error'] = f"Erreur lors de la récupération des joueurs du club: {club_players.get('message', '')}"
+                return analysis
+                
+            # Extraire les informations clés du club
+            club_name = club_profile.get('name', 'Inconnu')
+            league = club_profile.get('league', 'Inconnue')
+            
+            analysis['team_name'] = club_name
+            analysis['league'] = league
+            
+            # Analyser la stabilité de l'équipe (basée sur les transferts récents)
+            squad = club_players.get('squad', [])
+            recent_transfers_count = 0
+            key_player_changes = 0
+            
+            for player in squad:
+                if isinstance(player, dict):
+                    # Vérifier si le joueur a été transféré récemment
+                    join_date = player.get('join_date')
+                    if join_date:
+                        try:
+                            # Format de date peut varier, essayer plusieurs formats
+                            try:
+                                join_datetime = datetime.strptime(join_date, '%Y-%m-%d')
+                            except:
+                                try:
+                                    join_datetime = datetime.strptime(join_date, '%d/%m/%Y')
+                                except:
+                                    join_datetime = datetime.strptime(join_date, '%b %d, %Y')
+                                
+                            # Considérer comme récent si moins de 3 mois
+                            if (datetime.now() - join_datetime).days <= 90:
+                                recent_transfers_count += 1
+                                
+                                # Si c'est un joueur clé (basé sur la valeur marchande ou le statut)
+                                market_value = player.get('market_value', 0)
+                                if isinstance(market_value, str):
+                                    try:
+                                        # Convertir en nombre
+                                        market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                                    except:
+                                        market_value = 0
+                                
+                                if market_value > 10000000:  # 10M+ = joueur clé
+                                    key_player_changes += 1
+                                    
+                                    # Ajouter aux facteurs de joueur
+                                    analysis['player_factors'].append({
+                                        'player_name': player.get('name', 'Inconnu'),
+                                        'transfer_type': 'arrivée',
+                                        'date': join_date,
+                                        'importance': min(1.0, market_value / 50000000),  # Normaliser sur 50M
+                                        'impact_description': "Nouveau joueur clé, peut affecter la dynamique d'équipe"
+                                    })
+                        except Exception as e:
+                            logger.warning(f"Erreur lors de l'analyse de la date de transfert: {e}")
+            
+            # Calculer le score de stabilité (inverse des changements récents)
+            team_size = len(squad) if squad else 25  # Valeur par défaut
+            stability_score = 1.0 - min(0.9, (recent_transfers_count / team_size) * 1.5)
+            consistency_score = 1.0 - min(0.9, (key_player_changes / 5) * 1.2)  # 5+ changements clés = instabilité majeure
+            
+            analysis['team_stability'] = stability_score
+            analysis['consistency_score'] = consistency_score
+            
+            # Ajouter aux facteurs clés
+            if recent_transfers_count > 0:
+                analysis['key_factors'].append({
+                    'factor_type': 'team_composition',
+                    'description': f"{recent_transfers_count} transferts récents",
+                    'impact_score': 1.0 - stability_score,
+                    'trap_correlation': 0.7 if key_player_changes > 2 else 0.4
+                })
+            
+            # Intégrer à l'analyse globale du risque de piège
+            factors_analyzed = 1  # Le facteur de stabilité
+            trap_risk = (1.0 - stability_score) * 0.6 + (1.0 - consistency_score) * 0.4
+            
+            # Finaliser l'analyse
+            analysis['factors_analyzed'] = factors_analyzed
+            analysis['overall_trap_risk'] = trap_risk
+            
+            logger.info(f"Analyse Transfermarkt complétée pour {club_name}: score de stabilité {stability_score:.2f}")
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de l'analyse des données d'équipe: {e}")
+            analysis['error'] = f"Erreur lors de l'analyse: {str(e)}"
+            
+        return analysis
+        
     def analyze_market_traps(self, match_data, odds_data=None, betting_volumes=None, historical_data=None):
         """
         Analyser les pièges potentiels sur tous les marchés d'un match.
+        Utilise les données de Transfermarkt pour enrichir l'analyse si disponibles.
         
         Args:
             match_data (dict): Données du match
@@ -116,8 +262,56 @@ class BetTrapMap:
             'market_analysis': {},             # Analyse par marché
             'safe_markets': [],                # Marchés considérés comme sûrs
             'high_risk_markets': [],           # Marchés à haut risque
-            'betting_recommendations': []      # Recommandations de paris
+            'betting_recommendations': [],     # Recommandations de paris
+            'team_analyses': {}                # Analyses des équipes (Transfermarkt)
         }
+        
+        # Enrichir avec des données Transfermarkt si possible
+        if self.use_real_data:
+            # Récupérer des données d'équipe si IDs disponibles
+            home_team_id = match_data.get('home_team_id')
+            away_team_id = match_data.get('away_team_id')
+            
+            if home_team_id:
+                try:
+                    logger.info(f"BetTrapMap: Analyse des données Transfermarkt pour l'équipe domicile {home_team_id}")
+                    home_analysis = self.analyze_team_data(home_team_id)
+                    if 'error' not in home_analysis:
+                        trap_analysis['team_analyses']['home'] = home_analysis
+                        logger.info(f"Analyse Transfermarkt intégrée pour {home_team}")
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse Transfermarkt pour {home_team}: {e}")
+            
+            if away_team_id:
+                try:
+                    logger.info(f"BetTrapMap: Analyse des données Transfermarkt pour l'équipe extérieure {away_team_id}")
+                    away_analysis = self.analyze_team_data(away_team_id)
+                    if 'error' not in away_analysis:
+                        trap_analysis['team_analyses']['away'] = away_analysis
+                        logger.info(f"Analyse Transfermarkt intégrée pour {away_team}")
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'analyse Transfermarkt pour {away_team}: {e}")
+                    
+            # Calculer un facteur d'instabilité d'équipe pour l'analyse des pièges
+            team_instability_factor = 0.0
+            teams_analyzed = 0
+            
+            if 'home' in trap_analysis['team_analyses']:
+                home_risk = trap_analysis['team_analyses']['home'].get('overall_trap_risk', 0.0)
+                team_instability_factor += home_risk
+                teams_analyzed += 1
+                
+            if 'away' in trap_analysis['team_analyses']:
+                away_risk = trap_analysis['team_analyses']['away'].get('overall_trap_risk', 0.0)
+                team_instability_factor += away_risk
+                teams_analyzed += 1
+                
+            if teams_analyzed > 0:
+                team_instability_factor /= teams_analyzed
+                trap_analysis['team_instability_factor'] = team_instability_factor
+                logger.info(f"Facteur d'instabilité d'équipe: {team_instability_factor:.2f}")
+        else:
+            logger.info("Analyse Transfermarkt non disponible pour ce match")
         
         # Obtenir ou simuler les données des cotes
         odds_data = odds_data or self._simulate_odds_data(home_team, away_team)

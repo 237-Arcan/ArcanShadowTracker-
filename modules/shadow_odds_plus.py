@@ -24,7 +24,17 @@ class ShadowOddsPlus:
     """
     
     def __init__(self):
-        """Initialise le module ShadowOdds+"""
+        """Initialise le module ShadowOdds+ avec l'adaptateur Transfermarkt"""
+        # Initialiser l'adaptateur Transfermarkt pour obtenir des données réelles
+        self.transfermarkt = TransfermarktAdapter()
+        logger.info("Initialisation de l'adaptateur Transfermarkt pour ShadowOddsPlus")
+        self.use_real_data = self.transfermarkt.api_online
+        
+        if self.use_real_data:
+            logger.info("ShadowOddsPlus utilisera les données réelles de Transfermarkt")
+        else:
+            logger.warning("API Transfermarkt non disponible, ShadowOddsPlus utilisera des données simulées")
+            
         # Paramètres de détection
         self.detection_parameters = {
             'asian_threshold': 0.15,        # Seuil pour les anomalies de cotes asiatiques
@@ -78,6 +88,7 @@ class ShadowOddsPlus:
     def analyze_asian_markets(self, match_data, odds_data=None):
         """
         Analyser les marchés de paris asiatiques pour un match.
+        Utilise les données de Transfermarkt pour une analyse plus précise.
         
         Args:
             match_data (dict): Données du match
@@ -86,6 +97,34 @@ class ShadowOddsPlus:
         Returns:
             dict: Analyse des marchés asiatiques
         """
+        # Enrichir les données du match avec Transfermarkt si possible
+        enriched_match_data = match_data.copy()
+        if self.use_real_data:
+            # Extraire les ID des équipes si disponibles
+            home_team_id = match_data.get('home_team_id')
+            away_team_id = match_data.get('away_team_id')
+            
+            # Enrichir les données des équipes
+            if home_team_id:
+                try:
+                    logger.info(f"ShadowOddsPlus: Récupération des données Transfermarkt pour l'équipe domicile {home_team_id}")
+                    home_team_data = self.transfermarkt.get_club_profile(home_team_id)
+                    if 'status' not in home_team_data or home_team_data['status'] != 'error':
+                        enriched_match_data['home_team_data'] = home_team_data
+                        logger.info(f"Données enrichies pour l'équipe domicile: {match_data.get('home_team')}")
+                except Exception as e:
+                    logger.error(f"Erreur lors de la récupération des données pour l'équipe domicile: {e}")
+            
+            if away_team_id:
+                try:
+                    logger.info(f"ShadowOddsPlus: Récupération des données Transfermarkt pour l'équipe extérieure {away_team_id}")
+                    away_team_data = self.transfermarkt.get_club_profile(away_team_id)
+                    if 'status' not in away_team_data or away_team_data['status'] != 'error':
+                        enriched_match_data['away_team_data'] = away_team_data
+                        logger.info(f"Données enrichies pour l'équipe extérieure: {match_data.get('away_team')}")
+                except Exception as e:
+                    logger.error(f"Erreur lors de la récupération des données pour l'équipe extérieure: {e}")
+        
         # Si aucune donnée de cotes n'est fournie, utiliser une structure par défaut
         if odds_data is None:
             odds_data = self._generate_default_odds_data()
@@ -269,9 +308,180 @@ class ShadowOddsPlus:
         
         return pattern_analysis
     
+    def analyze_transfer_impact(self, team_id, market_type=None):
+        """
+        Analyse l'impact des transferts de joueurs récents sur les cotes du marché.
+        Utilise les données de Transfermarkt pour identifier les transferts importants.
+        
+        Args:
+            team_id (str): ID de l'équipe dans Transfermarkt
+            market_type (str, optional): Type de marché à analyser spécifiquement
+            
+        Returns:
+            dict: Analyse de l'impact des transferts sur les cotes
+        """
+        analysis = {
+            'team_id': team_id,
+            'timestamp': datetime.now().isoformat(),
+            'transfers_analyzed': 0,
+            'significant_transfers': [],
+            'market_impact': {},
+            'overall_impact_score': 0.0
+        }
+        
+        # Récupérer les données de l'équipe seulement si l'API est disponible
+        if not self.use_real_data or not team_id:
+            analysis['error'] = "Impossible d'analyser les transferts: données non disponibles"
+            return analysis
+            
+        try:
+            # Récupérer le profil du club et ses joueurs
+            club_profile = self.transfermarkt.get_club_profile(team_id)
+            if 'status' in club_profile and club_profile['status'] == 'error':
+                analysis['error'] = f"Erreur lors de la récupération du profil du club: {club_profile.get('message', '')}"
+                return analysis
+                
+            club_players = self.transfermarkt.get_club_players(team_id)
+            if 'status' in club_players and club_players['status'] == 'error':
+                analysis['error'] = f"Erreur lors de la récupération des joueurs du club: {club_players.get('message', '')}"
+                return analysis
+                
+            # Identifier les transferts récents (selon les données disponibles)
+            recent_transfers = []
+            squad = club_players.get('squad', [])
+            
+            for player in squad:
+                if isinstance(player, dict):
+                    # Vérifier si le joueur a été transféré récemment
+                    join_date = player.get('join_date')
+                    if join_date:
+                        try:
+                            # Format de date peut varier, essayer plusieurs formats
+                            try:
+                                join_datetime = datetime.strptime(join_date, '%Y-%m-%d')
+                            except:
+                                try:
+                                    join_datetime = datetime.strptime(join_date, '%d/%m/%Y')
+                                except:
+                                    join_datetime = datetime.strptime(join_date, '%b %d, %Y')
+                                
+                            # Considérer comme récent si moins de 3 mois
+                            if (datetime.now() - join_datetime).days <= 90:
+                                transfer_info = {
+                                    'player_id': player.get('id', ''),
+                                    'player_name': player.get('name', 'Inconnu'),
+                                    'position': player.get('position', ''),
+                                    'join_date': join_date,
+                                    'market_value': player.get('market_value', 0)
+                                }
+                                
+                                # Normaliser la valeur marchande
+                                if isinstance(transfer_info['market_value'], str):
+                                    try:
+                                        # Convertir en nombre
+                                        transfer_info['market_value'] = float(''.join(c for c in transfer_info['market_value'] if c.isdigit() or c == '.'))
+                                    except:
+                                        transfer_info['market_value'] = 0
+                                        
+                                recent_transfers.append(transfer_info)
+                        except Exception as e:
+                            logger.warning(f"Erreur lors de l'analyse de la date de transfert: {e}")
+            
+            # Analyser l'impact de chaque transfert significatif
+            significant_transfers = []
+            total_impact = 0.0
+            
+            for transfer in recent_transfers:
+                # Calculer l'importance du transfert (basée sur la valeur marchande)
+                market_value = float(transfer.get('market_value', 0))
+                normalized_value = min(1.0, market_value / 50000000)  # 50M comme référence
+                
+                # L'impact dépend de la position et de la valeur
+                position = transfer.get('position', '').lower()
+                position_factor = 1.0
+                
+                if 'gardien' in position:
+                    position_factor = 0.9  # Impact important mais sur des marchés spécifiques
+                elif 'défens' in position:
+                    position_factor = 0.85  # Impact sur les marchés défensifs
+                elif 'milieu' in position:
+                    position_factor = 0.95  # Impact équilibré sur plusieurs marchés
+                elif 'attaquant' in position:
+                    position_factor = 1.1  # Impact très fort sur les marchés offensifs
+                
+                impact_score = normalized_value * position_factor
+                
+                # Si le transfert est significatif (score > 0.3)
+                if impact_score > 0.3:
+                    transfer_impact = transfer.copy()
+                    transfer_impact['impact_score'] = impact_score
+                    transfer_impact['affected_markets'] = self._predict_affected_markets(position)
+                    
+                    significant_transfers.append(transfer_impact)
+                    total_impact += impact_score
+            
+            # Finaliser l'analyse
+            analysis['transfers_analyzed'] = len(recent_transfers)
+            analysis['significant_transfers'] = significant_transfers
+            analysis['overall_impact_score'] = min(1.0, total_impact / max(1, len(significant_transfers)))
+            
+            # Analyse par marché
+            market_impacts = {}
+            for market in self.asian_markets:
+                market_impact = 0.0
+                for transfer in significant_transfers:
+                    if market in transfer.get('affected_markets', []):
+                        market_impact += transfer['impact_score'] * 0.8
+                
+                if market_impact > 0.2:
+                    market_impacts[market] = {
+                        'impact_score': market_impact,
+                        'affected_by_transfers': [t['player_name'] for t in significant_transfers if market in t.get('affected_markets', [])]
+                    }
+            
+            analysis['market_impact'] = market_impacts
+            
+            logger.info(f"Analyse des transferts complétée pour l'équipe {team_id}: {len(significant_transfers)} transferts significatifs identifiés")
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de l'analyse des transferts: {e}")
+            analysis['error'] = f"Erreur lors de l'analyse: {str(e)}"
+            
+        return analysis
+    
+    def _predict_affected_markets(self, position):
+        """
+        Prédit les marchés de paris qui seront le plus affectés par un transfert
+        selon la position du joueur.
+        
+        Args:
+            position (str): Position du joueur
+            
+        Returns:
+            list: Liste des marchés potentiellement affectés
+        """
+        position = position.lower()
+        affected_markets = []
+        
+        # Marchés communs affectés par tous les transferts
+        affected_markets.append('asian_handicap')
+        
+        # Marchés spécifiques selon la position
+        if 'gardien' in position or 'défens' in position:
+            affected_markets.extend(['over_under_asian', 'team_goals_asian'])
+        
+        if 'milieu' in position:
+            affected_markets.extend(['asian_corners', 'first_half_asian'])
+            
+        if 'attaquant' in position:
+            affected_markets.extend(['over_under_asian', 'team_goals_asian', 'first_half_asian'])
+            
+        return affected_markets
+        
     def get_historical_insights(self, team_name, market_type=None, limit=10):
         """
         Obtenir des insights historiques pour une équipe ou un marché spécifique.
+        Peut être enrichi avec des données de Transfermarkt si disponibles.
         
         Args:
             team_name (str): Nom de l'équipe
