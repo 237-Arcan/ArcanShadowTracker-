@@ -71,7 +71,7 @@ except ImportError:
     ADVANCED_INSIGHTS_AVAILABLE = False
 
 # Fonction pour générer des probabilités pour un match avec données enrichies
-def generate_enhanced_match_probabilities(match_id, home_team, away_team, home_team_id=None, away_team_id=None, league_id=None):
+def generate_enhanced_match_probabilities(match_id, home_team, away_team, home_team_id=None, away_team_id=None, leagues=None, league_id=None):
     """
     Génère des probabilités avancées pour un match spécifique en utilisant toutes les sources
     de données disponibles (Transfermarkt, soccerdata, détails des joueurs et managers).
@@ -726,7 +726,17 @@ def display_enhanced_predictions_tab():
     
     # Récupérer les matchs à venir pour cette ligue
     try:
-        upcoming_matches = get_upcoming_matches(days_ahead=3, league_id=selected_league['id'])
+        # Récupérer les matchs à venir avec le bon paramètre (leagues) compatible avec l'API
+        try:
+            # L'ID de ligue doit être dans une liste pour leagues
+            if 'id' in selected_league:
+                leagues = [selected_league['id']]
+                upcoming_matches = get_upcoming_matches(days_ahead=3, leagues=leagues)
+            else:
+                upcoming_matches = get_upcoming_matches(days_ahead=3)
+        except Exception as e:
+            st.error(f"Erreur lors de la récupération des matchs : {e}")
+            upcoming_matches = []
         
         if not upcoming_matches:
             st.warning("Aucun match à venir pour cette ligue dans les prochains jours.")
@@ -762,22 +772,24 @@ def display_enhanced_predictions_tab():
     
     # Utiliser la version améliorée si disponible
     if DATA_HUB_AVAILABLE:
+        leagues = [selected_league['id']] if 'id' in selected_league else None
         probabilities = generate_enhanced_match_probabilities(
             match_id=selected_match['id'],
             home_team=selected_match['home_team'],
             away_team=selected_match['away_team'],
             home_team_id=selected_match.get('home_team_id'),
             away_team_id=selected_match.get('away_team_id'),
-            league_id=selected_league['id']
+            leagues=leagues
         )
     else:
+        leagues = [selected_league['id']] if 'id' in selected_league else None
         probabilities = generate_match_probabilities(
             match_id=selected_match['id'],
             home_team=selected_match['home_team'],
             away_team=selected_match['away_team'],
             home_team_id=selected_match.get('home_team_id'),
             away_team_id=selected_match.get('away_team_id'),
-            league_id=selected_league['id']
+            leagues=leagues
         )
     
     # Afficher le graphique des probabilités

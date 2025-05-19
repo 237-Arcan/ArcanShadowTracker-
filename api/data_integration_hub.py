@@ -103,21 +103,44 @@ class DataIntegrationHub:
         
         return sources
     
-    def get_upcoming_matches(self, days_ahead=3, leagues=None):
+    def get_upcoming_matches(self, days_ahead=3, leagues=None, league_id=None, days=None, **kwargs):
         """
         Récupère les matchs à venir depuis l'API Football.
-        Cette méthode redirige vers la fonction dans le module football_data.
+        Cette méthode adapte les différentes façons d'appeler la fonction
+        pour être compatible avec tous les modules.
         
         Args:
             days_ahead (int): Nombre de jours à l'avance à considérer
             leagues (list): Liste des IDs de ligues à inclure
+            league_id (int): ID de ligue unique (converti en liste si fourni)
+            days (int): Alias pour days_ahead pour compatibilité
+            **kwargs: Paramètres supplémentaires ignorés pour compatibilité
             
         Returns:
             list: Liste des matchs à venir
         """
         # Importer ici pour éviter les imports circulaires
         from api.football_data import get_upcoming_matches as get_matches
-        return get_matches(days_ahead=days_ahead, leagues=leagues)
+        
+        # Adapter les paramètres pour la compatibilité
+        if days is not None:
+            days_ahead = days
+        
+        # Si league_id est fourni, le convertir en liste pour leagues
+        if league_id is not None:
+            if leagues is None:
+                leagues = [league_id]
+            else:
+                # Si leagues existe déjà, ajouter league_id s'il n'est pas déjà présent
+                if league_id not in leagues:
+                    leagues.append(league_id)
+        
+        try:
+            # Appel à la fonction en n'utilisant que les paramètres valides
+            return get_matches(days_ahead=days_ahead, leagues=leagues)
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des matchs à venir: {e}")
+            return []
     
     def enhance_match_data(self, match_data):
         """
