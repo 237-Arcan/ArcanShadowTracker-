@@ -10,8 +10,9 @@ import matplotlib.pyplot as plt
 import requests
 import random
 
-# Importer notre nouveau module pour les prédictions
+# Importer nos modules pour les différents onglets
 from predictions_tab import display_predictions_tab
+from daily_combo_tab import display_daily_combo_tab
 
 # Fonction pour charger le CSS personnalisé
 def load_custom_css():
@@ -164,8 +165,12 @@ st.markdown(f"### {t('welcome_message')}")
 # Créer les onglets pour la nouvelle version d'ArcanShadow
 tabs = st.tabs([
     "🔮 Prédictions",
+    "🎯 Daily Combo"
 ])
 
-# Pour l'instant, nous n'avons qu'un seul onglet - Prédictions
+# Affichage des onglets
 with tabs[0]:
     display_predictions_tab()
+    
+with tabs[1]:
+    display_daily_combo_tab()
