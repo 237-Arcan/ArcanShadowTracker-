@@ -21,14 +21,35 @@ from daily_combo_tab import display_daily_combo_tab
 from learning_system_tab import display_learning_system_tab
 from notifications_tab import display_notifications_tab
 
-# Import des versions améliorées 
-# (ces imports ne seront pas utilisés si les versions améliorées sont accessibles via le gestionnaire)
+# Import des versions améliorées
+try:
+    # Import direct des modules améliorés
+    from predictions_tab_enhanced import display_enhanced_predictions_tab
+    DIRECT_ENHANCED_PREDICTIONS_AVAILABLE = True
+except ImportError:
+    DIRECT_ENHANCED_PREDICTIONS_AVAILABLE = False
+    display_enhanced_predictions_tab = None
+    
 try:
     from daily_combo_tab_enhanced import display_enhanced_daily_combo_tab
-    from learning_system_tab_enhanced import display_enhanced_learning_system_tab
-    from notifications_tab_enhanced import display_enhanced_notifications_tab
+    DIRECT_ENHANCED_DAILY_COMBO_AVAILABLE = True
 except ImportError:
-    pass
+    DIRECT_ENHANCED_DAILY_COMBO_AVAILABLE = False
+    display_enhanced_daily_combo_tab = None
+    
+try:
+    from learning_system_tab_enhanced import display_enhanced_learning_system_tab
+    DIRECT_ENHANCED_LEARNING_SYSTEM_AVAILABLE = True
+except ImportError:
+    DIRECT_ENHANCED_LEARNING_SYSTEM_AVAILABLE = False
+    display_enhanced_learning_system_tab = None
+    
+try:
+    from notifications_tab_enhanced import display_enhanced_notifications_tab
+    DIRECT_ENHANCED_NOTIFICATIONS_AVAILABLE = True
+except ImportError:
+    DIRECT_ENHANCED_NOTIFICATIONS_AVAILABLE = False
+    display_enhanced_notifications_tab = None
 
 # Importer le module d'intégration des composants enrichis
 try:
@@ -40,11 +61,11 @@ try:
     components_summary = enhanced_components.get_available_components_summary()
     logger.info(f"Composants enrichis disponibles: {components_summary}")
     
-    # Vérifier si les composants spécifiques sont disponibles
-    ENHANCED_PREDICTIONS_AVAILABLE = enhanced_components.is_enhanced('predictions_tab')
-    ENHANCED_DAILY_COMBO_AVAILABLE = enhanced_components.is_enhanced('daily_combo_tab')
-    ENHANCED_LEARNING_SYSTEM_AVAILABLE = enhanced_components.is_enhanced('learning_system_tab')
-    ENHANCED_NOTIFICATIONS_AVAILABLE = enhanced_components.is_enhanced('notifications_tab')
+    # Vérifier si les composants spécifiques sont disponibles via le gestionnaire
+    ENHANCED_PREDICTIONS_AVAILABLE = enhanced_components.is_enhanced('predictions_tab') and DIRECT_ENHANCED_PREDICTIONS_AVAILABLE
+    ENHANCED_DAILY_COMBO_AVAILABLE = enhanced_components.is_enhanced('daily_combo_tab') and DIRECT_ENHANCED_DAILY_COMBO_AVAILABLE
+    ENHANCED_LEARNING_SYSTEM_AVAILABLE = enhanced_components.is_enhanced('learning_system_tab') and DIRECT_ENHANCED_LEARNING_SYSTEM_AVAILABLE
+    ENHANCED_NOTIFICATIONS_AVAILABLE = enhanced_components.is_enhanced('notifications_tab') and DIRECT_ENHANCED_NOTIFICATIONS_AVAILABLE
     ENHANCED_BET_TRAP_MAP_AVAILABLE = enhanced_components.is_enhanced('bet_trap_map')
     ENHANCED_SHADOW_ODDS_PLUS_AVAILABLE = enhanced_components.is_enhanced('shadow_odds_plus')
     ENHANCED_SENTIMENT_AVAILABLE = enhanced_components.is_enhanced('fan_sentiment_monitor')
