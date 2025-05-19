@@ -833,7 +833,10 @@ class BetTrapMap:
         return strategy
     
     def _analyze_market(self, market_name, market_odds, betting_volumes, historical_data, match_data):
-        """Analyser un marché spécifique pour détecter les pièges potentiels."""
+        """
+        Analyser un marché spécifique pour détecter les pièges potentiels.
+        Utilise les données de Transfermarkt pour enrichir l'analyse si disponibles.
+        """
         # Base de l'analyse
         market_analysis = {
             'market': market_name,
@@ -845,8 +848,81 @@ class BetTrapMap:
             'warning_signs': [],
             'safety_indicators': [],
             'market_safety_score': 0.5,  # Score par défaut
-            'betting_advice': ''
+            'betting_advice': '',
+            'transfermarkt_insights': []  # Insights issus des données Transfermarkt
         }
+        
+        # Incorporer les facteurs d'instabilité d'équipe de Transfermarkt si disponibles
+        team_analyses = match_data.get('team_analyses', {})
+        
+        if team_analyses and self.use_real_data:
+            # Extraire les facteurs clés des analyses d'équipe qui peuvent affecter ce marché
+            for team_position, team_analysis in team_analyses.items():
+                team_name = team_analysis.get('team_name', f"Équipe {team_position}")
+                
+                # Vérifier si des facteurs clés existent
+                for factor in team_analysis.get('key_factors', []):
+                    factor_type = factor.get('factor_type')
+                    impact_score = factor.get('impact_score', 0.0)
+                    
+                    # Déterminer si ce facteur affecte ce marché spécifique
+                    affects_market = False
+                    
+                    # Logique de correspondance entre facteurs d'équipe et marchés
+                    if factor_type == 'team_composition':
+                        # Les changements de composition affectent presque tous les marchés
+                        affects_market = True
+                    elif 'player_rotation' in factor_type and ('goals' in market_name.lower() or 'score' in market_name.lower()):
+                        # La rotation des joueurs affecte principalement les marchés de buts
+                        affects_market = True
+                    elif 'injuries' in factor_type and market_name.lower() in ['asian_handicap', '1x2', 'over_under']:
+                        # Les blessures affectent les marchés principaux
+                        affects_market = True
+                    
+                    # Si ce facteur affecte ce marché, ajouter un insight et ajuster l'analyse
+                    if affects_market and impact_score > 0.2:
+                        insight = {
+                            'team': team_name,
+                            'factor': factor.get('description', factor_type),
+                            'impact': impact_score,
+                            'relevance': 'haute' if impact_score > 0.6 else 'moyenne'
+                        }
+                        market_analysis['transfermarkt_insights'].append(insight)
+                        
+                        # Ajouter un avertissement si l'impact est significatif
+                        if impact_score > 0.5:
+                            warning = f"Attention: {factor.get('description')} pour {team_name} peut créer une incertitude sur ce marché"
+                            market_analysis['warning_signs'].append(warning)
+                            
+                            # Ajuster la détection de piège
+                            # Les facteurs d'équipe augmentent la probabilité de piège
+                            trap_contribution = impact_score * factor.get('trap_correlation', 0.5)
+                            market_analysis['detection_confidence'] += trap_contribution / 4  # Impact modéré
+                
+                # Vérifier les facteurs de joueur spécifiques
+                for player_factor in team_analysis.get('player_factors', []):
+                    player_name = player_factor.get('player_name', 'Joueur inconnu')
+                    importance = player_factor.get('importance', 0.0)
+                    
+                    # Si c'est un joueur important, il peut affecter le marché
+                    if importance > 0.4:
+                        insight = {
+                            'team': team_name,
+                            'player': player_name,
+                            'factor': player_factor.get('impact_description', 'Transfert récent'),
+                            'importance': importance
+                        }
+                        market_analysis['transfermarkt_insights'].append(insight)
+                        
+                        # Pour les joueurs très importants, ajouter un avertissement
+                        if importance > 0.7:
+                            warning = f"Joueur clé {player_name} récemment transféré à {team_name}"
+                            market_analysis['warning_signs'].append(warning)
+            
+            # Intégrer le facteur d'instabilité global dans l'analyse
+            if 'team_instability_factor' in match_data and match_data['team_instability_factor'] > 0.4:
+                market_analysis['warning_signs'].append(f"Instabilité d'équipe détectée (facteur: {match_data['team_instability_factor']:.2f})")
+                market_analysis['detection_confidence'] += match_data['team_instability_factor'] * 0.3
         
         # Extraire les données historiques de cotes si disponibles
         historical_odds = historical_data.get('odds_history', [])
