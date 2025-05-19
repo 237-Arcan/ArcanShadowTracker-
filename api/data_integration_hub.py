@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import time
+import importlib
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -38,15 +39,28 @@ class DataIntegrationHub:
         self._init_football_api()
         self._init_transfermarkt()
         self._init_soccerdata()
+        self._init_time_module()
         
         # Variables de suivi des sources
         self.sources_status = {
             'football_api': self._check_football_api(),
             'transfermarkt': False,
-            'soccerdata': False
+            'soccerdata': False,
+            'time_module': self.time_module is not None
         }
         
         logger.info(f"Hub d'intégration initialisé. Sources disponibles: {self.sources_status}")
+        
+    def _init_time_module(self):
+        """Initialise le module de temps intégré"""
+        try:
+            # Importer dynamiquement le module de temps
+            from api.modules.time_module import TimeModule
+            self.time_module = TimeModule()
+            logger.info("Module de temps initialisé avec succès")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'initialisation du module de temps: {e}")
+            self.time_module = None
     
     def _init_football_api(self):
         """Initialise la connexion à l'API Football"""
@@ -218,6 +232,132 @@ class DataIntegrationHub:
                 matches.append(match)
         
         return matches
+    
+    # Méthodes d'interface pour le module de temps
+    def get_upcoming_days_formatted(self, count=7):
+        """
+        Obtient une liste formatée des prochains jours pour l'interface utilisateur
+        
+        Args:
+            count (int): Nombre de jours à inclure
+            
+        Returns:
+            list: Liste de dictionnaires avec les informations de jours formatées
+        """
+        if self.time_module:
+            return self.time_module.get_upcoming_days(count)
+        else:
+            # Version simplifiée si le module n'est pas disponible
+            days = []
+            today = datetime.now().date()
+            
+            for i in range(count):
+                current_date = today + timedelta(days=i)
+                days.append({
+                    "date": current_date.isoformat(),
+                    "day": current_date.day,
+                    "month": current_date.month,
+                    "formatted_date": f"{current_date.day}/{current_date.month}"
+                })
+            
+            return days
+    
+    def enhance_matches_with_time_info(self, matches):
+        """
+        Enrichit une liste de matchs avec des informations temporelles
+        
+        Args:
+            matches (list): Liste de dictionnaires représentant des matchs
+            
+        Returns:
+            list: Matchs enrichis avec des informations temporelles
+        """
+        if not self.time_module:
+            return matches
+        
+        enhanced_matches = []
+        for match in matches:
+            enhanced_match = self.time_module.enhance_match_data_with_time_info(match)
+            enhanced_matches.append(enhanced_match)
+        
+        return enhanced_matches
+    
+    def group_matches_by_time_windows(self, matches):
+        """
+        Regroupe les matchs par fenêtres temporelles
+        
+        Args:
+            matches (list): Liste de matchs
+            
+        Returns:
+            dict: Matchs regroupés par créneaux horaires
+        """
+        if self.time_module:
+            return self.time_module.group_matches_by_time_slots(matches)
+        else:
+            # Version simplifiée si le module n'est pas disponible
+            return {"all": matches}
+    
+    def get_prime_time_matches(self, matches):
+        """
+        Filtre les matchs pour ne conserver que ceux en prime time
+        
+        Args:
+            matches (list): Liste de matchs
+            
+        Returns:
+            list: Matchs en prime time
+        """
+        if self.time_module:
+            return self.time_module.get_prime_time_matches(matches)
+        else:
+            return matches
+    
+    def format_match_time(self, match_datetime, format_type=None):
+        """
+        Formate l'heure d'un match selon les préférences
+        
+        Args:
+            match_datetime: Date et heure du match
+            format_type: Type de format
+            
+        Returns:
+            str: Heure formatée
+        """
+        if self.time_module:
+            return self.time_module.format_match_time(match_datetime, format_type)
+        else:
+            # Version simplifiée
+            if isinstance(match_datetime, str):
+                try:
+                    match_datetime = datetime.fromisoformat(match_datetime.replace('Z', '+00:00'))
+                except:
+                    return match_datetime
+            
+            return match_datetime.strftime("%H:%M")
+    
+    def format_match_date(self, match_datetime, format_type="full"):
+        """
+        Formate la date d'un match selon le format spécifié
+        
+        Args:
+            match_datetime: Date et heure du match
+            format_type: Type de format
+            
+        Returns:
+            str: Date formatée
+        """
+        if self.time_module:
+            return self.time_module.format_match_date(match_datetime, format_type)
+        else:
+            # Version simplifiée
+            if isinstance(match_datetime, str):
+                try:
+                    match_datetime = datetime.fromisoformat(match_datetime.replace('Z', '+00:00'))
+                except:
+                    return match_datetime
+            
+            return match_datetime.strftime("%d/%m/%Y")
     
     def _generate_simulated_matches(self, days_ahead=7, leagues=None, start_date=None):
         """
