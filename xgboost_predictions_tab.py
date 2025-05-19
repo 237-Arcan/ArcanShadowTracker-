@@ -30,6 +30,9 @@ from api.football_adapter import (
     get_available_leagues
 )
 
+# Importer notre nouveau module de sélecteur de date amélioré
+from mobile_time_selector import generate_enhanced_date_selector, generate_standard_date_selector
+
 # Import pour Transfermarkt (pour compatibilité)
 try:
     from api.transfermarkt_integration import (
@@ -1003,45 +1006,39 @@ def display_mobile_style_interface():
         </div>
     """, unsafe_allow_html=True)
     
-    # Initialiser la session_state
-    if 'selected_date_idx' not in st.session_state:
-        st.session_state.selected_date_idx = 0
+    # Initialiser la session_state pour les dates
+    if 'selected_date' not in st.session_state:
+        st.session_state.selected_date = datetime.now().date()
     
-    # Créer un sélecteur de dates sur 7 jours
-    today = datetime.now()
-    date_options = []
-    
-    # Générer les options de date pour les 7 prochains jours
-    for i in range(7):
-        day = today + timedelta(days=i)
-        date_options.append({
-            "date": day.date(),
-            "label": "AUJOURD'HUI" if i == 0 else "DEMAIN" if i == 1 else day.strftime("%a").upper(),
-            "day": day.strftime("%d"),
-            "month": day.strftime("%m")
-        })
-    
-    # Générer le HTML pour le sélecteur de dates
-    date_selector_html = '<div class="date-selector">'
-    for i, date_opt in enumerate(date_options):
-        active_class = "date-active" if i == st.session_state.selected_date_idx else "date-inactive"
-        date_selector_html += f'<div class="date-item {active_class}" id="date_{i}">{date_opt["label"]}<br>{date_opt["day"]}.{date_opt["month"]}</div>'
-    date_selector_html += '</div>'
-    
-    st.markdown(date_selector_html, unsafe_allow_html=True)
-    
-    # Pour la démo, permettre à l'utilisateur de sélectionner une date avec un select standard
-    selected_date_idx = st.selectbox(
-        "Sélectionner une date",
-        range(len(date_options)),
-        format_func=lambda i: f"{date_options[i]['label']} {date_options[i]['day']}.{date_options[i]['month']}",
-        index=st.session_state.selected_date_idx,
-        key="date_select"
-    )
-    
-    # Mettre à jour la date sélectionnée
-    st.session_state.selected_date_idx = selected_date_idx
-    selected_date = date_options[selected_date_idx]["date"]
+    # Utiliser le hub central et le module de temps pour le sélecteur de date amélioré
+    try:
+        # Tenter d'utiliser le hub d'intégration avec le module temps
+        if DATA_HUB_AVAILABLE and data_hub.sources_status.get('time_module', False):
+            logger.info("Utilisation du sélecteur de date amélioré avec module de temps central")
+            generate_enhanced_date_selector(data_hub, days_count=7)
+            
+            # Afficher un badge montrant l'utilisation du module temporel avancé
+            st.markdown("""
+                <div style="display: inline-block; background-color: #5B21B6; color: white; 
+                font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 10px;">
+                🕒 Module de temps intelligent activé
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Utiliser le sélecteur standard mais avec l'interface mobile
+            logger.info("Utilisation du sélecteur de date standard (module de temps non disponible)")
+            generate_standard_date_selector(days_count=7)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'utilisation du sélecteur de date amélioré: {e}")
+        
+        # Fallback à un sélecteur très simple en cas d'erreur
+        selected_date = st.date_input(
+            "Sélectionner une date:",
+            value=st.session_state.selected_date,
+            key="fallback_date_selector"
+        )
+        st.session_state.selected_date = selected_date
     
     # Récupérer tous les matchs à venir via le hub d'intégration si disponible
     if HUB_AVAILABLE and hub:
