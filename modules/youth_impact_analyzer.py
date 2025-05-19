@@ -1,6 +1,7 @@
 """
 YouthImpactAnalyzer - Module d'analyse de l'influence des jeunes joueurs.
 Évalue l'impact potentiel et réel des jeunes talents sur les performances d'une équipe.
+Intègre les données de Transfermarkt pour des analyses plus précises.
 """
 
 import numpy as np
@@ -8,7 +9,15 @@ import random
 from datetime import datetime, timedelta
 import json
 import os
+import logging
 from collections import deque
+
+# Intégration de l'adaptateur Transfermarkt
+from api.transfermarkt_adapter import TransfermarktAdapter
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class YouthImpactAnalyzer:
     """
@@ -17,7 +26,17 @@ class YouthImpactAnalyzer:
     """
     
     def __init__(self):
-        """Initialise le module YouthImpactAnalyzer."""
+        """Initialise le module YouthImpactAnalyzer avec l'adaptateur Transfermarkt."""
+        # Initialiser l'adaptateur Transfermarkt pour obtenir des données réelles
+        self.transfermarkt = TransfermarktAdapter()
+        logger.info("Initialisation de l'adaptateur Transfermarkt pour YouthImpactAnalyzer")
+        self.use_real_data = self.transfermarkt.api_online
+        
+        if self.use_real_data:
+            logger.info("YouthImpactAnalyzer utilisera les données réelles de Transfermarkt")
+        else:
+            logger.warning("API Transfermarkt non disponible, YouthImpactAnalyzer utilisera des données simulées")
+        
         # Définition des âges pour les catégories de jeunes joueurs
         self.youth_categories = {
             'prodigy': {'min_age': 16, 'max_age': 18},  # Prodiges (16-18 ans)
@@ -87,6 +106,7 @@ class YouthImpactAnalyzer:
     def analyze_youth_impact(self, team_data, match_data=None):
         """
         Analyser l'impact des jeunes joueurs sur une équipe.
+        Utilise les données réelles de Transfermarkt si disponibles.
         
         Args:
             team_data (dict): Données de l'équipe et de ses joueurs
@@ -95,6 +115,32 @@ class YouthImpactAnalyzer:
         Returns:
             dict: Analyse de l'impact des jeunes joueurs
         """
+        # Enrichir les données d'équipe avec Transfermarkt si possible
+        if self.use_real_data and 'id' in team_data:
+            try:
+                team_id = team_data.get('id')
+                logger.info(f"Récupération des données Transfermarkt pour l'équipe {team_id}")
+                
+                # Récupérer le profil de l'équipe
+                club_profile = self.transfermarkt.get_club_profile(team_id)
+                if 'status' not in club_profile or club_profile['status'] != 'error':
+                    # Fusionner les données de profil
+                    for key, value in club_profile.items():
+                        if key not in team_data:
+                            team_data[key] = value
+                    
+                    # Récupérer les joueurs de l'équipe
+                    club_players = self.transfermarkt.get_club_players(team_id)
+                    if 'status' not in club_players or club_players['status'] != 'error':
+                        # Remplacer la liste des joueurs si disponible
+                        if 'squad' in club_players and club_players['squad']:
+                            team_data['squad'] = club_players['squad']
+                            logger.info(f"Données de joueurs enrichies avec Transfermarkt: {len(team_data['squad'])} joueurs")
+                
+            except Exception as e:
+                logger.error(f"Erreur lors de l'enrichissement des données avec Transfermarkt: {e}")
+                # Continuer avec les données existantes
+        
         # Extraire les données pertinentes
         team_name = team_data.get('name', '')
         squad = team_data.get('squad', [])
@@ -192,6 +238,7 @@ class YouthImpactAnalyzer:
     def predict_youth_development(self, player_data, projection_months=6):
         """
         Prédire le développement d'un jeune joueur sur une période donnée.
+        Utilise les données réelles de Transfermarkt pour une prédiction plus précise.
         
         Args:
             player_data (dict): Données du joueur
@@ -200,6 +247,39 @@ class YouthImpactAnalyzer:
         Returns:
             dict: Prédiction du développement
         """
+        # Enrichir les données du joueur avec Transfermarkt si possible
+        if self.use_real_data and 'id' in player_data:
+            try:
+                player_id = player_data.get('id')
+                logger.info(f"Récupération des données Transfermarkt pour le joueur {player_id}")
+                
+                # Récupérer le profil du joueur
+                player_profile = self.transfermarkt.get_player_profile(player_id)
+                if 'status' not in player_profile or player_profile['status'] != 'error':
+                    # Fusionner les données de profil
+                    for key, value in player_profile.items():
+                        if key not in player_data:
+                            player_data[key] = value
+                    
+                    # Exploiter les informations spécifiques de Transfermarkt
+                    if 'market_value' in player_profile:
+                        # La valeur marchande peut indiquer le potentiel du joueur
+                        market_value = player_profile.get('market_value', 0)
+                        if not player_data.get('potential_ability'):
+                            # Calculer un potentiel basé sur la valeur marchande et l'âge
+                            age_factor = 1.5 if player_data.get('age', 20) < 19 else 1.0
+                            # Normaliser la valeur marchande (supposons 50M = 1.0)
+                            normalized_value = min(1.0, market_value / 50000000) * age_factor
+                            player_data['potential_ability'] = normalized_value
+                            
+                    # Autres attributs utiles de Transfermarkt
+                    if 'stats' in player_profile:
+                        player_data['transfermarkt_stats'] = player_profile['stats']
+                
+            except Exception as e:
+                logger.error(f"Erreur lors de l'enrichissement des données de joueur avec Transfermarkt: {e}")
+                # Continuer avec les données existantes
+        
         # Extraire les informations du joueur
         player_id = player_data.get('id', '')
         player_name = player_data.get('name', '')
@@ -410,9 +490,89 @@ class YouthImpactAnalyzer:
         
         return result
     
+    def find_top_youth_talents(self, competition_id=None, age_max=23, limit=10):
+        """
+        Recherche les meilleurs jeunes talents dans une compétition donnée.
+        Utilise les données réelles de Transfermarkt quand elles sont disponibles.
+        
+        Args:
+            competition_id (str): ID de la compétition à analyser (Transfermarkt)
+            age_max (int): Âge maximum pour considérer un joueur comme jeune (défaut: 23)
+            limit (int): Nombre maximum de joueurs à retourner
+            
+        Returns:
+            list: Liste des meilleurs jeunes talents identifiés
+        """
+        top_talents = []
+        
+        if self.use_real_data and competition_id:
+            try:
+                logger.info(f"Recherche des meilleurs jeunes talents dans la compétition {competition_id}")
+                
+                # Récupérer les clubs de la compétition
+                competition_clubs = self.transfermarkt.get_competition_clubs(competition_id)
+                if 'status' not in competition_clubs or competition_clubs['status'] != 'error':
+                    clubs = competition_clubs.get('clubs', [])
+                    
+                    # Pour chaque club, analyser les jeunes joueurs
+                    all_young_players = []
+                    
+                    for club in clubs:
+                        club_id = club.get('id')
+                        if not club_id:
+                            continue
+                            
+                        # Récupérer les joueurs du club
+                        club_players = self.transfermarkt.get_club_players(club_id)
+                        if 'status' not in club_players or club_players['status'] != 'error':
+                            players = club_players.get('squad', [])
+                            
+                            # Filtrer les jeunes joueurs
+                            for player in players:
+                                player_age = player.get('age', 30)
+                                if player_age <= age_max:
+                                    # Ajouter le club au joueur
+                                    player['club'] = club.get('name', '')
+                                    player['club_id'] = club_id
+                                    
+                                    # Calculer un score basé sur les attributs disponibles
+                                    market_value = player.get('market_value', 0)
+                                    # S'assurer que market_value est un nombre
+                                    if isinstance(market_value, str):
+                                        try:
+                                            # Supprimer symboles monétaires et convertir en nombre
+                                            market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                                        except:
+                                            market_value = 0
+
+                                    age_factor = (age_max - player_age + 1) / 10  # Plus jeune = meilleur facteur
+                                    
+                                    # Le score combine valeur marchande et jeunesse
+                                    player['talent_score'] = float(market_value) * age_factor
+                                    
+                                    all_young_players.append(player)
+                    
+                    # Trier par score de talent et limiter le nombre
+                    all_young_players.sort(key=lambda x: x.get('talent_score', 0), reverse=True)
+                    top_talents = all_young_players[:limit]
+                    
+                    logger.info(f"Identification de {len(top_talents)} jeunes talents dans la compétition {competition_id}")
+            
+            except Exception as e:
+                logger.error(f"Erreur lors de la recherche des jeunes talents: {e}")
+        
+        # Si pas de données réelles ou erreur, utiliser des données simulées
+        if not top_talents:
+            logger.warning("Utilisation de données simulées pour les jeunes talents")
+            # Générer des données simulées
+            top_talents = self._generate_simulated_talents(limit)
+        
+        return top_talents
+    
     def track_youth_player_development(self, player_id, timeframe_months=6):
         """
         Suivre le développement d'un jeune joueur sur une période donnée.
+        Utilise les données réelles de Transfermarkt quand elles sont disponibles.
         
         Args:
             player_id (str): Identifiant du joueur à suivre
