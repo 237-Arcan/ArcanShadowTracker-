@@ -792,16 +792,62 @@ class CollapseDetector:
         return max(0.1, min(0.9, base_score))
     
     def _analyze_squad_vulnerability(self, team_data):
-        """Analyser la vulnérabilité de l'effectif aux effondrements."""
-        # Dans une implémentation réelle, cela utiliserait des données d'équipe réelles
-        # Ici, nous simulons pour l'exemple
-        
+        """
+        Analyser la vulnérabilité de l'effectif aux effondrements.
+        Utilise les données réelles de Transfermarkt quand disponibles.
+        """
+        # Base de l'analyse
         squad_analysis = {
             'vulnerability_score': 0.5,  # Score neutre par défaut
             'key_factors': [],
             'strengths': [],
             'weaknesses': []
         }
+        
+        # Enrichir les données d'équipe avec Transfermarkt si possible
+        enriched_data = team_data.copy()
+        if self.use_real_data and 'id' in team_data:
+            try:
+                team_id = team_data.get('id')
+                logger.info(f"CollapseDetector: Récupération des données Transfermarkt pour l'équipe {team_id}")
+                
+                # Récupérer le profil de l'équipe
+                club_profile = self.transfermarkt.get_club_profile(team_id)
+                if 'status' not in club_profile or club_profile['status'] != 'error':
+                    # Fusionner les données de profil
+                    for key, value in club_profile.items():
+                        if key not in enriched_data:
+                            enriched_data[key] = value
+                    
+                    # Récupérer les joueurs de l'équipe
+                    club_players = self.transfermarkt.get_club_players(team_id)
+                    if 'status' not in club_players or club_players['status'] != 'error':
+                        # Remplacer la liste des joueurs si disponible
+                        if 'squad' in club_players and club_players['squad']:
+                            enriched_data['squad'] = club_players['squad']
+                            logger.info(f"Données de joueurs enrichies avec Transfermarkt: {len(enriched_data['squad'])} joueurs")
+                            
+                            # Identifier et ajouter les joueurs clés à l'analyse
+                            key_players = self._identify_key_players_from_data(enriched_data)
+                            if key_players:
+                                squad_analysis['key_players'] = key_players
+                                
+                                # Évaluer la dépendance aux joueurs clés
+                                key_players_dep = self._calculate_key_players_dependence(key_players, enriched_data)
+                                squad_analysis['key_players_dependence'] = key_players_dep
+                                
+                                if key_players_dep > 0.7:
+                                    squad_analysis['key_factors'].append({
+                                        'name': 'high_dependence_on_key_players',
+                                        'impact': 0.2,
+                                        'description': 'Forte dépendance envers certains joueurs clés'
+                                    })
+                                    squad_analysis['weaknesses'].append('Dépendance excessive aux joueurs vedettes')
+                                    squad_analysis['vulnerability_score'] += 0.1
+                
+            except Exception as e:
+                logger.error(f"Erreur lors de l'enrichissement des données avec Transfermarkt: {e}")
+                # Continuer avec les données existantes
         
         # Facteurs simulés (dans une implémentation réelle, ces données viendraient de l'équipe)
         experience_level = random.uniform(0.3, 0.9)
@@ -1088,6 +1134,156 @@ class CollapseDetector:
     def _evaluate_experience_relevance(self, match_data):
         """Évaluer la pertinence du facteur expérience pour le match."""
         return random.uniform(0.5, 0.9)
+        
+    def _identify_key_players_from_data(self, team_data):
+        """
+        Identifie les joueurs clés d'une équipe en utilisant les données de Transfermarkt.
+        
+        Args:
+            team_data (dict): Données de l'équipe incluant les joueurs
+            
+        Returns:
+            list: Liste des joueurs clés identifiés
+        """
+        key_players = []
+        
+        if 'squad' not in team_data or not team_data['squad']:
+            return key_players
+            
+        squad = team_data['squad']
+        
+        # Paramètres pour déterminer l'importance des joueurs
+        market_value_weight = 0.4
+        age_weight = 0.2
+        position_weights = {
+            'Gardien': 0.8,           # Un gardien clé a un impact majeur
+            'Défenseur central': 0.7,  # Position défensive centrale importante
+            'Milieu défensif': 0.75,   # Rôle charnière dans l'équipe
+            'Milieu central': 0.8,     # Organisation du jeu
+            'Milieu offensif': 0.85,   # Création et connexion avec l'attaque
+            'Attaquant': 0.9           # Buteurs importants
+        }
+        
+        # Parcourir l'effectif
+        for player in squad:
+            if not isinstance(player, dict):
+                continue
+                
+            player_importance = 0.5  # Score de base
+            
+            # Facteur 1: Valeur marchande
+            market_value = player.get('market_value', 0)
+            if isinstance(market_value, str):
+                try:
+                    # Convertir la valeur marchande en nombre
+                    market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                except:
+                    market_value = 0
+                    
+            # Normaliser la valeur marchande (supposons max 50M = 1.0)
+            normalized_value = min(1.0, float(market_value) / 50000000)
+            player_importance += normalized_value * market_value_weight
+            
+            # Facteur 2: Position
+            position = player.get('position', '')
+            position_importance = 0.6  # Valeur par défaut
+            
+            for key_position, weight in position_weights.items():
+                if key_position.lower() in position.lower():
+                    position_importance = weight
+                    break
+                    
+            player_importance *= position_importance
+            
+            # Facteur 3: Âge et expérience
+            age = player.get('age', 25)
+            try:
+                age = int(age)
+            except:
+                age = 25
+                
+            # Prime d'expérience pour les joueurs entre 26 et 32 ans
+            if 26 <= age <= 32:
+                experience_bonus = min(0.2, (age - 25) * 0.04)
+                player_importance += experience_bonus * age_weight
+            
+            # Si le joueur est important, l'ajouter à la liste
+            if player_importance > 0.65:
+                key_player = {
+                    'id': player.get('id', ''),
+                    'name': player.get('name', 'Inconnu'),
+                    'position': position,
+                    'age': age,
+                    'market_value': market_value,
+                    'importance_score': player_importance,
+                    'is_captain': player.get('is_captain', False)
+                }
+                
+                key_players.append(key_player)
+        
+        # Trier par importance décroissante
+        key_players.sort(key=lambda x: x['importance_score'], reverse=True)
+        
+        # Limiter aux 3-5 joueurs les plus importants
+        return key_players[:min(5, len(key_players))]
+    
+    def _calculate_key_players_dependence(self, key_players, team_data):
+        """
+        Calcule le degré de dépendance d'une équipe envers ses joueurs clés.
+        
+        Args:
+            key_players (list): Liste des joueurs clés identifiés
+            team_data (dict): Données complètes de l'équipe
+            
+        Returns:
+            float: Score de dépendance (0-1)
+        """
+        if not key_players:
+            return 0.5  # Valeur moyenne par défaut
+            
+        # Nombre total de joueurs
+        squad_size = len(team_data.get('squad', []))
+        if squad_size == 0:
+            return 0.5
+            
+        # Valeur totale de l'équipe
+        total_team_value = 0
+        key_players_value = 0
+        
+        for player in team_data.get('squad', []):
+            if not isinstance(player, dict):
+                continue
+                
+            # Récupérer la valeur marchande
+            market_value = player.get('market_value', 0)
+            if isinstance(market_value, str):
+                try:
+                    market_value = float(''.join(c for c in market_value if c.isdigit() or c == '.'))
+                except:
+                    market_value = 0
+                    
+            total_team_value += float(market_value)
+            
+        # Valeur des joueurs clés
+        for key_player in key_players:
+            key_players_value += float(key_player.get('market_value', 0))
+            
+        # Calculer la proportion de valeur des joueurs clés
+        value_proportion = 0.5  # Valeur par défaut
+        if total_team_value > 0:
+            value_proportion = key_players_value / total_team_value
+            
+        # Nombres de joueurs clés par rapport à l'effectif
+        player_proportion = min(1.0, len(key_players) / (squad_size * 0.2))  # 20% de l'effectif comme référence
+        
+        # Score de dépendance entre 0 et 1
+        dependence_score = (value_proportion * 0.7) + (player_proportion * 0.3)
+        
+        # Bonus pour les équipes avec très peu de joueurs clés (plus dépendantes)
+        if len(key_players) <= 2 and squad_size > 15:
+            dependence_score += 0.15
+            
+        return min(1.0, dependence_score)
     
     def _evaluate_tactical_flexibility(self, team_data):
         """Évaluer la flexibilité tactique de l'équipe."""
