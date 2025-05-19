@@ -429,19 +429,29 @@ with tabs[1]:
         display_daily_combo_tab()
     
 with tabs[2]:
-    # Utiliser la version améliorée de l'onglet Système d'Apprentissage si disponible
-    if ENHANCED_LEARNING_SYSTEM_AVAILABLE and display_enhanced_learning_system_tab is not None:
-        st.info("🌟 Version enrichie avec données multi-sources activée")
-        try:
-            display_enhanced_learning_system_tab()
-        except Exception as e:
-            st.error(f"Erreur lors de l'affichage de l'onglet Système d'Apprentissage enrichi: {e}")
+    # Utiliser notre nouvel onglet de Système d'Apprentissage avec le hub d'intégration central
+    try:
+        # Importer le module Système d'Apprentissage amélioré
+        from learning_system_tab_enhanced import display_enhanced_learning_system_tab
+        st.info("🌟 Version enrichie avec hub d'intégration central activée")
+        display_enhanced_learning_system_tab()
+    except Exception as e:
+        st.error(f"Erreur lors de l'affichage de l'onglet Système d'Apprentissage amélioré: {e}")
+        
+        # Fallback à la version avec composants enrichis si disponible
+        if ENHANCED_LEARNING_SYSTEM_AVAILABLE and display_enhanced_learning_system_tab is not None:
+            st.warning("Retour à l'interface standard enrichie en raison d'une erreur")
+            try:
+                display_enhanced_learning_system_tab()
+            except Exception as e2:
+                st.error(f"Erreur lors de l'affichage de l'onglet Système d'Apprentissage enrichi: {e2}")
+                display_learning_system_tab()
+        else:
+            # Afficher un indicateur si les composants enrichis sont utilisés
+            if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
+                st.info("🌟 Données multi-sources intégrées au système d'apprentissage")
+            st.warning("Retour à l'interface standard en raison d'une erreur")
             display_learning_system_tab()
-    else:
-        # Afficher un indicateur si les composants enrichis sont utilisés pour le Système d'Apprentissage
-        if ENHANCED_PREDICTIONS_AVAILABLE or ENHANCED_SENTIMENT_AVAILABLE:
-            st.info("🌟 Données multi-sources intégrées au système d'apprentissage")
-        display_learning_system_tab()
     
 with tabs[3]:
     # Utiliser la version améliorée de l'onglet Notifications si disponible
