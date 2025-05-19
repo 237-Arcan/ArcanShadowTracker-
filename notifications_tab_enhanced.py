@@ -110,7 +110,16 @@ def generate_enhanced_notifications(count=10):
             
             if odds_analyzer:
                 # Utiliser l'analyseur amélioré pour obtenir une analyse plus précise
-                matches = data_hub.get_upcoming_matches(days_ahead=1)
+                try:
+                    # Essayons d'abord avec days_ahead
+                    matches = data_hub.get_upcoming_matches(days_ahead=1)
+                except TypeError:
+                    try:
+                        # Essayons avec days
+                        matches = data_hub.get_upcoming_matches(days=1)
+                    except (TypeError, AttributeError):
+                        # Si aucune méthode ne fonctionne, utilisons une liste vide
+                        matches = []
                 if matches:
                     match = random.choice(matches)
                     analysis = odds_analyzer.analyze_match_odds(

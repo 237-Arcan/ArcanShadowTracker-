@@ -60,7 +60,16 @@ def generate_daily_combo(max_matches=3, min_odds=1.2, max_odds=2.0):
     odds_analyzer = ShadowOddsPlusEnhanced if ShadowOddsPlusEnhanced else None
     
     # Récupération des matchs du jour avec données enrichies
-    today_matches = data_hub.get_upcoming_matches(days_ahead=1)
+    try:
+        # Essayons d'abord avec days_ahead
+        today_matches = data_hub.get_upcoming_matches(days_ahead=1)
+    except TypeError:
+        try:
+            # Essayons avec days
+            today_matches = data_hub.get_upcoming_matches(days=1)
+        except (TypeError, AttributeError):
+            # Si aucune méthode ne fonctionne, utilisons une liste vide
+            today_matches = []
     
     # Si aucun match n'est disponible via l'API, utiliser des matchs simulés
     if not today_matches:
