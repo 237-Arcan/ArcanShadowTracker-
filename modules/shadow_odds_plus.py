@@ -1,12 +1,21 @@
 """
 ShadowOdds+ - Module d'analyse avancée des cotes asiatiques et comportements spéciaux.
 Extension du module ShadowOdds avec capacités d'analyse supplémentaires.
+Intègre des données réelles de Transfermarkt pour une analyse plus précise.
 """
 
 import random
 import numpy as np
+import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
+
+# Intégration de l'adaptateur Transfermarkt
+from api.transfermarkt_adapter import TransfermarktAdapter
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ShadowOddsPlus:
     """
