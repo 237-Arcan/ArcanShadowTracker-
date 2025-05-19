@@ -187,10 +187,10 @@ def generate_enhanced_match_probabilities(match_id, home_team, away_team, home_t
     
     # Retomber sur la méthode traditionnelle si les nouvelles sources ne sont pas disponibles
     # ou si une erreur s'est produite
-    return generate_match_probabilities(match_id, home_team, away_team, home_team_id, away_team_id, league_id)
+    return generate_match_probabilities(match_id, home_team, away_team, home_team_id, away_team_id, leagues=leagues, league_id=league_id)
 
 # Fonction originale pour générer des probabilités pour un match (comme fallback)
-def generate_match_probabilities(match_id, home_team, away_team, home_team_id=None, away_team_id=None, league_id=None):
+def generate_match_probabilities(match_id, home_team, away_team, home_team_id=None, away_team_id=None, leagues=None, league_id=None):
     """
     Génère des probabilités pour un match spécifique.
     Utilise des données réelles lorsque disponibles pour améliorer la précision,
